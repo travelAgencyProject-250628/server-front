@@ -1,8 +1,9 @@
 <script setup>
+import { RouterView } from 'vue-router'
 </script>
 
 <template>
-  <h1>여행사 홈페이지(프론트)</h1>
+  <RouterView />
 </template>
 
 <style scoped>
