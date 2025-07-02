@@ -48,7 +48,7 @@
 
       <!-- 사용자 메뉴 -->
       <div class="user-menu">
-        <button class="btn-secondary">로그인</button>
+        <router-link to="/login" class="btn-secondary">로그인</router-link>
         <router-link to="/join" class="btn-secondary">회원가입</router-link>
         <button class="btn-primary">예약확인</button>
       </div>
@@ -69,7 +69,7 @@
         <li><a href="#" @click="closeMobileMenu">버스여행3</a></li>
         <li><a href="#" @click="closeMobileMenu">버스여행4</a></li>
         <li class="mobile-user-menu">
-          <button class="btn-secondary">로그인</button>
+          <router-link to="/login" class="btn-secondary">로그인</router-link>
           <router-link to="/join" class="btn-secondary">회원가입</router-link>
           <button class="btn-primary">예약확인</button>
         </li>

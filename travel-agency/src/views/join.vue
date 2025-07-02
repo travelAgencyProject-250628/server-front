@@ -144,7 +144,7 @@
                                 <div v-if="errors.address" class="error-message">{{ errors.address }}</div>
                             </div>
 
-                            <!-- <div class="form-row">
+                            <div class="form-row">
                                 <label class="form-label required">
                                     <span class="required-icon">⦁</span>
                                     SMS 수신여부
@@ -166,7 +166,7 @@
                                         * 수신동의시 신상품 및 할인상품정보 (SMS)받아드립니다
                                     </p>
                                 </div>
-                            </div> -->
+                            </div>
                         </div>
 
                         <!-- 약관동의 -->
@@ -492,7 +492,8 @@ watch([() => formData.agreePrivacy, () => formData.agreePolicy, () => formData.a
 .btn-secondary,
 .btn-check,
 .btn-terms,
-.btn-submit {
+.btn-submit,
+.btn-cancel {
     border: none;
     border-radius: var(--border-radius);
     padding: 0.5rem 1rem;
@@ -530,7 +531,6 @@ watch([() => formData.agreePrivacy, () => formData.agreePolicy, () => formData.a
 /* 메인 컨텐츠 */
 .main-content {
     min-height: calc(100vh - 200px);
-    background: var(--bg-light);
     padding: 2rem 0;
 }
 
@@ -583,7 +583,6 @@ watch([() => formData.agreePrivacy, () => formData.agreePolicy, () => formData.a
 }
 
 .required-mark {
-    background: var(--error-color);
     color: var(--text-primary);
     padding: 0.2rem 0.5rem;
     border-radius: 4px;
@@ -595,7 +594,7 @@ watch([() => formData.agreePrivacy, () => formData.agreePolicy, () => formData.a
 /* 폼 필드 */
 .form-row {
     display: flex;
-    margin-bottom: 1.2rem;
+    margin-bottom: 1.5rem;
     align-items: flex-start;
 }
 
@@ -678,13 +677,13 @@ watch([() => formData.agreePrivacy, () => formData.agreePolicy, () => formData.a
 .address-group {
     display: flex;
     flex-direction: column;
-    gap: 0.5rem;
+    gap: 0.57rem;
 }
 
 .id-row, .address-row {
     display: flex;
     align-items: center;
-    gap: 0.5rem;
+    gap: 1rem;
 }
 
 .zipcode-input {
@@ -788,11 +787,10 @@ watch([() => formData.agreePrivacy, () => formData.agreePolicy, () => formData.a
     width: 100%;
 }
 
-.btn-check,
-.btn-terms {
+.btn-check {
     background: #a0a0a0;
     color: white;
-    padding: 0.5rem 1rem;
+    padding: 0.7rem 1rem;
     font-size: 0.875rem;
     border: none;
     border-radius: 4px;
@@ -802,9 +800,27 @@ watch([() => formData.agreePrivacy, () => formData.agreePolicy, () => formData.a
     line-height: 1.5;
 }
 
-.btn-check:hover,
-.btn-terms:hover {
+.btn-check:hover {
     background: #888888;
+}
+
+.btn-terms {
+    background: white;
+    color: black;
+    padding: 0.4rem 0.8rem;
+    font-size: 0.75rem;
+    border: 1px solid rgb(180, 180, 180, 0.5);
+    border-radius: 6px;
+    cursor: pointer;
+    transition: var(--transition);
+    white-space: nowrap;
+    line-height: 1.2;
+    font-weight: 500;
+    min-width: 60px;
+}
+
+.btn-terms:hover {
+    border: 1px solid #888888;
 }
 
 /* 제출 버튼 */
