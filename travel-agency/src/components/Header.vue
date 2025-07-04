@@ -11,36 +11,18 @@
       <!-- 데스크톱 네비게이션 -->
       <nav class="nav-desktop">
         <ul class="nav-menu">
-          <li class="nav-item dropdown">
-            <a href="#" class="nav-link">버스여행1</a>
+          <li 
+            v-for="category in categoryStore.categories" 
+            :key="category.id"
+            class="nav-item dropdown"
+          >
+            <a href="#" class="nav-link" @click="handleCategoryClick(category)">
+              {{ category.name }}
+            </a>
             <ul class="dropdown-menu">
-              <li><a href="#">당일여행</a></li>
-              <li><a href="#">1박2일</a></li>
-              <li><a href="#">2박3일</a></li>
-            </ul>
-          </li>
-          <li class="nav-item dropdown">
-            <a href="#" class="nav-link">버스여행2</a>
-            <ul class="dropdown-menu">
-              <li><a href="#">국내여행</a></li>
-              <li><a href="#">테마여행</a></li>
-              <li><a href="#">효도여행</a></li>
-            </ul>
-          </li>
-          <li class="nav-item dropdown">
-            <a href="#" class="nav-link">버스여행3</a>
-            <ul class="dropdown-menu">
-              <li><a href="#">단체여행</a></li>
-              <li><a href="#">워크샵</a></li>
-              <li><a href="#">수학여행</a></li>
-            </ul>
-          </li>
-          <li class="nav-item dropdown">
-            <a href="#" class="nav-link">버스여행4</a>
-            <ul class="dropdown-menu">
-              <li><a href="#">해외여행</a></li>
-              <li><a href="#">크루즈</a></li>
-              <li><a href="#">골프여행</a></li>
+              <li><a href="#" @click="handleSubCategoryClick(category, '당일여행')">당일여행</a></li>
+              <li><a href="#" @click="handleSubCategoryClick(category, '1박2일')">1박2일</a></li>
+              <li><a href="#" @click="handleSubCategoryClick(category, '2박3일')">2박3일</a></li>
             </ul>
           </li>
         </ul>
@@ -73,10 +55,14 @@
     <!-- 모바일 네비게이션 -->
     <nav class="nav-mobile" :class="{ active: mobileMenuOpen }">
       <ul class="mobile-nav-menu">
-        <li><a href="#" @click="closeMobileMenu">버스여행1</a></li>
-        <li><a href="#" @click="closeMobileMenu">버스여행2</a></li>
-        <li><a href="#" @click="closeMobileMenu">버스여행3</a></li>
-        <li><a href="#" @click="closeMobileMenu">버스여행4</a></li>
+        <li 
+          v-for="category in categoryStore.categories" 
+          :key="category.id"
+        >
+          <a href="#" @click="handleCategoryClick(category); closeMobileMenu()">
+            {{ category.name }}
+          </a>
+        </li>
         <li class="mobile-user-menu">
           <!-- 로그인되지 않은 경우 -->
           <template v-if="!isLoggedIn">
@@ -97,10 +83,12 @@
 </template>
 
 <script setup>
-import { ref, computed } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { useAuthStore } from '../stores/auth.js'
+import { useCategoryStore } from '../stores/categories.js'
 
 const authStore = useAuthStore()
+const categoryStore = useCategoryStore()
 
 // 반응형 데이터
 const mobileMenuOpen = ref(false)
@@ -124,6 +112,23 @@ const handleLogout = async () => {
     closeMobileMenu()
   }
 }
+
+const handleCategoryClick = (category) => {
+  console.log('카테고리 클릭:', category)
+  // 카테고리별 상품 페이지로 이동하는 로직
+  alert(`${category.name} 카테고리의 상품을 불러오는 중입니다.`)
+}
+
+const handleSubCategoryClick = (category, subCategory) => {
+  console.log('서브카테고리 클릭:', category, subCategory)
+  // 서브카테고리별 상품 페이지로 이동하는 로직
+  alert(`${category.name} - ${subCategory} 상품을 불러오는 중입니다.`)
+}
+
+// 컴포넌트 마운트 시 카테고리 데이터 불러오기
+onMounted(async () => {
+  await categoryStore.fetchCategories()
+})
 </script>
 
 <style scoped>
