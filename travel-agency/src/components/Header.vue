@@ -48,9 +48,18 @@
 
       <!-- 사용자 메뉴 -->
       <div class="user-menu">
-        <router-link to="/login" class="btn-secondary">로그인</router-link>
-        <router-link to="/join" class="btn-secondary">회원가입</router-link>
-        <button class="btn-primary">예약확인</button>
+        <!-- 로그인되지 않은 경우 -->
+        <template v-if="!isLoggedIn">
+          <router-link to="/login" class="btn-secondary">로그인</router-link>
+          <router-link to="/join" class="btn-secondary">회원가입</router-link>
+          <button class="btn-primary">예약확인</button>
+        </template>
+        
+        <!-- 로그인된 경우 -->
+        <template v-else>
+          <router-link to="#" class="btn-secondary">마이페이지</router-link>
+          <button @click="handleLogout" class="btn-secondary">로그아웃</button>
+        </template>
       </div>
 
       <!-- 모바일 햄버거 메뉴 -->
@@ -69,9 +78,18 @@
         <li><a href="#" @click="closeMobileMenu">버스여행3</a></li>
         <li><a href="#" @click="closeMobileMenu">버스여행4</a></li>
         <li class="mobile-user-menu">
-          <router-link to="/login" class="btn-secondary">로그인</router-link>
-          <router-link to="/join" class="btn-secondary">회원가입</router-link>
-          <button class="btn-primary">예약확인</button>
+          <!-- 로그인되지 않은 경우 -->
+          <template v-if="!isLoggedIn">
+            <router-link to="/login" class="btn-secondary" @click="closeMobileMenu">로그인</router-link>
+            <router-link to="/join" class="btn-secondary" @click="closeMobileMenu">회원가입</router-link>
+            <button class="btn-primary">예약확인</button>
+          </template>
+          
+                  <!-- 로그인된 경우 -->
+        <template v-else>
+          <router-link to="/mypage" class="btn-secondary" @click="closeMobileMenu">마이페이지</router-link>
+          <button @click="handleLogout" class="btn-secondary">로그아웃</button>
+        </template>
         </li>
       </ul>
     </nav>
@@ -79,10 +97,17 @@
 </template>
 
 <script setup>
-import { ref } from 'vue'
+import { ref, computed } from 'vue'
+import { useAuthStore } from '../stores/auth.js'
+
+const authStore = useAuthStore()
 
 // 반응형 데이터
 const mobileMenuOpen = ref(false)
+
+// 계산된 속성
+const isLoggedIn = computed(() => authStore.isAuthenticated)
+const currentUser = computed(() => authStore.user)
 
 // 메서드들
 const toggleMobileMenu = () => {
@@ -91,6 +116,13 @@ const toggleMobileMenu = () => {
 
 const closeMobileMenu = () => {
   mobileMenuOpen.value = false
+}
+
+const handleLogout = async () => {
+  if (confirm('로그아웃하시겠습니까?')) {
+    await authStore.signOut()
+    closeMobileMenu()
+  }
 }
 </script>
 
@@ -220,6 +252,7 @@ const closeMobileMenu = () => {
   border: none;
   border-radius: var(--border-radius);
   padding: 0.5rem 1rem;
+  font-size: 0.875rem;
   font-weight: 500;
   cursor: pointer;
   transition: var(--transition);
