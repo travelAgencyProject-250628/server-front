@@ -1,8 +1,5 @@
 <template>
     <div class="find-account-page">
-        <!-- 헤더 영역 -->
-        <Header />
-
         <!-- 메인 컨텐츠 -->
         <main class="main-content">
             <div class="container">
@@ -148,16 +145,12 @@
             </div>
         </main>
 
-        <!-- 푸터 -->
-        <Footer />
     </div>
 </template>
 
 <script setup>
 import { ref, reactive, onMounted } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
-import Header from '../components/Header.vue'
-import Footer from '../components/Footer.vue'
 
 // 라우터 사용
 const router = useRouter()

@@ -18,6 +18,10 @@ const router = createRouter({
     {
       path: '/find-account',
       component: () => import('@/views/findAccount.vue')
+    },
+    {
+      path: '/product/:id',
+      component: () => import('@/views/productDetail.vue')
     }
   ],
 })

@@ -1,8 +1,5 @@
 <template>
     <div class="join-page">
-        <!-- 헤더 영역 -->
-        <Header />
-
         <!-- 메인 컨텐츠 -->
         <main class="main-content">
             <div class="container">
@@ -240,17 +237,12 @@
                 </div>
             </div>
         </main>
-
-        <!-- 푸터 -->
-        <Footer />
     </div>
 </template>
 
 <script setup>
 import { ref, reactive, watch } from 'vue'
 import { useRouter } from 'vue-router'
-import Header from '../components/Header.vue'
-import Footer from '../components/Footer.vue'
 
 // 라우터 사용
 const router = useRouter()
@@ -573,7 +565,7 @@ watch([() => formData.agreePrivacy, () => formData.agreePolicy, () => formData.a
     font-size: 1.4rem;
     font-weight: 700;
     color: var(--text-primary);
-    margin-bottom: 1rem;
+    margin-bottom: 2rem;
     padding-bottom: 1rem;
     border-bottom: 1px solid #ddd;
 }
@@ -677,7 +669,7 @@ watch([() => formData.agreePrivacy, () => formData.agreePolicy, () => formData.a
 .address-group {
     display: flex;
     flex-direction: column;
-    gap: 0.57rem;
+    gap: 0.9rem;
 }
 
 .id-row, .address-row {
@@ -851,7 +843,6 @@ watch([() => formData.agreePrivacy, () => formData.agreePolicy, () => formData.a
     border: none;
 }
 
-/* 푸터 스타일 - Footer 컴포넌트로 이동 */
 
 /* 반응형 디자인 */
 @media (max-width: 768px) {
