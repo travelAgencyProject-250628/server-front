@@ -6,14 +6,27 @@ export class AuthService {
   }
 
   // 회원가입
-  async signUp(userData) {
+  async signUp(userData, authData) {
     try {
       console.log('회원가입 시작:', userData)
+      console.log('Auth 데이터:', authData)
       
-      // 1. Supabase Auth에 최소한의 정보만 저장 (이메일, 비밀번호)
-      const { data: authData, error: authError } = await this.supabase.auth.signUp({
-        email: userData.email,
-        password: userData.user_password
+      // authData 유효성 검사
+      if (!authData || !authData.email || !authData.password) {
+        throw new Error('이메일과 비밀번호가 필요합니다.')
+      }
+      
+      // 1. Supabase Auth에 user_id를 이메일 형태로 저장
+      const authEmail = `${userData.user_id}@travel-agency.local`
+      const { data: authResult, error: authError } = await this.supabase.auth.signUp({
+        email: authEmail,
+        password: authData.password,
+        options: {
+          data: {
+            user_id: userData.user_id,
+            real_email: authData.email  // 실제 이메일은 metadata에 저장
+          }
+        }
       })
 
       if (authError) {
@@ -21,9 +34,9 @@ export class AuthService {
         throw authError
       }
 
-      console.log('Auth 생성 성공:', authData)
+      console.log('Auth 생성 성공:', authResult)
 
-      // 2. User 테이블에 상세 정보 저장
+      // 2. User 테이블에 상세 정보 저장 (비밀번호 제외)
       const { data: userTableData, error: userTableError } = await this.supabase
         .from('User')
         .insert([userData])
@@ -36,15 +49,39 @@ export class AuthService {
 
       console.log('User 테이블 저장 성공:', userTableData[0])
 
-      // 3. 회원가입 후 자동 로그인
-      const loginResult = await this.signIn(userData.user_id, userData.user_password)
+      // 3. 회원가입 후 자동 로그인 시도 (이메일 확인 없이)
+      let loginResult = null
+      try {
+        // 이메일 확인 없이 직접 로그인 시도
+        const authEmail = `${userData.user_id}@travel-agency.local`
+        const { data: signInData, error: signInError } = await this.supabase.auth.signInWithPassword({
+          email: authEmail,
+          password: authData.password
+        })
+
+        if (signInError) {
+          console.error('자동 로그인 실패:', signInError)
+          loginResult = { success: false, error: signInError.message }
+        } else {
+          console.log('자동 로그인 성공:', signInData)
+          loginResult = { 
+            success: true, 
+            session: signInData.session,
+            user: userTableData[0]
+          }
+        }
+      } catch (loginError) {
+        console.error('자동 로그인 실패:', loginError)
+        loginResult = { success: false, error: loginError.message }
+      }
       
       return {
         success: true,
         message: '회원가입이 완료되었습니다.',
         user: userTableData[0],
-        autoLogin: loginResult.success,
-        session: loginResult.session
+        autoLogin: loginResult?.success || false,
+        session: loginResult?.session || null,
+        loginError: loginResult?.error || null
       }
     } catch (error) {
       console.error('회원가입 오류:', error)
@@ -61,51 +98,49 @@ export class AuthService {
     try {
       console.log('로그인 시도:', userId)
       
-      // 1. user_id로 User 테이블에서 이메일 조회
+      // 1. user_id로 User 테이블에서 사용자 존재 확인
       const { data: userData, error: userError } = await this.supabase
-        .from('User')
-        .select('email')
-        .eq('user_id', userId)
-        .single()
-
-      if (userError || !userData) {
-        console.error('사용자 조회 실패:', userError)
-        throw new Error('존재하지 않는 사용자입니다.')
-      }
-
-      console.log('사용자 이메일 조회 성공:', userData.email)
-
-      // 2. Supabase Auth로 로그인 (이메일, 비밀번호)
-      const { data, error } = await this.supabase.auth.signInWithPassword({
-        email: userData.email,
-        password: password
-      })
-
-      if (error) {
-        console.error('Auth 로그인 실패:', error)
-        throw error
-      }
-
-      console.log('Auth 로그인 성공')
-
-      // 3. 로그인 성공 시 User 테이블에서 상세 정보 조회
-      const { data: userInfo, error: userInfoError } = await this.supabase
         .from('User')
         .select('*')
         .eq('user_id', userId)
         .single()
 
-      if (userInfoError) {
-        console.error('사용자 정보 조회 실패:', userInfoError)
-        throw userInfoError
+      if (userError) {
+        console.error('사용자 조회 실패:', userError)
+        if (userError.code === 'PGRST116') {
+          throw new Error('존재하지 않는 사용자입니다.')
+        }
+        throw new Error(`사용자 조회 오류: ${userError.message}`)
       }
 
-      console.log('사용자 정보 조회 성공:', userInfo)
+      if (!userData) {
+        console.error('사용자 데이터 없음:', userData)
+        throw new Error('사용자 정보를 찾을 수 없습니다.')
+      }
+
+      console.log('사용자 확인 성공:', userData.user_id)
+
+      // 2. Supabase Auth로 로그인 (user_id@travel-agency.local, 비밀번호)
+      const authEmail = `${userId}@travel-agency.local`
+      const { data, error } = await this.supabase.auth.signInWithPassword({
+        email: authEmail,
+        password: password
+      })
+
+      if (error) {
+        console.error('Auth 로그인 실패:', error)
+        if (error.message.includes('Invalid login credentials')) {
+          throw new Error('아이디 또는 비밀번호가 올바르지 않습니다.')
+        }
+        throw new Error(`로그인 오류: ${error.message}`)
+      }
+
+      console.log('Auth 로그인 성공:', data)
 
       return {
         success: true,
         message: '로그인되었습니다.',
-        user: userInfo,
+        user: userData,
         session: data.session
       }
     } catch (error) {
@@ -113,7 +148,7 @@ export class AuthService {
       return {
         success: false,
         error: error.message,
-        message: '로그인에 실패했습니다.'
+        message: error.message
       }
     }
   }

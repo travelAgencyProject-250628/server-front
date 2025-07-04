@@ -13,16 +13,21 @@ export const useAuthStore = defineStore('auth', () => {
   const isAdmin = computed(() => user.value?.role === 'admin')
 
   // 액션
-  const signUp = async (userData) => {
+  const signUp = async (userData, authData) => {
     loading.value = true
     error.value = null
     
     try {
-      const result = await authService.signUp(userData)
+      const result = await authService.signUp(userData, authData)
       
       if (result.success) {
         user.value = result.user
-        return { success: true, message: result.message }
+        return { 
+          success: true, 
+          message: result.message,
+          autoLogin: result.autoLogin,
+          session: result.session
+        }
       } else {
         error.value = result.error
         return { success: false, message: result.message }

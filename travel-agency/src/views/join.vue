@@ -439,10 +439,9 @@ const handleSubmit = async () => {
         return
     }
 
-    // Supabase User 테이블 형식에 맞게 데이터 변환
+    // Supabase User 테이블 형식에 맞게 데이터 변환 (비밀번호 제외)
     const userData = {
         user_id: formData.userId.trim(),
-        user_password: formData.password,
         name: formData.name.trim(),
         phone_number: (formData.phone1 && formData.phone2 && formData.phone3) 
             ? `${formData.phone1}-${formData.phone2}-${formData.phone3}` 
@@ -456,17 +455,27 @@ const handleSubmit = async () => {
         agree_terms: true
     }
 
+    // Auth용 데이터 (이메일, 비밀번호만)
+    const authData = {
+        email: formData.email.trim().toLowerCase(),
+        password: formData.password
+    }
+
     console.log('전송할 데이터:', userData)
 
     try {
-        const result = await authStore.signUp(userData)
+        const result = await authStore.signUp(userData, authData)
         
         if (result.success) {
             if (result.autoLogin) {
-                alert('회원가입이 완료되었습니다!')
+                alert('회원가입이 완료되었습니다! 자동으로 로그인되었습니다.')
                 router.push('/')
             } else {
-                alert('회원가입이 완료되었습니다! 로그인 페이지로 이동합니다.')
+                if (result.loginError) {
+                    alert(`회원가입이 완료되었습니다! 자동 로그인에 실패했습니다: ${result.loginError}\n로그인 페이지에서 직접 로그인해주세요.`)
+                } else {
+                    alert('회원가입이 완료되었습니다! 로그인 페이지로 이동합니다.')
+                }
                 router.push('/login')
             }
         } else {
