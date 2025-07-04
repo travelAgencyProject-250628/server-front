@@ -188,11 +188,15 @@ export class AuthService {
 
       console.log('Auth 사용자 확인:', user.email)
 
+      // user_id 추출 (user_id@travel-agency.local 형태에서)
+      const userId = user.email.split('@')[0]
+      console.log('추출된 user_id:', userId)
+
       // User 테이블에서 상세 정보 조회
       const { data: userInfo, error: userInfoError } = await this.supabase
         .from('User')
         .select('*')
-        .eq('email', user.email)
+        .eq('user_id', userId)
         .single()
 
       if (userInfoError) {

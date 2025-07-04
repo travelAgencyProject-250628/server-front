@@ -49,6 +49,10 @@ export const useAuthStore = defineStore('auth', () => {
       
       if (result.success) {
         user.value = result.user
+        // 세션 상태를 localStorage에 저장 (선택사항)
+        if (result.session) {
+          localStorage.setItem('auth_session', JSON.stringify(result.session))
+        }
         return { success: true, message: result.message }
       } else {
         error.value = result.error
@@ -71,6 +75,8 @@ export const useAuthStore = defineStore('auth', () => {
       
       if (result.success) {
         user.value = null
+        // localStorage에서 세션 정보 제거
+        localStorage.removeItem('auth_session')
         return { success: true, message: result.message }
       } else {
         error.value = result.error
@@ -144,10 +150,15 @@ export const useAuthStore = defineStore('auth', () => {
   // 인증 상태 변경 리스너 설정
   const setupAuthListener = () => {
     authService.onAuthStateChange(async (event, session) => {
+      console.log('Auth 상태 변경:', event, session)
+      
       if (event === 'SIGNED_IN' && session) {
         await getCurrentUser()
       } else if (event === 'SIGNED_OUT') {
         user.value = null
+        localStorage.removeItem('auth_session')
+      } else if (event === 'TOKEN_REFRESHED') {
+        await getCurrentUser()
       }
     })
   }
