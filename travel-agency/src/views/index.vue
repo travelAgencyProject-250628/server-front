@@ -116,7 +116,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted, onBeforeUnmount, computed } from 'vue'
+import { ref, onMounted, onBeforeUnmount, computed} from 'vue'
 import { useAuthStore } from '../stores/auth.js'
 import Header from '../components/Header.vue'
 import Footer from '../components/Footer.vue'
@@ -238,7 +238,7 @@ onBeforeUnmount(() => {
 
 <style scoped>
 /* CSS 변수 정의 */
-:root {
+.travel-site {
   --primary-color: #2563eb;
   --primary-dark: #1e40af;
   --secondary-color: #64748b;
@@ -259,6 +259,8 @@ onBeforeUnmount(() => {
   font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
   line-height: 1.6;
   color: var(--text-primary);
+  min-height: 100vh;
+  width: 100%;
 }
 
 .container {
@@ -377,6 +379,8 @@ onBeforeUnmount(() => {
   position: relative;
   height: 600px;
   overflow: hidden;
+  width: 100%;
+  display: block;
 }
 
 .hero-slider {
