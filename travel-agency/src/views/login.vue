@@ -139,11 +139,13 @@
 <script setup>
 import { ref, reactive } from 'vue'
 import { useRouter } from 'vue-router'
+import { useAuthStore } from '../stores/auth.js'
 import Header from '../components/Header.vue'
 import Footer from '../components/Footer.vue'
 
 // 라우터 사용
 const router = useRouter()
+const authStore = useAuthStore()
 
 // 반응형 데이터
 const activeTab = ref('member')
@@ -161,21 +163,23 @@ const guestData = reactive({
 })
 
 // 메서드들
-const handleLogin = () => {
+const handleLogin = async () => {
     if (!loginData.userId || !loginData.password) {
         alert('아이디와 비밀번호를 입력해주세요.')
         return
     }
 
-    // 실제로는 서버 API 호출
-    console.log('로그인 시도:', loginData)
-    
-    // 임시 로그인 로직
-    if (loginData.userId === 'admin' && loginData.password === 'admin') {
-        alert('로그인 성공!')
-        router.push('/')
-    } else {
-        alert('아이디 또는 비밀번호가 일치하지 않습니다.')
+    try {
+        const result = await authStore.signIn(loginData.userId, loginData.password)
+        
+        if (result.success) {
+            alert('로그인 성공!')
+            router.push('/')
+        } else {
+            alert(`로그인 실패: ${result.message}`)
+        }
+    } catch (error) {
+        alert(`로그인 중 오류가 발생했습니다: ${error.message}`)
     }
 }
 

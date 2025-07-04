@@ -5,6 +5,16 @@
 
     <!-- 히어로 섹션 -->
     <section class="hero">
+      <!-- 로그인된 사용자 환영 메시지 -->
+      <div v-if="isLoggedIn" class="welcome-banner">
+        <div class="container">
+          <div class="welcome-content">
+            <h3>🎉 환영합니다, {{ currentUser?.name }}님!</h3>
+            <p>회원가입이 완료되었습니다. 지금 바로 여행을 시작해보세요!</p>
+          </div>
+        </div>
+      </div>
+      
       <div class="hero-slider">
         <div class="hero-slide" :class="{ active: currentSlide === 0 }">
           <div class="hero-content">
@@ -116,9 +126,14 @@
 </template>
 
 <script setup>
-import { ref, onMounted, onBeforeUnmount } from 'vue'
+import { ref, onMounted, onBeforeUnmount, computed } from 'vue'
+import { useAuthStore } from '../stores/auth.js'
 import Header from '../components/Header.vue'
 import Footer from '../components/Footer.vue'
+
+const authStore = useAuthStore()
+const isLoggedIn = computed(() => authStore.isAuthenticated)
+const currentUser = computed(() => authStore.user)
 
 // 반응형 데이터
 const currentSlide = ref(0)
@@ -650,6 +665,25 @@ onBeforeUnmount(() => {
 }
 
 /* 푸터 스타일 - Footer 컴포넌트로 이동 */
+
+/* 환영 배너 */
+.welcome-banner {
+  background: linear-gradient(135deg, #10b981, #059669);
+  color: white;
+  padding: 1rem 0;
+  text-align: center;
+}
+
+.welcome-content h3 {
+  font-size: 1.5rem;
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+}
+
+.welcome-content p {
+  font-size: 1rem;
+  opacity: 0.9;
+}
 
 /* 반응형 디자인 */
 @media (max-width: 768px) {

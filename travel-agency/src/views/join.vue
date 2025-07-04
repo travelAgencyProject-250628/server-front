@@ -78,8 +78,8 @@
                             </div>
 
                             <div class="form-row">
-                                <label class="form-label required">
-                                    <span class="required-icon">⦁</span>
+                                <label class="form-label">
+                                    <span class="required-icon-placeholder"></span>
                                     전화번호
                                 </label>
                                 <div class="form-input-group phone-group">
@@ -249,7 +249,10 @@
 <script setup>
 import { ref, reactive, watch } from 'vue'
 import { useRouter } from 'vue-router'
+import { useAuthStore } from '../stores/auth.js'
 import Header from '../components/Header.vue'
+
+const authStore = useAuthStore()
 import Footer from '../components/Footer.vue'
 
 // 라우터 사용
@@ -315,9 +318,11 @@ const validateForm = () => {
         errors.value.name = '성명을 입력해주세요.'
     }
 
-    // 전화번호 검증
-    if (!formData.phone1 || !formData.phone2 || !formData.phone3) {
-        errors.value.phone = '전화번호를 모두 입력해주세요.'
+    // 전화번호 검증 (선택사항이므로 입력된 경우에만 검증)
+    if (formData.phone1 || formData.phone2 || formData.phone3) {
+        if (!formData.phone1 || !formData.phone2 || !formData.phone3) {
+            errors.value.phone = '전화번호를 입력하시려면 모두 입력해주세요.'
+        }
     }
 
     // 휴대전화번호 검증
@@ -422,7 +427,7 @@ const handleCancel = () => {
     }
 }
 
-const handleSubmit = () => {
+const handleSubmit = async () => {
     if (!validateForm()) {
         alert('입력 정보를 확인해주세요.')
         return
@@ -434,12 +439,42 @@ const handleSubmit = () => {
         return
     }
 
-    // 실제로는 서버로 데이터 전송
-    console.log('회원가입 데이터:', formData)
-    alert('회원가입이 완료되었습니다!')
+    // Supabase User 테이블 형식에 맞게 데이터 변환
+    const userData = {
+        user_id: formData.userId.trim(),
+        user_password: formData.password,
+        name: formData.name.trim(),
+        phone_number: (formData.phone1 && formData.phone2 && formData.phone3) 
+            ? `${formData.phone1}-${formData.phone2}-${formData.phone3}` 
+            : null,
+        mobile_number: `${formData.mobile1}-${formData.mobile2}-${formData.mobile3}`,
+        email: formData.email.trim().toLowerCase(),
+        address: formData.address1.trim(),
+        address_detail: formData.address2.trim(),
+        postal_code: formData.zipcode.trim(),
+        receive_sms: formData.smsReceive === 'Y',
+        agree_terms: true
+    }
 
-    // 메인 페이지로 이동
-    router.push('/')
+    console.log('전송할 데이터:', userData)
+
+    try {
+        const result = await authStore.signUp(userData)
+        
+        if (result.success) {
+            if (result.autoLogin) {
+                alert('회원가입이 완료되었습니다!')
+                router.push('/')
+            } else {
+                alert('회원가입이 완료되었습니다! 로그인 페이지로 이동합니다.')
+                router.push('/login')
+            }
+        } else {
+            alert(`회원가입 실패: ${result.message}`)
+        }
+    } catch (error) {
+        alert(`회원가입 중 오류가 발생했습니다: ${error.message}`)
+    }
 }
 
 // 아이디 변경 감시 (watch 사용)
@@ -617,6 +652,18 @@ watch([() => formData.agreePrivacy, () => formData.agreePolicy, () => formData.a
     font-weight: bold;
     margin-right: 0.3rem;
     font-size: 1rem;
+}
+
+.optional-text {
+    color: #666;
+    font-size: 0.9rem;
+    font-weight: normal;
+    margin-left: 0.5rem;
+}
+
+.required-icon-placeholder {
+    width: 1rem;
+    display: inline-block;
 }
 
 .form-input-group {
