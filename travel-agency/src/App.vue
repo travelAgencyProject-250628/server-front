@@ -2,6 +2,8 @@
 import { RouterView } from 'vue-router'
 import { onMounted } from 'vue'
 import { useAuthStore } from './stores/auth.js'
+import Header from './components/Header.vue'
+import Footer from './components/Footer.vue'
 
 const authStore = useAuthStore()
 
@@ -15,7 +17,9 @@ onMounted(async () => {
 </script>
 
 <template>
+  <Header />
   <RouterView />
+  <Footer />
 </template>
 
 <style scoped>

@@ -22,6 +22,10 @@ const router = createRouter({
     {
       path: '/supabase-test',
       component: () => import('@/views/SupabaseTestView.vue')
+    },
+    {
+      path: '/product/:id',
+      component: () => import('@/views/productDetail.vue')
     }
   ],
 })

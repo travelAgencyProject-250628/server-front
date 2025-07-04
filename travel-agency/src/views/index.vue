@@ -1,8 +1,5 @@
 <template>
   <div class="travel-site">
-    <!-- 헤더 영역 -->
-    <Header />
-
     <!-- 히어로 섹션 -->
     <section class="hero">  
       <div class="hero-slider">
@@ -81,6 +78,7 @@
             v-for="tour in popularTours" 
             :key="tour.id"
             class="tour-card"
+            @click="goToProductDetail(tour.id)"
           >
             <div class="tour-image">
               <img :src="tour.image" :alt="tour.title" />
@@ -110,16 +108,16 @@
       </div>
     </section>
 
-    <!-- 푸터 -->
-    <Footer />
   </div>
 </template>
 
 <script setup>
 import { ref, onMounted, onBeforeUnmount, computed} from 'vue'
 import { useAuthStore } from '../stores/auth.js'
-import Header from '../components/Header.vue'
-import Footer from '../components/Footer.vue'
+import { useRouter } from 'vue-router'
+
+// 라우터 초기화
+const router = useRouter()
 
 const authStore = useAuthStore()
 const isLoggedIn = computed(() => authStore.isAuthenticated)
@@ -222,6 +220,11 @@ const handleSearch = () => {
   console.log('검색어:', searchQuery.value)
   // 실제 검색 로직은 여기에 구현
   alert(`"${searchQuery.value}" 검색 결과를 불러오는 중입니다.`)
+}
+
+// 상품 상세 페이지로 이동
+const goToProductDetail = (productId) => {
+  router.push(`/product/${productId}`)
 }
 
 // 라이프사이클 훅
@@ -558,6 +561,7 @@ onBeforeUnmount(() => {
   overflow: hidden;
   box-shadow: var(--shadow-md);
   transition: var(--transition);
+  cursor: pointer;
 }
 
 .tour-card:hover {
