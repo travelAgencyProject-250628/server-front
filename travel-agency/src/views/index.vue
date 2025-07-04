@@ -1,5 +1,8 @@
 <template>
   <div class="travel-site">
+    <!-- 헤더 영역 -->
+    <Header />
+
     <!-- 히어로 섹션 -->
     <section class="hero">  
       <div class="hero-slider">
@@ -108,6 +111,8 @@
       </div>
     </section>
 
+    <!-- 푸터 -->
+    <Footer />
   </div>
 </template>
 
@@ -115,6 +120,8 @@
 import { ref, onMounted, onBeforeUnmount, computed} from 'vue'
 import { useAuthStore } from '../stores/auth.js'
 import { useRouter } from 'vue-router'
+import Header from '../components/Header.vue'
+import Footer from '../components/Footer.vue'
 
 // 라우터 초기화
 const router = useRouter()
@@ -264,6 +271,22 @@ onBeforeUnmount(() => {
   color: var(--text-primary);
   min-height: 100vh;
   width: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Header/Footer 기본 스타일 */
+.travel-site .header {
+  display: block;
+  visibility: visible;
+  opacity: 1;
+}
+
+.travel-site .footer {
+  display: block;
+  visibility: visible;
+  opacity: 1;
+  margin-top: auto;
 }
 
 .container {
