@@ -12,7 +12,7 @@
             <p>편안하고 안전한 버스여행으로 특별한 추억을 만들어보세요</p>
             <button class="btn-hero">여행 둘러보기</button>
           </div>
-          <div class="hero-bg" style="background: linear-gradient(135deg, #2563eb, #1e40af);"></div>
+          <div class="hero-bg" style="background-image: url('https://www.artinsight.co.kr/data/tmp/2104/20210412173933_yxcqzfun.jpg');"></div>
         </div>
         
         <div class="hero-slide" :class="{ active: currentSlide === 1 }">
@@ -21,7 +21,7 @@
             <p>30년 경험의 전문 가이드와 함께하는 프리미엄 여행</p>
             <button class="btn-hero">상품 보기</button>
           </div>
-          <div class="hero-bg" style="background: linear-gradient(135deg, #1e40af, #3730a3);"></div>
+          <div class="hero-bg" style="background-image: url('https://img.hankyung.com/photo/202410/06.38500005.1.jpg');"></div>
         </div>
         
         <div class="hero-slide" :class="{ active: currentSlide === 2 }">
@@ -30,7 +30,7 @@
             <p>가족, 친구, 연인과 함께 즐기는 행복한 여행</p>
             <button class="btn-hero">예약하기</button>
           </div>
-          <div class="hero-bg" style="background: linear-gradient(135deg, #3730a3, #2563eb);"></div>
+          <div class="hero-bg" style="background-image: url('https://www.artinsight.co.kr/data/tmp/2104/20210412173933_yxcqzfun.jpg');"></div>
         </div>
       </div>
 
@@ -375,7 +375,7 @@ onBeforeUnmount(() => {
 /* 히어로 섹션 */
 .hero {
   position: relative;
-  height: 500px;
+  height: 600px;
   overflow: hidden;
 }
 
@@ -409,6 +409,9 @@ onBeforeUnmount(() => {
   width: 100%;
   height: 100%;
   z-index: -1;
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
 }
 
 .hero-content {
