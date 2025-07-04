@@ -173,7 +173,6 @@ const handleLogin = async () => {
         const result = await authStore.signIn(loginData.userId, loginData.password)
         
         if (result.success) {
-            alert('로그인 성공!')
             router.push('/')
         } else {
             alert(`로그인 실패: ${result.message}`)

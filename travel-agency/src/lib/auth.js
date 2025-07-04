@@ -36,18 +36,18 @@ export class AuthService {
 
       console.log('Auth 생성 성공:', authResult)
 
-      // 2. User 테이블에 상세 정보 저장 (비밀번호 제외)
+      // 2. Users 테이블에 상세 정보 저장 (비밀번호 제외)
       const { data: userTableData, error: userTableError } = await this.supabase
-        .from('User')
+        .from('Users')
         .insert([userData])
         .select()
 
       if (userTableError) {
-        console.error('User 테이블 저장 실패:', userTableError)
+        console.error('Users 테이블 저장 실패:', userTableError)
         throw userTableError
       }
 
-      console.log('User 테이블 저장 성공:', userTableData[0])
+      console.log('Users 테이블 저장 성공:', userTableData[0])
 
       // 3. 회원가입 후 자동 로그인 시도 (이메일 확인 없이)
       let loginResult = null
@@ -98,9 +98,9 @@ export class AuthService {
     try {
       console.log('로그인 시도:', userId)
       
-      // 1. user_id로 User 테이블에서 사용자 존재 확인
+      // 1. user_id로 Users 테이블에서 사용자 존재 확인
       const { data: userData, error: userError } = await this.supabase
-        .from('User')
+        .from('Users')
         .select('*')
         .eq('user_id', userId)
         .single()
@@ -192,15 +192,15 @@ export class AuthService {
       const userId = user.email.split('@')[0]
       console.log('추출된 user_id:', userId)
 
-      // User 테이블에서 상세 정보 조회
+      // Users 테이블에서 상세 정보 조회
       const { data: userInfo, error: userInfoError } = await this.supabase
-        .from('User')
+        .from('Users')
         .select('*')
         .eq('user_id', userId)
         .single()
 
       if (userInfoError) {
-        console.error('User 테이블 조회 실패:', userInfoError)
+        console.error('Users 테이블 조회 실패:', userInfoError)
         throw userInfoError
       }
 
@@ -223,7 +223,7 @@ export class AuthService {
   async checkUserIdExists(userId) {
     try {
       const { data, error } = await this.supabase
-        .from('User')
+        .from('Users')
         .select('user_id')
         .eq('user_id', userId)
         .single()
@@ -255,7 +255,7 @@ export class AuthService {
   async checkEmailExists(email) {
     try {
       const { data, error } = await this.supabase
-        .from('User')
+        .from('Users')
         .select('email')
         .eq('email', email)
         .single()
@@ -309,9 +309,9 @@ export class AuthService {
 
       if (updateError) throw updateError
 
-      // User 테이블의 비밀번호도 업데이트
+      // Users 테이블의 비밀번호도 업데이트
       const { error: userTableError } = await this.supabase
-        .from('User')
+        .from('Users')
         .update({ user_password: newPassword })
         .eq('email', user.email)
 

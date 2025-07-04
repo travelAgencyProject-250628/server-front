@@ -345,7 +345,7 @@ const validateForm = () => {
     return Object.keys(errors.value).length === 0
 }
 
-const checkIdDuplicate = () => {
+const checkIdDuplicate = async () => {
     if (!formData.userId) {
         alert('아이디를 입력해주세요.')
         return
@@ -356,10 +356,10 @@ const checkIdDuplicate = () => {
         return
     }
 
-    // 실제로는 서버 API 호출
-    // 여기서는 시뮬레이션
-    setTimeout(() => {
-        if (formData.userId === 'admin' || formData.userId === 'test') {
+    try {
+        const result = await authStore.checkUserIdExists(formData.userId)
+        
+        if (result.exists) {
             alert('이미 사용중인 아이디입니다.')
             idDuplicateChecked.value = false
         } else {
@@ -367,7 +367,11 @@ const checkIdDuplicate = () => {
             idDuplicateChecked.value = true
             errors.value.userId = ''
         }
-    }, 500)
+    } catch (error) {
+        console.error('아이디 중복 확인 오류:', error)
+        alert('아이디 중복 확인 중 오류가 발생했습니다.')
+        idDuplicateChecked.value = false
+    }
 }
 
 const findAddress = () => {

@@ -4,17 +4,7 @@
     <Header />
 
     <!-- 히어로 섹션 -->
-    <section class="hero">
-      <!-- 로그인된 사용자 환영 메시지 -->
-      <div v-if="isLoggedIn" class="welcome-banner">
-        <div class="container">
-          <div class="welcome-content">
-            <h3>🎉 환영합니다, {{ currentUser?.name }}님!</h3>
-            <p>회원가입이 완료되었습니다. 지금 바로 여행을 시작해보세요!</p>
-          </div>
-        </div>
-      </div>
-      
+    <section class="hero">  
       <div class="hero-slider">
         <div class="hero-slide" :class="{ active: currentSlide === 0 }">
           <div class="hero-content">
