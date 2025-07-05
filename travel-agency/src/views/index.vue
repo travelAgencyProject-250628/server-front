@@ -1,7 +1,5 @@
 <template>
   <div class="travel-site">
-    <!-- 헤더 영역 -->
-    <Header />
 
     <!-- 히어로 섹션 -->
     <section class="hero">  
@@ -111,8 +109,6 @@
       </div>
     </section>
 
-    <!-- 푸터 -->
-    <Footer />
   </div>
 </template>
 
