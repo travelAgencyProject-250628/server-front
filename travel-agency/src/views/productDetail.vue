@@ -341,7 +341,12 @@ const scrollToSection = (sectionName) => {
 
 // 예약하기
 const handleBooking = () => {
-    alert('예약 기능은 준비 중입니다.')
+    router.push({
+        name: 'booking',
+        query: {
+            productId: route.params.id
+        }
+    })
 }
 
 // 현재 URL 복사 함수
