@@ -6,6 +6,7 @@
                 <!-- 페이지 제목 -->
                 <div class="page-header">
                     <h1 class="page-title">회원가입</h1>
+                    <p class="page-subtitle">굿모닝투어와 함께 특별한 여행을 시작하세요</p>
                 </div>
 
                 <!-- 회원가입 폼 -->
@@ -15,225 +16,217 @@
                         <div class="form-section">
                             <h2 class="section-title">
                                 기본회원정보
-                                <span class="required-mark">
+                                <span class="required-notice">
                                     <span class="required-icon">⦁</span>
                                     필수항목
                                 </span>
                             </h2>
 
-                            <div class="form-row">
-                                <label class="form-label required">
-                                    <span class="required-icon">⦁</span>
-                                    아이디
-                                </label>
-                                <div class="form-input-group">
-                                    <div class="id-row">
+                            <div class="form-grid">
+                                <div class="form-group">
+                                    <label class="form-label required">
+                                        <span class="required-icon">⦁</span>
+                                        성명
+                                    </label>
+                                    <input type="text" v-model="formData.name" class="form-input"
+                                        placeholder="성명을 입력하세요" :class="{ error: errors.name }" required>
+                                    <div v-if="errors.name" class="error-message">{{ errors.name }}</div>
+                                </div>
+
+                                <div class="form-group">
+                                    <label class="form-label required">
+                                        <span class="required-icon">⦁</span>
+                                        아이디
+                                    </label>
+                                    <div class="input-with-button">
                                         <input type="text" v-model="formData.userId" class="form-input"
                                             placeholder="아이디를 입력하세요" :class="{ error: errors.userId }" required>
                                         <button type="button" class="btn-check" @click="checkIdDuplicate">중복확인</button>
                                     </div>
+                                    <div v-if="errors.userId" class="error-message">{{ errors.userId }}</div>
                                 </div>
-                                <div v-if="errors.userId" class="error-message">{{ errors.userId }}</div>
-                            </div>
 
-                            <div class="form-row">
-                                <label class="form-label required">
-                                    <span class="required-icon">⦁</span>
-                                    비밀번호
-                                </label>
-                                <div class="form-input-group">
+                                <div class="form-group">
+                                    <label class="form-label required">
+                                        <span class="required-icon">⦁</span>
+                                        비밀번호
+                                    </label>
                                     <input type="password" v-model="formData.password" class="form-input"
                                         placeholder="비밀번호를 입력하세요" :class="{ error: errors.password }" required>
+                                    <div v-if="errors.password" class="error-message">{{ errors.password }}</div>
                                 </div>
-                                <div v-if="errors.password" class="error-message">{{ errors.password }}</div>
-                            </div>
 
-                            <div class="form-row">
-                                <label class="form-label required">
-                                    <span class="required-icon">⦁</span>
-                                    비밀번호 확인
-                                </label>
-                                <div class="form-input-group">
+                                <div class="form-group">
+                                    <label class="form-label required">
+                                        <span class="required-icon">⦁</span>
+                                        비밀번호 확인
+                                    </label>
                                     <input type="password" v-model="formData.passwordConfirm" class="form-input"
                                         placeholder="비밀번호를 다시 입력하세요" :class="{ error: errors.passwordConfirm }"
                                         required>
+                                    <div v-if="errors.passwordConfirm" class="error-message">{{ errors.passwordConfirm }}
+                                    </div>
                                 </div>
-                                <div v-if="errors.passwordConfirm" class="error-message">{{ errors.passwordConfirm }}
-                                </div>
-                            </div>
 
-                            <div class="form-row">
-                                <label class="form-label required">
-                                    <span class="required-icon">⦁</span>
-                                    성명
-                                </label>
-                                <div class="form-input-group">
-                                    <input type="text" v-model="formData.name" class="form-input"
-                                        placeholder="성명을 입력하세요" :class="{ error: errors.name }" required>
+                                <div class="form-group">
+                                    <label class="form-label required">
+                                        <span class="required-icon">⦁</span>
+                                        휴대전화번호
+                                    </label>
+                                    <div class="phone-group">
+                                        <input type="text" v-model="formData.mobile1" class="form-input phone-input"
+                                            placeholder="010" maxlength="3">
+                                        <span class="phone-dash">-</span>
+                                        <input type="text" v-model="formData.mobile2" class="form-input phone-input"
+                                            placeholder="1234" maxlength="4">
+                                        <span class="phone-dash">-</span>
+                                        <input type="text" v-model="formData.mobile3" class="form-input phone-input"
+                                            placeholder="5678" maxlength="4">
+                                    </div>
+                                    <div v-if="errors.mobile" class="error-message">{{ errors.mobile }}</div>
                                 </div>
-                                <div v-if="errors.name" class="error-message">{{ errors.name }}</div>
-                            </div>
 
-                            <div class="form-row">
-                                <label class="form-label">
-                                    <span class="required-icon-placeholder"></span>
-                                    전화번호
-                                </label>
-                                <div class="form-input-group phone-group">
-                                    <input type="text" v-model="formData.phone1" class="form-input phone-input"
-                                        placeholder="02" maxlength="3">
-                                    <span class="phone-dash">-</span>
-                                    <input type="text" v-model="formData.phone2" class="form-input phone-input"
-                                        placeholder="0000" maxlength="4">
-                                    <span class="phone-dash">-</span>
-                                    <input type="text" v-model="formData.phone3" class="form-input phone-input"
-                                        placeholder="0000" maxlength="4">
+                                <div class="form-group">
+                                    <label class="form-label">
+                                        전화번호
+                                    </label>
+                                    <div class="phone-group">
+                                        <input type="text" v-model="formData.phone1" class="form-input phone-input"
+                                            placeholder="02" maxlength="3">
+                                        <span class="phone-dash">-</span>
+                                        <input type="text" v-model="formData.phone2" class="form-input phone-input"
+                                            placeholder="1234" maxlength="4">
+                                        <span class="phone-dash">-</span>
+                                        <input type="text" v-model="formData.phone3" class="form-input phone-input"
+                                            placeholder="5678" maxlength="4">
+                                    </div>
+                                    <div v-if="errors.phone" class="error-message">{{ errors.phone }}</div>
                                 </div>
-                                <div v-if="errors.phone" class="error-message">{{ errors.phone }}</div>
-                            </div>
 
-                            <div class="form-row">
-                                <label class="form-label required">
-                                    <span class="required-icon">⦁</span>
-                                    휴대전화번호
-                                </label>
-                                <div class="form-input-group phone-group">
-                                    <input type="text" v-model="formData.mobile1" class="form-input phone-input"
-                                        placeholder="010" maxlength="3">
-                                    <span class="phone-dash">-</span>
-                                    <input type="text" v-model="formData.mobile2" class="form-input phone-input"
-                                        placeholder="0000" maxlength="4">
-                                    <span class="phone-dash">-</span>
-                                    <input type="text" v-model="formData.mobile3" class="form-input phone-input"
-                                        placeholder="0000" maxlength="4">
-                                </div>
-                                <div v-if="errors.mobile" class="error-message">{{ errors.mobile }}</div>
-                            </div>
-
-                            <div class="form-row">
-                                <label class="form-label required">
-                                    <span class="required-icon">⦁</span>
-                                    E-Mail주소
-                                </label>
-                                <div class="form-input-group">
+                                <div class="form-group">
+                                    <label class="form-label required">
+                                        <span class="required-icon">⦁</span>
+                                        E-Mail주소
+                                    </label>
                                     <input type="email" v-model="formData.email" class="form-input"
                                         placeholder="이메일 주소를 입력하세요" :class="{ error: errors.email }" required>
+                                    <div v-if="errors.email" class="error-message">{{ errors.email }}</div>
                                 </div>
-                                <div v-if="errors.email" class="error-message">{{ errors.email }}</div>
-                            </div>
 
-                            <div class="form-row">
-                                <label class="form-label required">
-                                    <span class="required-icon">⦁</span>
-                                    주소
-                                </label>
-                                <div class="form-input-group address-group">
-                                    <div class="address-row">
-                                        <input type="text" v-model="formData.zipcode" class="form-input zipcode-input"
-                                            placeholder="우편번호" readonly>
-                                        <button type="button" class="btn-check" @click="findAddress">우편번호찾기</button>
+                                <div class="form-group full-width">
+                                    <label class="form-label required">
+                                        <span class="required-icon">⦁</span>
+                                        주소
+                                    </label>
+                                    <div class="address-group">
+                                        <div class="input-with-button">
+                                            <input type="text" v-model="formData.zipcode" class="form-input"
+                                                placeholder="우편번호" readonly>
+                                            <button type="button" class="btn-check" @click="findAddress">우편번호찾기</button>
+                                        </div>
+                                        <input type="text" v-model="formData.address1" class="form-input"
+                                            placeholder="기본주소" readonly>
+                                        <input type="text" v-model="formData.address2" class="form-input"
+                                            placeholder="상세주소를 입력하세요">
                                     </div>
-                                    <input type="text" v-model="formData.address1" class="form-input"
-                                        placeholder="기본주소" readonly>
-                                    <input type="text" v-model="formData.address2" class="form-input"
-                                        placeholder="상세주소를 입력하세요">
+                                    <div v-if="errors.address" class="error-message">{{ errors.address }}</div>
                                 </div>
-                                <div v-if="errors.address" class="error-message">{{ errors.address }}</div>
-                            </div>
 
-                            <div class="form-row">
-                                <label class="form-label required">
-                                    <span class="required-icon">⦁</span>
-                                    SMS 수신여부
-                                </label>
-                                <div class="form-input-group">
+                                <div class="form-group full-width">
+                                    <label class="form-label required">
+                                        <span class="required-icon">⦁</span>
+                                        SMS 수신여부
+                                    </label>
                                     <div class="radio-group">
                                         <label class="radio-label">
                                             <input type="radio" v-model="formData.smsReceive" value="Y"
                                                 class="radio-input">
-                                            <span class="radio-text">수신에 동의합니다</span>
+                                            <span class="radio-text">수신에 동의</span>
                                         </label>
                                         <label class="radio-label">
                                             <input type="radio" v-model="formData.smsReceive" value="N"
                                                 class="radio-input">
-                                            <span class="radio-text">수신에 동의하지않습니다</span>
+                                            <span class="radio-text">수신에 동의하지않음</span>
                                         </label>
                                     </div>
-                                    <p class="sms-info">
+                                    <p class="field-notice">
                                         * 수신동의시 신상품 및 할인상품정보 (SMS)받아드립니다
                                     </p>
                                 </div>
                             </div>
                         </div>
 
-                        <!-- 약관동의 -->
-                        <div class="form-section terms-section">
-                            <h2 class="section-title">약관동의</h2>
+                    </form>
+                </div>
 
-                            <div class="terms-section">
-                                <!-- 전체 동의 -->
-                                <div class="terms-all-agree">
-                                    <label class="checkbox-label all-agree-label">
-                                        <input type="checkbox" v-model="agreeAll" @change="toggleAllTerms"
-                                            class="checkbox-input">
-                                        <span class="checkbox-text">모든 내용에 동의합니다.</span>
+                <!-- 약관동의 -->
+                <div class="terms-section">
+                    <h2 class="section-title">약관동의</h2>
+
+                    <div class="terms-container">
+                        <!-- 전체 동의 -->
+                        <div class="terms-all-agree">
+                            <label class="checkbox-label all-agree-label">
+                                <input type="checkbox" v-model="agreeAll" @change="toggleAllTerms"
+                                    class="checkbox-input">
+                                <span class="checkbox-text">모든 내용에 동의</span>
+                            </label>
+                        </div>
+
+                        <!-- 개별 약관 항목들 -->
+                        <div class="terms-list">
+                            <div class="terms-item">
+                                <div class="terms-header">
+                                    <label class="checkbox-label">
+                                        <input type="checkbox" v-model="formData.agreePrivacy"
+                                            class="checkbox-input" required>
+                                        <span class="checkbox-text">
+                                            <span class="required-mark">[필수]</span>
+                                            개인정보수집 및 이용에 관한 안내에 동의
+                                        </span>
                                     </label>
+                                    <button type="button" class="btn-terms"
+                                        @click="showTerms('privacy')">약관보기</button>
                                 </div>
+                            </div>
 
-                                <!-- 개별 약관 항목들 -->
-                                <div class="terms-item">
-                                    <div class="terms-header">
-                                        <label class="checkbox-label">
-                                            <input type="checkbox" v-model="formData.agreePrivacy"
-                                                class="checkbox-input" required>
-                                            <span class="checkbox-text">
-                                                <span class="required-mark">[필수]</span>
-                                                개인정보수집 및 이용에 관한 안내에 동의합니다.
-                                            </span>
-                                        </label>
-                                        <button type="button" class="btn-terms"
-                                            @click="showTerms('privacy')">약관보기</button>
-                                    </div>
+                            <div class="terms-item">
+                                <div class="terms-header">
+                                    <label class="checkbox-label">
+                                        <input type="checkbox" v-model="formData.agreePolicy" class="checkbox-input"
+                                            required>
+                                        <span class="checkbox-text">
+                                            <span class="required-mark">[필수]</span>
+                                            개인정보 취급위탁 내용에 동의
+                                        </span>
+                                    </label>
+                                    <button type="button" class="btn-terms"
+                                        @click="showTerms('policy')">약관보기</button>
                                 </div>
+                            </div>
 
-                                <div class="terms-item">
-                                    <div class="terms-header">
-                                        <label class="checkbox-label">
-                                            <input type="checkbox" v-model="formData.agreePolicy" class="checkbox-input"
-                                                required>
-                                            <span class="checkbox-text">
-                                                <span class="required-mark">[필수]</span>
-                                                개인정보 취급위탁 내용에 동의합니다.
-                                            </span>
-                                        </label>
-                                        <button type="button" class="btn-terms"
-                                            @click="showTerms('policy')">약관보기</button>
-                                    </div>
-                                </div>
-
-                                <div class="terms-item">
-                                    <div class="terms-header">
-                                        <label class="checkbox-label">
-                                            <input type="checkbox" v-model="formData.agreeService"
-                                                class="checkbox-input" required>
-                                            <span class="checkbox-text">
-                                                <span class="required-mark">[필수]</span>
-                                                이용약관 내용에 동의합니다.
-                                            </span>
-                                        </label>
-                                        <button type="button" class="btn-terms"
-                                            @click="showTerms('service')">약관보기</button>
-                                    </div>
+                            <div class="terms-item">
+                                <div class="terms-header">
+                                    <label class="checkbox-label">
+                                        <input type="checkbox" v-model="formData.agreeService"
+                                            class="checkbox-input" required>
+                                        <span class="checkbox-text">
+                                            <span class="required-mark">[필수]</span>
+                                            이용약관 내용에 동의
+                                        </span>
+                                    </label>
+                                    <button type="button" class="btn-terms"
+                                        @click="showTerms('service')">약관보기</button>
                                 </div>
                             </div>
                         </div>
+                    </div>
+                </div>
 
-                        <!-- 제출 버튼 -->
-                        <div class="form-actions">
-                            <button type="submit" class="btn-submit">회원가입</button>
-                            <button type="button" class="btn-cancel" @click="handleCancel">취소하기</button>
-                        </div>
-                    </form>
+                <!-- 제출 버튼 -->
+                <div class="form-actions">
+                    <button type="submit" class="btn-submit" @click="handleSubmit">회원가입</button>
+                    <button type="button" class="btn-cancel" @click="handleCancel">취소하기</button>
                 </div>
             </div>
         </main>
@@ -494,7 +487,7 @@ watch([() => formData.agreePrivacy, () => formData.agreePolicy, () => formData.a
 </script>
 
 <style scoped>
-/* CSS 변수 정의 (index.vue와 동일) */
+/* CSS 변수 정의 */
 :root {
     --primary-color: #2563eb;
     --primary-dark: #1e40af;
@@ -516,196 +509,153 @@ watch([() => formData.agreePrivacy, () => formData.agreePolicy, () => formData.a
 /* 전체 레이아웃 */
 .join-page {
     font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
-    line-height: 1.6;
+    line-height: 1.5;
     color: var(--text-primary);
+    background: var(--bg-light);
+    min-height: 100vh;
 }
 
 .container {
-    max-width: 700px;
+    max-width: 800px;
     margin: 0 auto;
     padding: 0 20px;
 }
 
-/* 헤더 스타일 - Header 컴포넌트로 이동 */
-
-.btn-primary,
-.btn-secondary,
-.btn-check,
-.btn-terms,
-.btn-submit,
-.btn-cancel {
-    border: none;
-    border-radius: var(--border-radius);
-    padding: 0.5rem 1rem;
-    font-weight: 500;
-    cursor: pointer;
-    transition: var(--transition);
-    text-decoration: none;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    gap: 0.5rem;
-}
-
-.btn-primary {
-    background: var(--primary-color);
-    color: white;
-}
-
-.btn-primary:hover {
-    background: var(--primary-dark);
-}
-
-.btn-secondary {
-    background: transparent;
-    color: var(--text-primary);
-    border: 1px solid var(--border-color);
-}
-
-.btn-secondary:hover {
-    background: var(--bg-light);
-}
-
-/* 모바일 메뉴 - Header 컴포넌트로 이동 */
-
 /* 메인 컨텐츠 */
 .main-content {
-    min-height: calc(100vh - 200px);
-    padding: 2rem 0;
+    padding: 1.5rem 0;
 }
 
 /* 페이지 헤더 */
 .page-header {
     text-align: center;
-    margin-bottom: 1rem;
+    margin-bottom: 2rem;
 }
 
 .page-title {
-    font-size: 2.5rem;
+    font-size: 1.5rem;
     font-weight: 700;
     color: var(--text-primary);
-    margin-bottom: 0.1rem;
+    margin-bottom: 0.5rem;
+}
+
+.page-subtitle {
+    font-size: 1rem;
+    color: var(--text-secondary);
+    margin: 0;
 }
 
 /* 회원가입 폼 */
 .join-form-wrapper {
-    background: white;
-    border-radius: 8px;
-    overflow: hidden;
+    /* 배경 제거 - 개별 섹션들이 각자 배경을 가짐 */
 }
 
 .join-form {
-    padding: 2rem;
+    padding: 0;
 }
 
 .form-section {
-    margin-bottom: 3rem;
-}
-
-.form-section:last-child {
-    margin-bottom: 0;
+    background: white;
+    padding: 1.25rem;
+    border-radius: var(--border-radius);
+    box-shadow: var(--shadow-sm);
+    border: 1px solid var(--border-color);
+    margin-bottom: 1.5rem;
 }
 
 .section-title {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    font-size: 1.4rem;
-    font-weight: 700;
-    color: var(--text-primary);
-    margin-bottom: 2rem;
-    padding-bottom: 1rem;
-    border-bottom: 1px solid #ddd;
-}
-
-.terms-section .section-title {
-    margin-bottom: 0;
-}
-
-.required-mark {
-    color: var(--text-primary);
-    padding: 0.2rem 0.5rem;
-    border-radius: 4px;
-    font-size: 1.0rem;
+    font-size: 1rem;
     font-weight: 600;
-    margin-right: 0.5rem;
+    color: var(--text-primary);
+    margin-bottom: 1.5rem;
+}
+
+.required-notice {
+    color: var(--text-secondary);
+    font-size: 0.875rem;
+    font-weight: 500;
 }
 
 /* 폼 필드 */
-.form-row {
+.form-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1rem;
+}
+
+.form-group {
     display: flex;
-    margin-bottom: 1.5rem;
-    align-items: flex-start;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.form-group.full-width {
+    grid-column: 1 / -1;
 }
 
 .form-label {
-    min-width: 150px;
-    padding: 0.75rem 1rem 0.75rem 0;
-    font-weight: 600;
+    font-size: 0.9rem;
+    color: var(--text-secondary);
+    font-weight: 500;
     display: flex;
     align-items: center;
-    color: #333;
-    font-size: 1.0rem;
+    gap: 0.25rem;
 }
 
 .form-label.required {
-    color: #333;
+    color: var(--text-secondary);
 }
 
 .required-icon {
-    color: #2563eb;
+    color: var(--primary-color);
     font-weight: bold;
-    margin-right: 0.3rem;
-    font-size: 1rem;
-}
-
-.optional-text {
-    color: #666;
-    font-size: 0.9rem;
-    font-weight: normal;
-    margin-left: 0.5rem;
-}
-
-.required-icon-placeholder {
-    width: 1rem;
-    display: inline-block;
-}
-
-.form-input-group {
-    flex: 1;
+    font-size: 0.8rem;
 }
 
 .form-input {
     width: 100%;
     padding: 0.75rem;
-    border: none;
-    border-radius: 4px;
-    font-size: 1rem;
-    background-color: #f5f5f5;
-    color: var(--text-primary);
+    border: 1px solid var(--border-color);
+    border-radius: var(--border-radius);
+    font-size: 0.95rem;
     transition: var(--transition);
+    background: white;
 }
 
 .form-input:focus {
     outline: none;
-    background-color: #eeeeee;
-    box-shadow: none;
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
 }
 
 .form-input.error {
-    background-color: #ffe6e6;
-    border: 1px solid var(--error-color);
+    border-color: var(--error-color);
+    background-color: #fef2f2;
 }
 
 .form-input[readonly] {
-    background-color: #f0f0f0;
-    color: #999999;
+    background-color: var(--bg-light);
+    color: var(--text-secondary);
 }
 
 .error-message {
     color: var(--error-color);
     font-size: 0.875rem;
-    margin-top: 0.5rem;
+    margin-top: 0.25rem;
+}
+
+/* 입력 필드와 버튼 조합 */
+.input-with-button {
+    display: flex;
+    gap: 0.5rem;
+    align-items: center;
+}
+
+.input-with-button .form-input {
+    flex: 1;
 }
 
 /* 전화번호 입력 */
@@ -729,23 +679,13 @@ watch([() => formData.agreePrivacy, () => formData.agreePolicy, () => formData.a
 .address-group {
     display: flex;
     flex-direction: column;
-    gap: 0.9rem;
-}
-
-.id-row, .address-row {
-    display: flex;
-    align-items: center;
-    gap: 1rem;
-}
-
-.zipcode-input {
-    flex: 1;
+    gap: 0.75rem;
 }
 
 /* 라디오 버튼 */
 .radio-group {
     display: flex;
-    gap: 1rem;
+    gap: 1.5rem;
     margin-bottom: 0.5rem;
 }
 
@@ -753,24 +693,24 @@ watch([() => formData.agreePrivacy, () => formData.agreePolicy, () => formData.a
     display: flex;
     align-items: center;
     cursor: pointer;
-    font-size: 0.9rem;
+    font-size: 0.95rem;
+    gap: 0.5rem;
 }
 
 .radio-input {
-    margin-right: 0.5rem;
     width: 16px;
     height: 16px;
 }
 
 .radio-text {
-    font-size: 0.9rem;
     color: var(--text-primary);
 }
 
-.sms-info {
+.field-notice {
     font-size: 0.85rem;
     color: var(--text-secondary);
     margin: 0;
+    font-style: italic;
 }
 
 /* 체크박스 */
@@ -778,54 +718,61 @@ watch([() => formData.agreePrivacy, () => formData.agreePolicy, () => formData.a
     display: flex;
     align-items: center;
     cursor: pointer;
-    font-size: 1rem;
+    font-size: 0.95rem;
+    gap: 0.5rem;
 }
 
 .checkbox-input {
-    margin-right: 0.7rem;
     width: 18px;
     height: 18px;
     flex-shrink: 0;
 }
 
 .checkbox-text {
-    font-size: 1rem;
     color: var(--text-primary);
     line-height: 1.4;
 }
 
 .checkbox-text .required-mark {
-    background: none;
-    color: #2563eb;
-    padding: 0;
-    border-radius: 0;
-    font-size: 1rem;
+    color: var(--primary-color);
     font-weight: 600;
-    margin-right: 0.3rem;
+    margin-right: 0.25rem;
 }
 
 /* 약관 섹션 */
+.terms-section {
+    background: white;
+    border-radius: var(--border-radius);
+    box-shadow: var(--shadow-sm);
+    border: 1px solid var(--border-color);
+    padding: 1.25rem;
+    margin-bottom: 1.5rem;
+}
+
+.terms-container {
+    border: 1px solid var(--border-color);
+    border-radius: var(--border-radius);
+    overflow: hidden;
+}
 
 .terms-all-agree {
-    background: #f5f5f5;
-    padding: 1.2rem;
-    margin: 0;
+    background: var(--bg-light);
+    padding: 1rem;
+    border-bottom: 1px solid var(--border-color);
 }
 
 .all-agree-label {
     font-weight: 500;
     font-size: 1rem;
-    margin: 0;
 }
 
-.all-agree-label .checkbox-text {
-    color: var(--text-primary);
+.terms-list {
+    background: white;
 }
 
 .terms-item {
-    background: white;
-    padding: 0.5rem 2rem;
-
+    padding: 0.75rem 1rem;
+    border-bottom: 1px solid var(--border-color);
 }
 
 .terms-item:last-child {
@@ -836,43 +783,43 @@ watch([() => formData.agreePrivacy, () => formData.agreePolicy, () => formData.a
     display: flex;
     justify-content: space-between;
     align-items: center;
-    width: 100%;
+    gap: 1rem;
 }
 
+/* 버튼 스타일 */
 .btn-check {
-    background: #a0a0a0;
+    background: var(--secondary-color);
     color: white;
-    padding: 0.7rem 1rem;
+    padding: 0.75rem 1rem;
     font-size: 0.875rem;
     border: none;
-    border-radius: 4px;
+    border-radius: var(--border-radius);
     cursor: pointer;
     transition: var(--transition);
     white-space: nowrap;
-    line-height: 1.5;
+    font-weight: 500;
 }
 
 .btn-check:hover {
-    background: #888888;
+    background: #475569;
 }
 
 .btn-terms {
     background: white;
-    color: black;
-    padding: 0.4rem 0.8rem;
+    color: var(--text-secondary);
+    padding: 0.5rem 0.75rem;
     font-size: 0.75rem;
-    border: 1px solid rgb(180, 180, 180, 0.5);
-    border-radius: 6px;
+    border: 1px solid var(--border-color);
+    border-radius: var(--border-radius);
     cursor: pointer;
     transition: var(--transition);
     white-space: nowrap;
-    line-height: 1.2;
     font-weight: 500;
-    min-width: 60px;
 }
 
 .btn-terms:hover {
-    border: 1px solid #888888;
+    border-color: var(--primary-color);
+    color: var(--primary-color);
 }
 
 /* 제출 버튼 */
@@ -880,92 +827,199 @@ watch([() => formData.agreePrivacy, () => formData.agreePolicy, () => formData.a
     display: flex;
     justify-content: center;
     gap: 1rem;
-    padding-top: 2rem;
-    border-top: 1px solid var(--border-color);
+    padding: 1.5rem 0;
 }
 
 .btn-submit {
-    background: #2563eb;
+    background: var(--primary-color);
     color: white;
-    padding: 1rem 2rem;
-    font-size: 1.1rem;
-    font-weight: 600;
+    padding: 0.75rem 1.5rem;
+    font-size: 1rem;
+    font-weight: 500;
+    border: none;
+    border-radius: var(--border-radius);
+    cursor: pointer;
+    transition: var(--transition);
     min-width: 120px;
 }
 
+.btn-submit:hover {
+    background: var(--primary-dark);
+}
+
 .btn-cancel {
-    background: #6b7280;
+    background: var(--secondary-color);
     color: white;
-    padding: 1rem 2rem;
-    font-size: 1.1rem;
-    font-weight: 600;
-    min-width: 120px;
+    padding: 0.75rem 1.5rem;
+    font-size: 1rem;
+    font-weight: 500;
     border: none;
+    border-radius: var(--border-radius);
+    cursor: pointer;
+    transition: var(--transition);
+    min-width: 120px;
+}
+
+.btn-cancel:hover {
+    background: #475569;
 }
 
 
 /* 반응형 디자인 */
 @media (max-width: 768px) {
+    .container {
+        padding: 0 1rem;
+    }
+
+    .main-content {
+        padding: 1rem 0;
+    }
+
     .page-title {
-        font-size: 2rem;
+        font-size: 1.25rem;
     }
 
-    .form-row {
+    .page-subtitle {
+        font-size: 0.9rem;
+    }
+
+    .form-section {
+        padding: 1rem;
+        margin-bottom: 1rem;
+    }
+
+    .form-grid {
+        grid-template-columns: 1fr;
+        gap: 1rem;
+    }
+
+    .form-group {
+        margin-bottom: 0;
+    }
+
+    .form-input {
+        padding: 0.875rem;
+        font-size: 1rem;
+    }
+
+    /* 입력 필드와 버튼 조합 */
+    .input-with-button {
         flex-direction: column;
+        gap: 0.75rem;
     }
 
-    .form-label {
-        min-width: auto;
-        margin-bottom: 0.5rem;
+    .btn-check {
+        width: 100%;
+        padding: 0.875rem;
+        font-size: 0.95rem;
     }
 
-    .phone-group {
-        flex-wrap: wrap;
-    }
-
+    /* 라디오 버튼 */
     .radio-group {
         flex-direction: column;
-        gap: 0.5rem;
+        gap: 0.75rem;
+    }
+
+    .radio-label {
+        padding: 0.5rem 0;
+    }
+
+    /* 약관 섹션 */
+    .terms-section {
+        padding: 1rem;
     }
 
     .terms-header {
         flex-direction: column;
         align-items: flex-start;
-        gap: 0.5rem;
+        gap: 0.75rem;
     }
 
-    .container {
-        padding: 0 15px;
-    }
-
-    .join-form {
-        padding: 1.5rem;
-    }
-}
-
-@media (max-width: 480px) {
-    .page-title {
-        font-size: 1.75rem;
-    }
-
-    .btn-submit {
+    .btn-terms {
         width: 100%;
-        padding: 1rem;
+        padding: 0.75rem;
+        font-size: 0.9rem;
+        text-align: center;
     }
 
-    .address-row {
-        flex-direction: column;
-    }
-
+    /* 제출 버튼 */
     .form-actions {
         flex-direction: column;
-        align-items: center;
+        gap: 0.75rem;
+        padding: 1rem 0;
     }
 
     .btn-submit,
     .btn-cancel {
         width: 100%;
-        max-width: 250px;
+        padding: 1rem;
+        font-size: 1rem;
+        min-width: auto;
+    }
+}
+
+@media (max-width: 480px) {
+    .container {
+        padding: 0 0.75rem;
+    }
+
+    .page-title {
+        font-size: 1.125rem;
+    }
+
+    .page-subtitle {
+        font-size: 0.85rem;
+    }
+
+    .form-section {
+        padding: 0.75rem;
+        margin-bottom: 0.75rem;
+    }
+
+    .section-title {
+        font-size: 0.95rem;
+        margin-bottom: 1rem;
+    }
+
+    .form-label {
+        font-size: 0.85rem;
+    }
+
+    .form-input {
+        padding: 0.75rem;
+        font-size: 0.95rem;
+    }
+
+    .checkbox-label,
+    .radio-label {
+        font-size: 0.9rem;
+    }
+
+    .field-notice {
+        font-size: 0.8rem;
+        line-height: 1.4;
+    }
+
+    .terms-section {
+        padding: 0.75rem;
+    }
+
+    .terms-all-agree {
+        padding: 0.75rem;
+    }
+
+    .terms-item {
+        padding: 0.5rem 0.75rem;
+    }
+
+    .btn-check,
+    .btn-terms {
+        padding: 0.75rem;
+        font-size: 0.9rem;
+    }
+
+    .form-actions {
+        padding: 0.75rem 0;
     }
 }
 </style>

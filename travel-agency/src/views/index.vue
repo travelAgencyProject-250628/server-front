@@ -8,7 +8,6 @@
           <div class="hero-content">
             <h2>새로운 여행의 시작</h2>
             <p>편안하고 안전한 버스여행으로 특별한 추억을 만들어보세요</p>
-            <button class="btn-hero">여행 둘러보기</button>
           </div>
           <div class="hero-bg" style="background-image: url('https://www.artinsight.co.kr/data/tmp/2104/20210412173933_yxcqzfun.jpg');"></div>
         </div>
@@ -17,7 +16,6 @@
           <div class="hero-content">
             <h2>국내 최고의 여행 서비스</h2>
             <p>30년 경험의 전문 가이드와 함께하는 프리미엄 여행</p>
-            <button class="btn-hero">상품 보기</button>
           </div>
           <div class="hero-bg" style="background-image: url('https://img.hankyung.com/photo/202410/06.38500005.1.jpg');"></div>
         </div>
@@ -26,7 +24,6 @@
           <div class="hero-content">
             <h2>합리적인 가격, 최상의 서비스</h2>
             <p>가족, 친구, 연인과 함께 즐기는 행복한 여행</p>
-            <button class="btn-hero">예약하기</button>
           </div>
           <div class="hero-bg" style="background-image: url('https://www.artinsight.co.kr/data/tmp/2104/20210412173933_yxcqzfun.jpg');"></div>
         </div>
@@ -43,32 +40,7 @@
       </div>
     </section>
 
-    <!-- 검색 섹션 -->
-    <section class="search-section">
-      <div class="container">
-        <div class="search-form-wrapper">
-          <h3>여행 상품 검색</h3>
-          <form class="search-form" @submit.prevent="handleSearch">
-            <div class="search-input-group">
-              <input 
-                type="text" 
-                v-model="searchQuery"
-                placeholder="여행지나 상품명을 입력하세요" 
-                class="search-input"
-                required
-              >
-              <button type="submit" class="btn-search">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
-                  <path d="M21 21L16.5 16.5M19 11C19 15.4183 15.4183 19 11 19C6.58172 19 3 15.4183 3 11C3 6.58172 6.58172 3 11 3C15.4183 3 19 6.58172 19 11Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                </svg>
-                검색
-              </button>
-            </div>
-            <div class="search-error" v-if="searchError">{{ searchError }}</div>
-          </form>
-        </div>
-      </div>
-    </section>
+
 
     <!-- 인기 상품 섹션 -->
     <section class="popular-tours">
@@ -97,7 +69,7 @@
                   <span class="price-label">1인</span>
                   <span class="price">{{ tour.price.toLocaleString() }}원</span>
                 </div>
-                <button class="btn-tour" @click="goToBooking(tour.id)">예약하기</button>
+                <button class="btn-tour">예약하기</button>
               </div>
             </div>
           </div>
@@ -128,8 +100,6 @@ const currentUser = computed(() => authStore.user)
 
 // 반응형 데이터
 const currentSlide = ref(0)
-const searchQuery = ref('')
-const searchError = ref('')
 const sliderInterval = ref(null)
 
 // 인기 투어 데이터
@@ -207,23 +177,7 @@ const setSlide = (index) => {
   currentSlide.value = index
 }
 
-const handleSearch = () => {
-  searchError.value = ''
-  
-  if (!searchQuery.value.trim()) {
-    searchError.value = '검색어를 입력해주세요.'
-    return
-  }
-  
-  if (searchQuery.value.trim().length < 2) {
-    searchError.value = '검색어는 2글자 이상 입력해주세요.'
-    return
-  }
-  
-  console.log('검색어:', searchQuery.value)
-  // 실제 검색 로직은 여기에 구현
-  alert(`"${searchQuery.value}" 검색 결과를 불러오는 중입니다.`)
-}
+
 
 // 상품 상세 페이지로 이동
 const goToProductDetail = (productId) => {
@@ -243,8 +197,8 @@ onBeforeUnmount(() => {
 </script>
 
 <style scoped>
-/* CSS 변수 정의 */
-.travel-site {
+/* CSS 변수 정의 - 전역으로 적용 */
+:global(:root) {
   --primary-color: #2563eb;
   --primary-dark: #1e40af;
   --secondary-color: #64748b;
@@ -258,12 +212,15 @@ onBeforeUnmount(() => {
   --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
   --border-radius: 8px;
   --transition: all 0.3s ease;
+  --error-color: #dc2626;
+  --success-color: #059669;
+  --warning-color: #d97706;
 }
 
 /* 전체 레이아웃 */
 .travel-site {
   font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
-  line-height: 1.6;
+  line-height: 1.5;
   color: var(--text-primary);
   min-height: 100vh;
   width: 100%;
@@ -329,9 +286,10 @@ onBeforeUnmount(() => {
 .btn-outline {
   background: transparent;
   color: var(--primary-color);
-  border: 2px solid var(--primary-color);
-  padding: 0.75rem 2rem;
+  border: 1px solid var(--primary-color);
+  padding: 1rem 2rem;
   font-size: 1rem;
+  font-weight: 500;
 }
 
 .btn-outline:hover {
@@ -454,22 +412,11 @@ onBeforeUnmount(() => {
 
 .hero-content p {
   font-size: 1.25rem;
-  margin-bottom: 2rem;
+  margin-bottom: 0;
   opacity: 0.9;
 }
 
-.btn-hero {
-  background: white;
-  color: var(--primary-color);
-  padding: 1rem 2rem;
-  font-size: 1.1rem;
-  font-weight: 600;
-}
 
-.btn-hero:hover {
-  transform: translateY(-2px);
-  box-shadow: var(--shadow-lg);
-}
 
 .hero-indicators {
   position: absolute;
@@ -494,65 +441,7 @@ onBeforeUnmount(() => {
   background: white;
 }
 
-/* 검색 섹션 */
-.search-section {
-  padding: 4rem 0;
-  background: var(--bg-light);
-}
 
-.search-form-wrapper {
-  background: white;
-  padding: 2rem;
-  border-radius: var(--border-radius);
-  box-shadow: var(--shadow-md);
-  text-align: center;
-  max-width: 600px;
-  margin: 0 auto;
-}
-
-.search-form-wrapper h3 {
-  margin-bottom: 1.5rem;
-  color: var(--text-primary);
-  font-size: 1.5rem;
-}
-
-.search-input-group {
-  display: flex;
-  gap: 1rem;
-}
-
-.search-input {
-  flex: 1;
-  padding: 1rem;
-  border: 2px solid var(--border-color);
-  border-radius: var(--border-radius);
-  font-size: 1rem;
-  transition: var(--transition);
-}
-
-.search-input:focus {
-  outline: none;
-  border-color: var(--primary-color);
-  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
-}
-
-.btn-search {
-  background: var(--primary-color);
-  color: white;
-  padding: 1rem 1.5rem;
-  font-size: 1rem;
-  font-weight: 600;
-}
-
-.btn-search:hover {
-  background: var(--primary-dark);
-}
-
-.search-error {
-  color: #dc2626;
-  font-size: 0.875rem;
-  margin-top: 0.5rem;
-}
 
 /* 인기 상품 섹션 */
 .popular-tours {
@@ -561,31 +450,31 @@ onBeforeUnmount(() => {
 
 .section-title {
   text-align: center;
-  font-size: 2.5rem;
+  font-size: 2rem;
   font-weight: 700;
-  margin-bottom: 3rem;
+  margin-bottom: 2rem;
   color: var(--text-primary);
 }
 
 .tours-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+  grid-template-columns: repeat(3, 1fr);
   gap: 2rem;
-  margin-bottom: 3rem;
+  margin-bottom: 2rem;
 }
 
 .tour-card {
   background: white;
   border-radius: var(--border-radius);
   overflow: hidden;
-  box-shadow: var(--shadow-md);
+  border: 1px solid var(--border-color);
   transition: var(--transition);
   cursor: pointer;
 }
 
 .tour-card:hover {
-  transform: translateY(-5px);
-  box-shadow: var(--shadow-lg);
+  transform: translateY(-2px);
+  border-color: var(--primary-color);
 }
 
 .tour-image {
@@ -622,7 +511,7 @@ onBeforeUnmount(() => {
 }
 
 .tour-title {
-  font-size: 1.25rem;
+  font-size: 1.1rem;
   font-weight: 600;
   margin-bottom: 0.5rem;
   color: var(--text-primary);
@@ -632,6 +521,7 @@ onBeforeUnmount(() => {
   color: var(--text-secondary);
   margin-bottom: 1rem;
   line-height: 1.5;
+  font-size: 0.95rem;
 }
 
 .tour-details {
@@ -643,9 +533,10 @@ onBeforeUnmount(() => {
 .tour-duration, .tour-location {
   padding: 0.25rem 0.75rem;
   background: var(--bg-light);
-  border-radius: 20px;
-  font-size: 0.875rem;
+  border-radius: var(--border-radius);
+  font-size: 0.85rem;
   color: var(--text-secondary);
+  border: 1px solid var(--border-color);
 }
 
 .tour-footer {
@@ -660,13 +551,13 @@ onBeforeUnmount(() => {
 }
 
 .price-label {
-  font-size: 0.875rem;
+  font-size: 0.85rem;
   color: var(--text-secondary);
 }
 
 .price {
-  font-size: 1.25rem;
-  font-weight: 700;
+  font-size: 1.1rem;
+  font-weight: 600;
   color: var(--primary-color);
 }
 
@@ -674,6 +565,8 @@ onBeforeUnmount(() => {
   background: var(--primary-color);
   color: white;
   padding: 0.75rem 1.5rem;
+  font-size: 0.95rem;
+  font-weight: 500;
 }
 
 .btn-tour:hover {
@@ -706,6 +599,12 @@ onBeforeUnmount(() => {
 }
 
 /* 반응형 디자인 */
+@media (max-width: 1024px) {
+  .tours-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
 @media (max-width: 768px) {
   .hero-content h2 {
     font-size: 2rem;
@@ -716,19 +615,21 @@ onBeforeUnmount(() => {
   }
   
   .section-title {
-    font-size: 2rem;
+    font-size: 1.5rem;
   }
   
   .tours-grid {
     grid-template-columns: 1fr;
   }
   
-  .search-input-group {
-    flex-direction: column;
-  }
+
   
   .container {
     padding: 0 15px;
+  }
+
+  .popular-tours {
+    padding: 2rem 0;
   }
 }
 

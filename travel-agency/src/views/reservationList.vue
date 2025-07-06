@@ -16,7 +16,7 @@
             </div>
 
             <!-- 예약 리스트 -->
-            <div v-for="reservation in reservations" :key="reservation.id" class="reservation-item">
+            <div v-for="reservation in reservations" :key="reservation.id" class="reservation-item" @click="goToDetail(reservation.id)">
                 <div class="reservation-content">
                     <div class="product-info">
                         <div class="reservation-date">예약일 : {{ reservation.reservationDate }}</div>
@@ -48,6 +48,9 @@
 
 <script setup>
 import { ref, onMounted } from 'vue'
+import { useRouter } from 'vue-router'
+
+const router = useRouter()
 
 // 예약 데이터 (실제로는 API에서 받아올 데이터)
 const reservations = ref([
@@ -77,7 +80,7 @@ const reservations = ref([
         productTitle: '[당일]★리무ㅁㄴㅇㄹㄴㅇㄹㅁ진버스①속초*회*모듬한상차림①속초별미맛기행!1탄*속초*외옹치항*바다항기길+중앙어시장+속초영랑호수원길+속초주익의박물관',
         departureDate: '2025/08/08',
         totalAmount: 87000,
-        status: '예약확정',
+        status: '예약대기',
         adultCount: 1,
         childCount: 0
     },
@@ -110,6 +113,11 @@ const getStatusClass = (status) => {
         default:
             return 'confirmed'
     }
+}
+
+// 예약 상세 페이지로 이동
+const goToDetail = (reservationId) => {
+    router.push(`/reservations/${reservationId}`)
 }
 
 // 컴포넌트 마운트 시 데이터 로드
@@ -200,6 +208,12 @@ onMounted(() => {
 
 .reservation-item {
     border-bottom: 1px solid var(--border-color);
+    cursor: pointer;
+    transition: var(--transition);
+}
+
+.reservation-item:hover {
+    background: var(--bg-light);
 }
 
 .reservation-item:last-child {

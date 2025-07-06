@@ -913,8 +913,28 @@ const setImage = (index) => {
         grid-template-columns: 1fr;
     }
 
+    .tab-section {
+        top: 0;
+        left: 0;
+        right: 0;
+        margin-bottom: 1.5rem;
+        border-radius: 0;
+        border-left: none;
+        border-right: none;
+    }
+
     .tab-menu {
-        flex-direction: column;
+        display: flex;
+        flex-direction: row;
+        border-bottom: 1px solid var(--border-color);
+    }
+
+    .tab-button {
+        flex: 1;
+        padding: 1rem 0.5rem;
+        font-size: 0.9rem;
+        white-space: nowrap;
+        text-align: center;
     }
 
     .booking-section {

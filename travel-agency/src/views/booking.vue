@@ -166,29 +166,33 @@
             <section class="form-section terms-section">
                 <h2>약관 동의 <span class="required">*</span></h2>
                 
-                <!-- 전체 동의 -->
-                <div class="terms-all-agree">
-                    <label class="checkbox-label all-agree-label">
-                        <input type="checkbox" v-model="formData.agreeAll" @change="handleAgreeAll" class="checkbox-input">
-                        <span class="checkbox-text">모든 내용에 동의합니다.</span>
-                    </label>
-                </div>
-
-                <!-- 개별 약관 항목들 -->
-                <div v-for="(term, index) in terms" :key="index" class="terms-item">
-                    <div class="terms-header">
-                        <label class="checkbox-label">
-                            <input type="checkbox" 
-                                   v-model="formData.agreements[index]" 
-                                   @change="handleIndividualAgree"
-                                   class="checkbox-input">
-                            <span class="checkbox-text">
-                                <span v-if="term.required" class="required-mark">[필수]</span>
-                                <span v-else class="optional-mark">[선택]</span>
-                                {{ term.title }}
-                            </span>
+                <div class="terms-container">
+                    <!-- 전체 동의 -->
+                    <div class="terms-all-agree">
+                        <label class="checkbox-label all-agree-label">
+                            <input type="checkbox" v-model="formData.agreeAll" @change="handleAgreeAll" class="checkbox-input">
+                            <span class="checkbox-text">모든 내용에 동의합니다.</span>
                         </label>
-                        <button type="button" class="btn-terms" @click="viewTerms(term.id)">약관보기</button>
+                    </div>
+
+                    <!-- 개별 약관 항목들 -->
+                    <div class="terms-list">
+                        <div v-for="(term, index) in terms" :key="index" class="terms-item">
+                            <div class="terms-header">
+                                <label class="checkbox-label">
+                                    <input type="checkbox" 
+                                           v-model="formData.agreements[index]" 
+                                           @change="handleIndividualAgree"
+                                           class="checkbox-input">
+                                    <span class="checkbox-text">
+                                        <span v-if="term.required" class="required-mark">[필수]</span>
+                                        <span v-else class="optional-mark">[선택]</span>
+                                        {{ term.title }}
+                                    </span>
+                                </label>
+                                <button type="button" class="btn-terms" @click="viewTerms(term.id)">약관보기</button>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </section>
@@ -736,25 +740,30 @@ textarea {
 }
 
 /* 약관 섹션 */
+.terms-container {
+    border: 1px solid var(--border-color);
+    border-radius: var(--border-radius);
+    overflow: hidden;
+}
+
 .terms-all-agree {
-    background: #f5f5f5;
-    padding: 1.2rem;
-    margin: 0;
+    background: var(--bg-light);
+    padding: 1rem;
+    border-bottom: 1px solid var(--border-color);
 }
 
 .all-agree-label {
     font-weight: 500;
     font-size: 1rem;
-    margin: 0;
 }
 
-.all-agree-label .checkbox-text {
-    color: var(--text-primary);
+.terms-list {
+    background: white;
 }
 
 .terms-item {
-    background: white;
-    padding: 0.5rem 2rem;
+    padding: 0.75rem 1rem;
+    border-bottom: 1px solid var(--border-color);
 }
 
 .terms-item:last-child {
@@ -765,26 +774,25 @@ textarea {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    width: 100%;
+    gap: 1rem;
 }
 
 .btn-terms {
     background: white;
-    color: black;
-    padding: 0.4rem 0.8rem;
+    color: var(--text-secondary);
+    padding: 0.5rem 0.75rem;
     font-size: 0.75rem;
-    border: 1px solid rgba(180, 180, 180, 0.5);
-    border-radius: 6px;
+    border: 1px solid var(--border-color);
+    border-radius: var(--border-radius);
     cursor: pointer;
     transition: var(--transition);
     white-space: nowrap;
-    line-height: 1.2;
     font-weight: 500;
-    min-width: 60px;
 }
 
 .btn-terms:hover {
-    border: 1px solid #888888;
+    border-color: var(--primary-color);
+    color: var(--primary-color);
 }
 
 .booking-summary {
@@ -886,11 +894,18 @@ textarea {
     .terms-header {
         flex-direction: column;
         align-items: flex-start;
-        gap: 0.5rem;
+        gap: 0.75rem;
+    }
+
+    .btn-terms {
+        width: 100%;
+        padding: 0.75rem;
+        font-size: 0.9rem;
+        text-align: center;
     }
 
     .terms-item {
-        padding: 0.5rem 1rem;
+        padding: 1rem;
     }
 
     .terms-all-agree {
