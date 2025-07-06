@@ -97,7 +97,7 @@
                   <span class="price-label">1인</span>
                   <span class="price">{{ tour.price.toLocaleString() }}원</span>
                 </div>
-                <button class="btn-tour">예약하기</button>
+                <button class="btn-tour" @click="goToBooking(tour.id)">예약하기</button>
               </div>
             </div>
           </div>

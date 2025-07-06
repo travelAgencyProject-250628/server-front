@@ -34,7 +34,7 @@
         <template v-if="!isLoggedIn">
           <router-link to="/login" class="btn-secondary">로그인</router-link>
           <router-link to="/join" class="btn-secondary">회원가입</router-link>
-          <button class="btn-primary">예약확인</button>
+          <button class="btn-primary" @click="handleReservation">예약확인</button>
         </template>
         
         <!-- 로그인된 경우 -->
@@ -68,7 +68,7 @@
           <template v-if="!isLoggedIn">
             <router-link to="/login" class="btn-secondary" @click="closeMobileMenu">로그인</router-link>
             <router-link to="/join" class="btn-secondary" @click="closeMobileMenu">회원가입</router-link>
-            <button class="btn-primary">예약확인</button>
+            <button class="btn-primary" @click="handleReservation">예약확인</button>
           </template>
           
                   <!-- 로그인된 경우 -->
@@ -84,9 +84,11 @@
 
 <script setup>
 import { ref, computed, onMounted } from 'vue'
+import { useRouter } from 'vue-router'
 import { useAuthStore } from '../stores/auth.js'
 import { useCategoryStore } from '../stores/categories.js'
 
+const router = useRouter()
 const authStore = useAuthStore()
 const categoryStore = useCategoryStore()
 
@@ -123,6 +125,10 @@ const handleSubCategoryClick = (category, subCategory) => {
   console.log('서브카테고리 클릭:', category, subCategory)
   // 서브카테고리별 상품 페이지로 이동하는 로직
   alert(`${category.name} - ${subCategory} 상품을 불러오는 중입니다.`)
+}
+
+const handleReservation = () => {
+  router.push('/reservations')
 }
 
 // 컴포넌트 마운트 시 카테고리 데이터 불러오기

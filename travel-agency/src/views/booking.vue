@@ -140,7 +140,7 @@
                     <div class="payment-details">
                         <div class="payment-row">
                             <span class="payment-label">결제 방법</span>
-                            <span class="payment-value"><span class="highlight">무통장</span> 입금</span>
+                            <span class="payment-value"><span class="highlight">무통장 입금</span></span>
                         </div>
                         <div class="payment-row">
                             <span class="payment-label">입금 계좌</span>
@@ -432,10 +432,10 @@ const handleSubmit = async () => {
 }
 
 .product-summary-box {
-    background: white;
+    background: #e8f2ff;
     padding: 1.5rem;
     border-radius: var(--border-radius);
-    border: 1px solid var(--border-color);
+    border: 1px solid #b8d4ff;
     margin-bottom: 1.5rem;
     display: grid;
     grid-template-columns: repeat(3, 1fr);
@@ -450,8 +450,8 @@ const handleSubmit = async () => {
 
 .summary-label {
     font-size: 0.9rem;
-    color: var(--text-secondary);
-    font-weight: 500;
+    color: var(--primary-color);
+    font-weight: 600;
 }
 
 .summary-value {
@@ -807,12 +807,13 @@ textarea {
     font-size: 0.9rem;
 }
 
-.summary-row:last-child {
+.summary-row:nth-last-child(2) {
     border-bottom: none;
 }
 
 .summary-row.total {
     border-top: 1px solid var(--primary-color);
+    border-bottom: none; 
     padding-top: 0.75rem;
     font-size: 1rem;
     font-weight: 500;
