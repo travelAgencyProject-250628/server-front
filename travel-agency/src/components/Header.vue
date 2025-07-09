@@ -13,7 +13,7 @@
           
           <!-- 로그인된 경우 -->
           <template v-else>
-            <router-link to="#" class="top-link">마이페이지</router-link>
+            <router-link to="/mypage" class="top-link">마이페이지</router-link>
             <button @click="handleLogout" class="top-link">로그아웃</button>
           </template>
         </div>
@@ -332,7 +332,8 @@ const menuData = ref({
 })
 
 // 계산된 속성
-const isLoggedIn = computed(() => authStore.isAuthenticated)
+// const isLoggedIn = computed(() => authStore.isAuthenticated)
+const isLoggedIn = ref(true)
 const currentUser = computed(() => authStore.user)
 
 // 메서드들
@@ -372,14 +373,34 @@ const handleLogout = async () => {
 const handleCategoryClick = (category) => {
   console.log('카테고리 클릭:', category)
   // 카테고리별 상품 페이지로 이동하는 로직
-  alert(`${category.name} 카테고리의 상품을 불러오는 중입니다.`)
+  const categoryPath = category.name === '국내여행' ? 'domestic' : 
+                      category.name === '해외여행' ? 'international' : 
+                      category.name === '패키지여행' ? 'package' : 
+                      category.name === '자유여행' ? 'free' : 
+                      category.name.toLowerCase()
+  
+  router.push(`/products/${categoryPath}`)
 }
 
 const handleSubCategoryClick = (categoryId, item) => {
   const category = menuData.value.primaryCategories.find(cat => cat.id === categoryId)
   console.log('서브카테고리 클릭:', category, item)
+  
   // 서브카테고리별 상품 페이지로 이동하는 로직
-  alert(`${category?.name} - ${item.name} 상품을 불러오는 중입니다.`)
+  const categoryPath = category?.name === '국내여행' ? 'domestic' : 
+                      category?.name === '해외여행' ? 'international' : 
+                      category?.name === '패키지여행' ? 'package' : 
+                      category?.name === '자유여행' ? 'free' : 
+                      category?.name.toLowerCase()
+  
+  // 서브카테고리 이름을 URL에 적합한 형태로 변환
+  const subCategoryPath = item.name.toLowerCase()
+    .replace(/\s+/g, '-')
+    .replace(/[^a-z0-9-]/g, '')
+    .replace(/--+/g, '-')
+    .replace(/^-|-$/g, '')
+  
+  router.push(`/products/${categoryPath}/${subCategoryPath}`)
   hideSubMenu()
   hideAllMenu()
 }
@@ -460,7 +481,7 @@ const handleReservation = () => {
   //   return
   // }
   
-  router.push('/reservations')
+  router.push('/mypage/reservations')
 }
 
 const handleSearch = () => {

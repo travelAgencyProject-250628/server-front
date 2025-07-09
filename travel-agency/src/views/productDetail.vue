@@ -74,10 +74,12 @@
 
                     <!-- 일정 선택 -->
                     <div class="schedule-selection">
-                        <h3>일정 선택</h3>
-                        <div class="calendar-placeholder">
-                            <p>달력 일정 선택 기능은 추후 구현 예정입니다.</p>
-                        </div>
+                        <TravelCalendar
+                            v-model="selectedDate"
+                            :booking-data="bookingData"
+                            :min-required-booking="10"
+                            @date-select="handleDateSelect"
+                        />
                     </div>
 
                     <!-- 기본 가격표 추가 -->
@@ -221,13 +223,15 @@
                                 <span class="price-label">1인 기준</span>
                                 <span class="price-amount">{{ formatPrice(productDetail.adultPrice) }}원</span>
                             </div>
-                            <div class="date-info">
-                                <span class="selected-date">2024.03.15 (금)</span>
-                            </div>
+                                        <div class="date-info">
+                <span class="selected-date">
+                    {{ selectedDate ? formatSelectedDateForBooking(selectedDate) : '날짜를 선택해주세요' }}
+                </span>
+            </div>
                         </div>
-                        <button class="btn-booking" @click="handleBooking">
-                            예약하기
-                        </button>
+                                <button class="btn-booking" @click="handleBooking" :disabled="!selectedDate">
+            {{ selectedDate ? '예약하기' : '날짜를 선택해주세요' }}
+        </button>
                     </div>
                 </template>
             </div>
@@ -238,6 +242,7 @@
 <script setup>
 import { ref, onMounted, onBeforeUnmount } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
+import TravelCalendar from '@/components/TravelCalendar.vue'
 
 const route = useRoute()
 const router = useRouter()
@@ -247,6 +252,8 @@ const activeTab = ref('basic')
 const isLoading = ref(false)
 const error = ref(null)
 const productDetail = ref(null)
+const selectedDate = ref(null)
+const bookingData = ref([])
 
 // 섹션 refs
 const basicSection = ref(null)
@@ -294,6 +301,9 @@ const fetchProductDetail = async (productId) => {
         }
 
         productDetail.value = mockData
+        
+        // 예약 데이터 로드 (더미 데이터)
+        loadBookingData()
     } catch (e) {
         error.value = '상품 정보를 불러오는데 실패했습니다.'
         console.error('상품 정보 조회 실패:', e)
@@ -347,6 +357,49 @@ const handleBooking = () => {
             productId: route.params.id
         }
     })
+}
+
+// 예약 데이터 로드 함수
+const loadBookingData = () => {
+    // 실제로는 API에서 받아올 데이터
+    const today = new Date()
+    const mockBookingData = []
+    
+    // 3주간의 더미 예약 데이터 생성
+    for (let i = 0; i <= 21; i++) {
+        const date = new Date(today)
+        date.setDate(today.getDate() + i)
+        
+        // 랜덤하게 예약 인원 생성 (0~15명)
+        const bookingCount = Math.floor(Math.random() * 16)
+        
+        mockBookingData.push({
+            date: date.toISOString().split('T')[0],
+            bookingCount: bookingCount,
+            minRequired: 10
+        })
+    }
+    
+    bookingData.value = mockBookingData
+}
+
+// 날짜 선택 핸들러
+const handleDateSelect = (dateInfo) => {
+    console.log('선택된 날짜:', dateInfo)
+    selectedDate.value = dateInfo.date
+}
+
+// 예약 섹션용 날짜 포맷팅
+const formatSelectedDateForBooking = (date) => {
+    if (!date) return ''
+    
+    const year = date.getFullYear()
+    const month = String(date.getMonth() + 1).padStart(2, '0')
+    const day = String(date.getDate()).padStart(2, '0')
+    const dayNames = ['일', '월', '화', '수', '목', '금', '토']
+    const dayName = dayNames[date.getDay()]
+    
+    return `${year}.${month}.${day} (${dayName})`
 }
 
 // 현재 URL 복사 함수
@@ -588,26 +641,7 @@ const setImage = (index) => {
 
 /* 일정 선택 */
 .schedule-selection {
-    background: white;
-    padding: 1.25rem;
-    border-radius: var(--border-radius);
-    border: 1px solid var(--border-color);
     margin-bottom: 1.5rem;
-}
-
-.schedule-selection h3 {
-    font-size: 1rem;
-    margin-bottom: 0.75rem;
-    color: var(--text-primary);
-}
-
-.calendar-placeholder {
-    text-align: center;
-    padding: 2rem;
-    background: var(--bg-light);
-    border-radius: var(--border-radius);
-    color: var(--text-secondary);
-    font-size: 0.9rem;
 }
 
 /* 기본 가격표 추가 */
@@ -666,7 +700,7 @@ const setImage = (index) => {
 /* 탭 섹션 */
 .tab-section {
     position: sticky;
-    top: 80px;
+    top: 0px;
     z-index: 100;
     background: white;
     margin-bottom: 1.5rem;
@@ -894,8 +928,14 @@ const setImage = (index) => {
     transition: var(--transition);
 }
 
-.btn-booking:hover {
+.btn-booking:hover:not(:disabled) {
     background: var(--primary-dark);
+}
+
+.btn-booking:disabled {
+    background: var(--border-color);
+    color: var(--text-secondary);
+    cursor: not-allowed;
 }
 
 /* 반응형 디자인 */

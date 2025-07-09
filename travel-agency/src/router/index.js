@@ -49,6 +49,53 @@ const router = createRouter({
       path: '/reservations/:id',
       name: 'reservationDetail',
       component: () => import('@/views/reservationDetail.vue')
+    },
+    {
+      path: '/withdraw',
+      name: 'withdraw',
+      component: () => import('@/views/withdraw.vue')
+    },
+    {
+      path: '/profile-edit',
+      name: 'profileEdit',
+      component: () => import('@/views/profileEdit.vue')
+    },
+    {
+      path: '/mypage',
+      component: () => import('@/views/MyPage.vue'),
+      children: [
+        {
+          path: '',
+          redirect: '/mypage/profile'
+        },
+        {
+          path: 'profile',
+          name: 'mypageProfile',
+          component: () => import('@/views/profileEdit.vue')
+        },
+        {
+          path: 'reservations',
+          name: 'mypageReservations',
+          component: () => import('@/views/reservationList.vue')
+        },
+        {
+          path: 'withdraw',
+          name: 'mypageWithdraw',
+          component: () => import('@/views/withdraw.vue')
+        }
+      ]
+    },
+    {
+      path: '/products/:category',
+      name: 'productList',
+      component: () => import('@/views/ProductList.vue'),
+      props: true
+    },
+    {
+      path: '/products/:category/:subcategory',
+      name: 'productSubList',
+      component: () => import('@/views/ProductList.vue'),
+      props: true
     }
   ],
 })
