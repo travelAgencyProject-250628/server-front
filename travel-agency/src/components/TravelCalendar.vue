@@ -7,12 +7,6 @@
       </p>
     </div>
     
-    <!-- 커스텀 월 헤더 -->
-    <div class="custom-month-header">
-      <div class="month-title">{{ getCurrentMonthTitle }}</div>
-      <div class="month-title">{{ getNextMonthTitle }}</div>
-    </div>
-    
     <div class="calendar-container">
       <VCalendar
         v-model="selectedDate"
@@ -26,8 +20,7 @@
         :disabled-dates="disabledDates"
         locale="ko"
         @dayclick="handleDateClick"
-        class="custom-calendar"
-        :is-nav-disabled="true"
+        :nav-visibility="'focus'"
       />
     </div>
     
@@ -307,11 +300,10 @@ onMounted(() => {
 </script>
 
 <style scoped>
-/* CSS 변수 사용 (기존 프로젝트와 통일) */
 .travel-calendar {
   background: white;
-  border-radius: var(--border-radius, 8px);
-  border: 1px solid var(--border-color, #e2e8f0);
+  border-radius: 8px;
+  border: 1px solid #e2e8f0;
   padding: 1.5rem;
   font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
 }
@@ -324,13 +316,13 @@ onMounted(() => {
 .calendar-header h3 {
   font-size: 1.2rem;
   font-weight: 600;
-  color: var(--text-primary, #1e293b);
+  color: #1e293b;
   margin-bottom: 0.5rem;
 }
 
 .calendar-description {
   font-size: 0.9rem;
-  color: var(--text-secondary, #64748b);
+  color: #64748b;
   margin: 0;
 }
 
@@ -338,149 +330,21 @@ onMounted(() => {
   margin-bottom: 1.5rem;
 }
 
-/* v-calendar 커스텀 스타일 */
-.custom-calendar {
-  width: 100%;
-}
-
-/* 달력 헤더 스타일 - 네비게이션 숨기기 */
-:deep(.vc-header) {
-  display: none;
-}
-
-/* 월 제목을 별도로 표시하기 위한 커스텀 헤더 추가 */
-.custom-month-header {
-  display: flex;
-  justify-content: space-between;
-  margin-bottom: 1rem;
-  padding: 1rem;
-  background: var(--bg-light, #f8fafc);
-  border-radius: var(--border-radius, 8px);
-  border: 1px solid var(--border-color, #e2e8f0);
-}
-
-.month-title {
-  font-size: 1rem;
-  font-weight: 600;
-  color: var(--text-primary, #1e293b);
-  text-align: center;
-  flex: 1;
-}
-
-/* 달력 그리드 스타일 */
-:deep(.vc-weeks) {
-  padding: 0;
-}
-
-:deep(.vc-weekday) {
-  padding: 0.5rem;
-  font-size: 0.85rem;
-  font-weight: 500;
-  color: var(--text-secondary, #64748b);
-  background: var(--bg-light, #f8fafc);
-  border-bottom: 1px solid var(--border-color, #e2e8f0);
-}
-
-:deep(.vc-day) {
-  position: relative;
-  padding: 0.5rem;
-  min-height: 50px;
-  border: 1px solid var(--border-color, #e2e8f0);
-  background: white;
-  transition: all 0.2s ease;
-}
-
-:deep(.vc-day:hover) {
-  background: var(--bg-light, #f8fafc);
-}
-
+/* 비활성 날짜 호버 애니메이션 제거 */
 :deep(.vc-day.is-disabled) {
-  background: #f5f5f5;
-  color: #ccc;
-  cursor: not-allowed;
+  pointer-events: none;
+  opacity: 0.5;
 }
 
 :deep(.vc-day.is-disabled:hover) {
-  background: #f5f5f5;
+  background: initial !important;
+  transform: none !important;
 }
 
-/* 날짜 숫자 스타일 */
-:deep(.vc-day-content) {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  height: 100%;
-  width: 100%;
-  padding: 0.25rem;
-  cursor: pointer;
-  position: relative;
-}
-
-:deep(.vc-day-content .vc-day-number) {
-  font-size: 0.9rem;
-  font-weight: 500;
-  margin-bottom: 0.25rem;
-}
-
-/* 출발가능 날짜 스타일 */
-:deep(.available-content) {
-  background: #f0f9ff !important;
-  border-color: var(--primary-color, #2563eb) !important;
-  position: relative;
-}
-
-:deep(.available-content::after) {
-  content: '출발가능';
-  font-size: 0.7rem;
-  color: var(--primary-color, #2563eb);
-  font-weight: 500;
-  position: absolute;
-  bottom: 2px;
-  left: 50%;
-  transform: translateX(-50%);
-  white-space: nowrap;
-}
-
-/* 출발유력 날짜 스타일 */
-:deep(.confirmed-content) {
-  background: #fef3c7 !important;
-  border-color: var(--accent-color, #f59e0b) !important;
-  position: relative;
-}
-
-:deep(.confirmed-content::after) {
-  content: '출발유력';
-  font-size: 0.7rem;
-  color: var(--accent-color, #f59e0b);
-  font-weight: 600;
-  position: absolute;
-  bottom: 2px;
-  left: 50%;
-  transform: translateX(-50%);
-  white-space: nowrap;
-}
-
-/* 선택된 날짜 스타일 */
-:deep(.selected-content) {
-  background: var(--primary-color, #2563eb) !important;
-  border-color: var(--primary-color, #2563eb) !important;
-  color: white !important;
-  position: relative;
-}
-
-:deep(.selected-content::after) {
-  color: white !important;
-}
-
-/* 하이라이트된 날짜 스타일 */
-:deep(.vc-highlight) {
-  background: var(--primary-color, #2563eb) !important;
-  color: white !important;
-}
-
-:deep(.vc-highlight .vc-day-content) {
-  color: white !important;
+/* 년도/월 제목 클릭 비활성화 */
+:deep(.vc-title) {
+  pointer-events: none;
+  cursor: default;
 }
 
 /* 범례 스타일 */
@@ -490,8 +354,8 @@ onMounted(() => {
   gap: 1.5rem;
   margin-bottom: 1.5rem;
   padding: 1rem;
-  background: var(--bg-light, #f8fafc);
-  border-radius: var(--border-radius, 8px);
+  background: #f8fafc;
+  border-radius: 8px;
 }
 
 .legend-item {
@@ -499,7 +363,7 @@ onMounted(() => {
   align-items: center;
   gap: 0.5rem;
   font-size: 0.85rem;
-  color: var(--text-secondary, #64748b);
+  color: #64748b;
 }
 
 .legend-dot {
@@ -510,26 +374,26 @@ onMounted(() => {
 }
 
 .legend-dot.available {
-  background: #f0f9ff;
-  border-color: var(--primary-color, #2563eb);
+  background: #dbeafe;
+  border-color: #2563eb;
 }
 
 .legend-dot.confirmed {
   background: #fef3c7;
-  border-color: var(--accent-color, #f59e0b);
+  border-color: #f59e0b;
 }
 
 .legend-dot.selected {
-  background: var(--primary-color, #2563eb);
-  border-color: var(--primary-color, #2563eb);
+  background: #2563eb;
+  border-color: #2563eb;
 }
 
 /* 선택된 날짜 정보 */
 .selected-date-info {
   padding: 1rem;
-  background: var(--bg-light, #f8fafc);
-  border-radius: var(--border-radius, 8px);
-  border: 1px solid var(--border-color, #e2e8f0);
+  background: #f8fafc;
+  border-radius: 8px;
+  border: 1px solid #e2e8f0;
 }
 
 .selected-date-display {
@@ -541,13 +405,13 @@ onMounted(() => {
 
 .date-label {
   font-size: 0.9rem;
-  color: var(--text-secondary, #64748b);
+  color: #64748b;
 }
 
 .date-value {
   font-size: 1rem;
   font-weight: 600;
-  color: var(--text-primary, #1e293b);
+  color: #1e293b;
 }
 
 .booking-status {
@@ -565,12 +429,12 @@ onMounted(() => {
 
 .status-badge.available {
   background: #dbeafe;
-  color: var(--primary-color, #2563eb);
+  color: #2563eb;
 }
 
 .status-badge.confirmed {
   background: #fef3c7;
-  color: var(--accent-color, #f59e0b);
+  color: #f59e0b;
 }
 
 /* 반응형 디자인 */
@@ -590,32 +454,5 @@ onMounted(() => {
     gap: 0.5rem;
     align-items: flex-start;
   }
-  
-  :deep(.vc-day) {
-    min-height: 50px;
-  }
-  
-  :deep(.vc-day-content::after) {
-    font-size: 0.6rem;
-  }
-}
-
-/* 달력 컨테이너 그리드 조정 */
-:deep(.vc-container) {
-  border: 1px solid var(--border-color, #e2e8f0);
-  border-radius: var(--border-radius, 8px);
-  overflow: hidden;
-}
-
-:deep(.vc-pane-container) {
-  border: none;
-}
-
-:deep(.vc-pane) {
-  min-width: 280px;
-}
-
-:deep(.vc-pane:not(:last-child)) {
-  border-right: 1px solid var(--border-color, #e2e8f0);
 }
 </style> 
