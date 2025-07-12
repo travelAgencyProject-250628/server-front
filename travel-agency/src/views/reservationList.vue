@@ -117,7 +117,7 @@ const getStatusClass = (status) => {
 
 // 예약 상세 페이지로 이동
 const goToDetail = (reservationId) => {
-    router.push(`/reservations/${reservationId}`)
+    router.push(`/mypage/reservations/${reservationId}`)
 }
 
 // 컴포넌트 마운트 시 데이터 로드

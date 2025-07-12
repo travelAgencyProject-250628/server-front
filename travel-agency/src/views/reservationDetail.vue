@@ -166,7 +166,7 @@ const formatPrice = (price) => {
 
 // 뒤로가기
 const goBack = () => {
-    router.push('/reservations')
+    router.push('/mypage/reservations')
 }
 
 // 컴포넌트 마운트 시 데이터 로드

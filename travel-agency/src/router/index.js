@@ -41,26 +41,6 @@ const router = createRouter({
       component: () => import('@/views/booking.vue')
     },
     {
-      path: '/reservations',
-      name: 'reservations',
-      component: () => import('@/views/reservationList.vue')
-    },
-    {
-      path: '/reservations/:id',
-      name: 'reservationDetail',
-      component: () => import('@/views/reservationDetail.vue')
-    },
-    {
-      path: '/withdraw',
-      name: 'withdraw',
-      component: () => import('@/views/withdraw.vue')
-    },
-    {
-      path: '/profile-edit',
-      name: 'profileEdit',
-      component: () => import('@/views/profileEdit.vue')
-    },
-    {
       path: '/mypage',
       component: () => import('@/views/MyPage.vue'),
       children: [
@@ -82,6 +62,11 @@ const router = createRouter({
           path: 'withdraw',
           name: 'mypageWithdraw',
           component: () => import('@/views/withdraw.vue')
+        },
+        {
+          path: 'reservations/:id',
+          name: 'mypageReservationDetail',
+          component: () => import('@/views/reservationDetail.vue')
         }
       ]
     },
