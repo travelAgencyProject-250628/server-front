@@ -181,6 +181,27 @@ const visiblePages = computed(() => {
   return pages
 })
 
+// 여행 관련 이미지 ID 배열 (제품 1~12용)
+const getTravelImageId = (id) => {
+  const travelImages = {
+    1: '1506905925346-21bda4d32df4',  // 제주도 해안
+    2: '1544551763-46a013bb70d5',    // 한라산
+    3: '1578662996442-48f60103fc96',  // 제주도 돌하르방
+    4: '1524492412937-b28074a5d7da',  // 제주도 오름
+    5: '1441974231-5f9b92e4df3e',    // 설악산
+    6: '1469474968-9eeefcd482b5',    // 부산 해운대
+    7: '1470071459-3aa88e2458dd',    // 경주 불국사
+    8: '1518837695-8b13bc4f7e78',    // 전주 한옥마을
+    9: '1551698618-1c6c2f7db9b6',    // 남이섬
+    10: '1559827260-3318565c6ad8',   // 강릉 바다
+    11: '1519904981063-65d7b4d0b4f4', // 속초 해변
+    12: '1539650116574-75c0c6d36dc7'  // 여수 밤바다
+  }
+  
+  // 1~12번은 특정 이미지, 그 외는 기본 공식 사용
+  return travelImages[id] || `${1500000000000 + (id * 1000)}`
+}
+
 // 메서드
 const loadMenuData = async () => {
   try {
@@ -237,7 +258,7 @@ const loadProducts = async () => {
           price: price,
           originalPrice: originalPrice,
           discount: Math.floor(((originalPrice - price) / originalPrice) * 100),
-          image: `https://images.unsplash.com/photo-${1500000000000 + (id * 1000)}?w=300&h=200&fit=crop`,
+          image: `https://images.unsplash.com/photo-${getTravelImageId(id)}?w=300&h=200&fit=crop`,
           isNew: id % 4 === 0,
           isHot: id % 5 === 0
         })

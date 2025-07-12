@@ -292,11 +292,18 @@ const fetchProductDetail = async (productId) => {
             excludedItems: '포함 외 식사, 기타 개인경비, 국내여행자보험',
             meetingPoint: '영등포 신세계백화점앞 / 서울역10번출구 남대문경찰서옆 / 잠실역4번출구 롯데마트앞 / 동천, 죽전, 신갈 간이정류장',
             images: [
-                'https://images.unsplash.com/photo-1539650116574-75c0c6d36dc7?w=800&h=400&fit=crop',
-                'https://images.unsplash.com/photo-1539650116574-75c0c6d36dc7?w=800&h=400&fit=crop',
-                'https://images.unsplash.com/photo-1539650116574-75c0c6d36dc7?w=800&h=400&fit=crop',
-                'https://images.unsplash.com/photo-1539650116574-75c0c6d36dc7?w=800&h=400&fit=crop',
-                'https://images.unsplash.com/photo-1539650116574-75c0c6d36dc7?w=800&h=400&fit=crop'
+                'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=800&h=400&fit=crop', // 제주도 해안
+                'https://images.unsplash.com/photo-1544551763-46a013bb70d5?w=800&h=400&fit=crop', // 한라산
+                'https://images.unsplash.com/photo-1578662996442-48f60103fc96?w=800&h=400&fit=crop', // 제주도 돌하르방
+                'https://images.unsplash.com/photo-1524492412937-b28074a5d7da?w=800&h=400&fit=crop', // 제주도 오름
+                'https://images.unsplash.com/photo-1441974231-5f9b92e4df3e?w=800&h=400&fit=crop', // 제주도 성산일출봉
+                'https://images.unsplash.com/photo-1469474968-9eeefcd482b5?w=800&h=400&fit=crop', // 제주도 우도
+                'https://images.unsplash.com/photo-1470071459-3aa88e2458dd?w=800&h=400&fit=crop', // 제주도 천지연폭포
+                'https://images.unsplash.com/photo-1518837695-8b13bc4f7e78?w=800&h=400&fit=crop', // 제주도 협재해수욕장
+                'https://images.unsplash.com/photo-1551698618-1c6c2f7db9b6?w=800&h=400&fit=crop', // 제주도 섭지코지
+                'https://images.unsplash.com/photo-1559827260-3318565c6ad8?w=800&h=400&fit=crop', // 제주도 용머리해안
+                'https://images.unsplash.com/photo-1519904981063-65d7b4d0b4f4?w=800&h=400&fit=crop', // 제주도 정방폭포
+                'https://images.unsplash.com/photo-1539650116574-75c0c6d36dc7?w=800&h=400&fit=crop'  // 제주도 중문해수욕장
             ]
         }
 
@@ -370,11 +377,17 @@ const loadBookingData = () => {
         const date = new Date(today)
         date.setDate(today.getDate() + i)
         
-        // 랜덤하게 예약 인원 생성 (0~15명)
-        const bookingCount = Math.floor(Math.random() * 16)
+        // 랜덤하게 예약 인원 생성 (0~25명)
+        const bookingCount = Math.floor(Math.random() * 26)
+        
+        // 로컬 시간대에서 날짜 포맷팅 (시간대 오류 방지)
+        const year = date.getFullYear()
+        const month = String(date.getMonth() + 1).padStart(2, '0')
+        const day = String(date.getDate()).padStart(2, '0')
+        const dateString = `${year}-${month}-${day}`
         
         mockBookingData.push({
-            date: date.toISOString().split('T')[0],
+            date: dateString,
             bookingCount: bookingCount,
             minRequired: 10
         })
@@ -642,6 +655,10 @@ const setImage = (index) => {
 /* 일정 선택 */
 .schedule-selection {
     margin-bottom: 1.5rem;
+    background: white;
+    padding: 1.5rem;
+    border-radius: var(--border-radius);
+    border: 1px solid var(--border-color);
 }
 
 /* 기본 가격표 추가 */

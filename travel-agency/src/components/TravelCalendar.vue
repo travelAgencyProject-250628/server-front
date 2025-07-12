@@ -3,7 +3,7 @@
     <div class="calendar-header">
       <h3>출발일 선택</h3>
       <p class="calendar-description">
-        오늘부터 3주간 출발 가능한 날짜를 선택하세요
+        내일부터 3주간 출발 가능한 날짜를 선택하세요
       </p>
     </div>
     
@@ -20,22 +20,23 @@
         :disabled-dates="disabledDates"
         locale="ko"
         @dayclick="handleDateClick"
-        :nav-visibility="'focus'"
+        :nav-visibility="'hidden'"
       />
     </div>
     
     <div class="calendar-legend">
-      <div class="legend-item">
-        <div class="legend-dot available"></div>
-        <span>출발가능</span>
-      </div>
+
       <div class="legend-item">
         <div class="legend-dot confirmed"></div>
         <span>출발유력</span>
       </div>
       <div class="legend-item">
-        <div class="legend-dot selected"></div>
-        <span>선택됨</span>
+        <div class="legend-dot guaranteed"></div>
+        <span>출발확정</span>
+      </div>
+      <div class="legend-item">
+        <div class="legend-dot closed"></div>
+        <span>예약마감</span>
       </div>
     </div>
     
@@ -95,7 +96,9 @@ const nextMonthEnd = computed(() => {
 
 // 3주 범위 설정 (실제 선택 가능한 날짜)
 const minSelectableDate = computed(() => {
-  return new Date(today)
+  const tomorrow = new Date(today)
+  tomorrow.setDate(today.getDate() + 1)
+  return tomorrow
 })
 
 const maxSelectableDate = computed(() => {
@@ -114,14 +117,29 @@ const toPage = computed(() => {
   return { month: nextMonth.getMonth() + 1, year: nextMonth.getFullYear() }
 })
 
-// 비활성화할 날짜들 (3주 범위 외)
+// 비활성화할 날짜들 (3주 범위 외 + 예약마감 날짜)
 const disabledDates = computed(() => {
-  return [
-    // 오늘 이전 날짜들
-    { start: null, end: new Date(today.getTime() - 24 * 60 * 60 * 1000) },
+  const disabled = [
+    // 오늘 포함 이전 날짜들
+    { start: null, end: today },
     // 3주 이후 날짜들
     { start: new Date(maxSelectableDate.value.getTime() + 24 * 60 * 60 * 1000), end: null }
   ]
+  
+  // 예약마감 날짜들 추가 (15명 이상)
+  for (let i = 1; i <= 21; i++) {
+    const date = new Date(today)
+    date.setDate(today.getDate() + i)
+    const dateKey = formatDateKey(date)
+    const bookingInfo = bookingMap.value.get(dateKey)
+    
+    // 예약마감 조건: 15명 이상 20명 미만
+    if (bookingInfo && bookingInfo.bookingCount >= 15 && bookingInfo.bookingCount < 20) {
+      disabled.push(date)
+    }
+  }
+  
+  return disabled
 })
 
 // 예약 데이터를 날짜별로 매핑
@@ -138,55 +156,68 @@ const bookingMap = computed(() => {
 const calendarAttributes = computed(() => {
   const attributes = []
   
-  // 출발 가능한 날짜들 (3주 범위 내)
-  const availableDates = []
-  const confirmedDates = []
-  
-  for (let i = 0; i <= 21; i++) {
+  // 각 날짜별로 개별 속성 생성
+  for (let i = 1; i <= 21; i++) {
     const date = new Date(today)
     date.setDate(today.getDate() + i)
     const dateKey = formatDateKey(date)
     const bookingInfo = bookingMap.value.get(dateKey)
     
-    if (bookingInfo && bookingInfo.bookingCount >= props.minRequiredBooking) {
-      // 출발유력 (예약 인원이 기준 이상)
-      confirmedDates.push(date)
-    } else {
-      // 출발가능 (기본)
-      availableDates.push(date)
+    // 선택 가능한 날짜 범위 내에 있는지 확인
+    const isSelectable = date >= minSelectableDate.value && date <= maxSelectableDate.value
+    
+    // 선택 가능한 날짜만 속성 추가
+    if (isSelectable) {
+      let dotColor = 'blue' // 기본 파란색 (예약가능)
+      let attributeKey = 'available'
+      let order = 0
+      
+      if (bookingInfo) {
+        if (bookingInfo.bookingCount >= 20) {
+          // 출발확정 (20명 이상) - 빨간색
+          dotColor = 'red'
+          attributeKey = 'guaranteed'
+          order = 4
+        } else if (bookingInfo.bookingCount >= 15) {
+          // 예약마감 (15명 이상) - 청록색
+          dotColor = null
+          attributeKey = 'closed'
+          order = 3
+        } else if (bookingInfo.bookingCount >= props.minRequiredBooking) {
+          // 출발유력 (10명 이상) - 파란색
+          dotColor = 'blue'
+          attributeKey = 'confirmed'
+          order = 2
+        } else {
+          // 예약가능 (기본) - 속성 표시 안함
+          dotColor = null
+          attributeKey = 'available'
+          order = 1
+        }
+      } else {
+        // 예약가능 (기본) - 속성 표시 안함
+        dotColor = null
+        attributeKey = 'available'
+        order = 1
+      }
+      
+      // 각 날짜별 속성 추가 (예약가능 제외)
+      if (dotColor) {
+        attributes.push({
+          key: `${attributeKey}-${dateKey}`,
+          dates: date,
+          dot: {
+            color: dotColor,
+            class: `${attributeKey}-dot`
+          },
+          order: order,
+          customData: { 
+            type: attributeKey,
+            bookingInfo: bookingInfo || null
+          }
+        })
+      }
     }
-  }
-  
-  // 출발가능 날짜 속성
-  if (availableDates.length > 0) {
-    attributes.push({
-      key: 'available',
-      dates: availableDates,
-      dot: {
-        color: 'blue',
-        class: 'available-dot'
-      },
-      content: {
-        class: 'available-content'
-      },
-      customData: { type: 'available' }
-    })
-  }
-  
-  // 출발유력 날짜 속성
-  if (confirmedDates.length > 0) {
-    attributes.push({
-      key: 'confirmed',
-      dates: confirmedDates,
-      dot: {
-        color: 'orange',
-        class: 'confirmed-dot'
-      },
-      content: {
-        class: 'confirmed-content'
-      },
-      customData: { type: 'confirmed' }
-    })
   }
   
   // 선택된 날짜 속성
@@ -198,9 +229,7 @@ const calendarAttributes = computed(() => {
         color: 'blue',
         fillMode: 'solid'
       },
-      content: {
-        class: 'selected-content'
-      },
+      order: 10,
       customData: { type: 'selected' }
     })
   }
@@ -210,7 +239,10 @@ const calendarAttributes = computed(() => {
 
 // 날짜 키 포맷팅 함수
 const formatDateKey = (date) => {
-  return date.toISOString().split('T')[0]
+  const year = date.getFullYear()
+  const month = String(date.getMonth() + 1).padStart(2, '0')
+  const day = String(date.getDate()).padStart(2, '0')
+  return `${year}-${month}-${day}`
 }
 
 // 선택된 날짜 포맷팅
@@ -224,21 +256,6 @@ const formatSelectedDate = computed(() => {
   const dayName = dayNames[selectedDate.value.getDay()]
   
   return `${year}.${month}.${day} (${dayName})`
-})
-
-// 현재 월 제목
-const getCurrentMonthTitle = computed(() => {
-  const year = today.getFullYear()
-  const month = today.getMonth() + 1
-  return `${year}년 ${month}월`
-})
-
-// 다음 월 제목
-const getNextMonthTitle = computed(() => {
-  const nextMonth = new Date(today.getFullYear(), today.getMonth() + 1, 1)
-  const year = nextMonth.getFullYear()
-  const month = nextMonth.getMonth() + 1
-  return `${year}년 ${month}월`
 })
 
 // 날짜 클릭 핸들러
@@ -266,8 +283,16 @@ const getStatusClass = (date) => {
   const dateKey = formatDateKey(date)
   const bookingInfo = bookingMap.value.get(dateKey)
   
-  if (bookingInfo && bookingInfo.bookingCount >= props.minRequiredBooking) {
-    return 'confirmed'
+  if (bookingInfo) {
+    if (bookingInfo.bookingCount >= 20) {
+      return 'guaranteed'
+    } else if (bookingInfo.bookingCount >= 15) {
+      return 'closed'
+    } else if (bookingInfo.bookingCount >= props.minRequiredBooking) {
+      return 'confirmed'
+    } else {
+      return 'available'
+    }
   }
   return 'available'
 }
@@ -279,10 +304,18 @@ const getStatusText = (date) => {
   const dateKey = formatDateKey(date)
   const bookingInfo = bookingMap.value.get(dateKey)
   
-  if (bookingInfo && bookingInfo.bookingCount >= props.minRequiredBooking) {
-    return '출발유력'
+  if (bookingInfo) {
+    if (bookingInfo.bookingCount >= 20) {
+      return '출발확정'
+    } else if (bookingInfo.bookingCount >= 15) {
+      return '예약마감'
+    } else if (bookingInfo.bookingCount >= props.minRequiredBooking) {
+      return '출발유력'
+    } else {
+      return '예약가능'
+    }
   }
-  return '출발가능'
+  return '예약가능'
 }
 
 // selectedDate 변경 감지
@@ -301,50 +334,100 @@ onMounted(() => {
 
 <style scoped>
 .travel-calendar {
-  background: white;
-  border-radius: 8px;
-  border: 1px solid #e2e8f0;
-  padding: 1.5rem;
   font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+  max-width: 750px;
+  margin: 0 auto;
 }
 
 .calendar-header {
-  margin-bottom: 2rem;
+  margin-bottom: 2.25rem;
   text-align: center;
 }
 
 .calendar-header h3 {
-  font-size: 1.2rem;
+  font-size: 1.35rem;
   font-weight: 600;
   color: #1e293b;
-  margin-bottom: 0.5rem;
+  margin-bottom: 0.6rem;
 }
 
 .calendar-description {
-  font-size: 0.9rem;
+  font-size: 0.95rem;
   color: #64748b;
   margin: 0;
 }
 
 .calendar-container {
-  margin-bottom: 1.5rem;
+  margin-bottom: 1.75rem;
+  display: flex;
+  justify-content: center;
 }
 
-/* 비활성 날짜 호버 애니메이션 제거 */
-:deep(.vc-day.is-disabled) {
-  pointer-events: none;
-  opacity: 0.5;
+/* 네비게이션 화살표 완전 제거 */
+:deep(.vc-arrow) {
+  display: none !important;
 }
 
-:deep(.vc-day.is-disabled:hover) {
-  background: initial !important;
-  transform: none !important;
-}
-
-/* 년도/월 제목 클릭 비활성화 */
+/* 월 제목 배경 제거 */
 :deep(.vc-title) {
+  background: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+}
+
+:deep(.vc-header) {
+    margin-bottom: 1rem;
+}
+
+/* v-calendar 컨테이너 z-index 설정 */
+:deep(.vc-container) {
+  margin: 0 auto;
+  font-size: 1.05rem;
+  position: relative;
+  z-index: 0;
+}
+
+
+/* 달력 셀 크기 확대 */
+:deep(.vc-day) {
+  min-height: 50px !important;
+  padding: 0.6rem !important;
+}
+
+/* 요일 헤더 크기 확대 */
+:deep(.vc-weekday) {
+  padding: 0.8rem 0.6rem !important;
+  font-size: 0.95rem !important;
+  font-weight: 600 !important;
+}
+
+/* 날짜 숫자 크기 확대 */
+:deep(.vc-day-content) {
+  font-size: 1.05rem !important;
+  padding: 0.4rem !important;
+}
+
+/* 월 제목 크기 확대 */
+:deep(.vc-title) {
+  font-size: 1.1rem !important;
+  font-weight: 600 !important;
+  padding: 0.8rem !important;
   pointer-events: none;
   cursor: default;
+}
+
+/* dot 크기 확대 */
+:deep(.vc-dots) {
+  display: flex;
+  justify-content: center;
+  padding: 2px 0;
+}
+
+:deep(.vc-dot) {
+  width: 8px !important;
+  height: 8px !important;
+  border-radius: 50% !important;
+  margin: 0 1px !important;
 }
 
 /* 범례 스타일 */
@@ -373,20 +456,26 @@ onMounted(() => {
   border: 2px solid;
 }
 
-.legend-dot.available {
-  background: #dbeafe;
-  border-color: #2563eb;
-}
+  .legend-text.available {
+    color: #64748b;
+    font-weight: 500;
+  }
+  
+  .legend-dot.closed {
+    background: #0d9488;
+    border-color: #0d9488;
+  }
+  
+  .legend-dot.confirmed {
+    background: #2563eb;
+    border-color: #2563eb;
+  }
+  
+  .legend-dot.guaranteed {
+    background: #dc2626;
+    border-color: #dc2626;
+  }
 
-.legend-dot.confirmed {
-  background: #fef3c7;
-  border-color: #f59e0b;
-}
-
-.legend-dot.selected {
-  background: #2563eb;
-  border-color: #2563eb;
-}
 
 /* 선택된 날짜 정보 */
 .selected-date-info {
@@ -428,13 +517,23 @@ onMounted(() => {
 }
 
 .status-badge.available {
+  background: #f1f5f9;
+  color: #64748b;
+}
+
+.status-badge.closed {
+  background: #ccfbf1;
+  color: #0d9488;
+}
+
+.status-badge.confirmed {
   background: #dbeafe;
   color: #2563eb;
 }
 
-.status-badge.confirmed {
-  background: #fef3c7;
-  color: #f59e0b;
+.status-badge.guaranteed {
+  background: #fecaca;
+  color: #dc2626;
 }
 
 /* 반응형 디자인 */

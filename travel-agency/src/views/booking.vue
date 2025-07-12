@@ -171,7 +171,7 @@
                     <div class="terms-all-agree">
                         <label class="checkbox-label all-agree-label">
                             <input type="checkbox" v-model="formData.agreeAll" @change="handleAgreeAll" class="checkbox-input">
-                            <span class="checkbox-text">모든 내용에 동의합니다.</span>
+                            <span class="checkbox-text">모든 내용에 동의</span>
                         </label>
                     </div>
 
