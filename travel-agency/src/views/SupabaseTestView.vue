@@ -3,6 +3,7 @@
     <div class="tab-buttons">
       <button :class="{active: activeTab === 'category'}" @click="activeTab = 'category'">카테고리 메뉴 API</button>
       <button :class="{active: activeTab === 'popular'}" @click="activeTab = 'popular'">인기 투어 API</button>
+      <button :class="{active: activeTab === 'reservation'}" @click="activeTab = 'reservation'">예약 상세 API</button>
     </div>
 
     <div v-if="activeTab === 'category'">
@@ -49,11 +50,11 @@
       <pre v-else>{{ menuData }}</pre>
     </div>
 
-    <div v-else>
+    <div v-else-if="activeTab === 'popular'">
       <div class="swagger-doc">
         <h2>📚 API 문서: 인기 투어 데이터</h2>
         <div class="api-section">
-          <div class="api-title">GET /lib/popularTours.js</div>
+          <div class="api-title">GET /lib/products.js</div>
           <div class="api-method">
             <span class="method">getPopularTours()</span>
           </div>
@@ -80,7 +81,7 @@
             <p>
               <strong>사용 예시:</strong><br>
               <code>
-                import &#123; getPopularTours &#125; from '@/lib/popularTours.js'<br>
+                import &#123; getPopularTours &#125; from '@/lib/products.js'<br>
                 const result = await getPopularTours()
               </code>
             </p>
@@ -92,6 +93,127 @@
       <div v-else-if="errorTours" style="color:red">에러: {{ errorTours }}</div>
       <pre v-else>{{ toursData }}</pre>
     </div>
+
+    <div v-else>
+      <div class="swagger-doc">
+        <h2>📚 API 문서: 예약 상세 데이터</h2>
+        <div class="api-section">
+          <div class="api-title">GET /lib/reservations.js</div>
+          <div class="api-method">
+            <span class="method">getReservationDetail(reservationId)</span>
+          </div>
+          <div class="api-desc">
+            <p>
+              <strong>설명:</strong> <br>
+              예약 id로 예약 상세 정보를 조회합니다.<br>
+              Bookings(예약) + Products(상품) + StartingPoints(출발지) + Users(예약자) 조인.<br>
+              <br>
+              <strong>반환 예시:</strong>
+              <pre>{
+  id: 1,
+  bookerName: '홍길동',
+  bookerPhone: '010-2237-6938',
+  emergencyContact: '010-2237-6938',
+  bookerEmail: 'jbl6938@gmail.com',
+  productTitle: '[당일]★리무진버스...'
+  adultCount: 1,
+  childCount: 0,
+  duration: '당일',
+  departureDate: '2025/08/08',
+  departureLocation: '잠실',
+  includedItems: '2식...',
+  excludedItems: '개인경비...',
+  adultPrice: 87000,
+  totalAmount: 87000,
+  status: '예약확정',
+  memberType: '회원예약',
+  travelers: [
+    { name: '홍길동', phone: '010-2237-6938', type: '성인' }
+  ]
+}</pre>
+            </p>
+            <p>
+              <strong>사용 예시:</strong><br>
+              <code>
+                import &#123; getReservationDetail &#125; from '@/lib/reservations.js'<br>
+                const result = await getReservationDetail(예약id)
+              </code>
+            </p>
+          </div>
+        </div>
+      </div>
+      <h2>예약 상세 데이터 테스트</h2>
+      <div class="reservation-test">
+        <input v-model="reservationId" type="number" min="1" placeholder="예약 id 입력" />
+        <button @click="fetchReservation" :disabled="loadingReservation">조회</button>
+      </div>
+      <div v-if="loadingReservation">로딩 중...</div>
+      <div v-else-if="errorReservation" style="color:red">에러: {{ errorReservation }}</div>
+      <pre v-else-if="reservationData">{{ reservationData }}</pre>
+
+      <div class="swagger-doc">
+        <h2>📚 API 문서: 예약 생성(POST)</h2>
+        <div class="api-section">
+          <div class="api-title">POST /lib/reservations.js</div>
+          <div class="api-method">
+            <span class="method">createReservation(reservationData)</span>
+          </div>
+          <div class="api-desc">
+            <p>
+              <strong>설명:</strong> <br>
+              예약 폼 데이터를 받아 Bookings 테이블에 예약을 생성합니다.<br>
+              travelers_name, travelers_phone은 콤마로 join해서 저장.<br>
+              <br>
+              <strong>반환 예시:</strong>
+              <pre>{ success: true, id: 123 }</pre>
+            </p>
+            <p>
+              <strong>사용 예시:</strong><br>
+              <code>
+                import &#123; createReservation &#125; from '@/lib/reservations.js'<br>
+                const result = await createReservation(reservationData)
+              </code>
+            </p>
+          </div>
+        </div>
+      </div>
+      <h2>예약 생성(POST) 테스트</h2>
+      <form class="reservation-post-test" @submit.prevent="submitReservation">
+        <label>예약자명 <span class="example">예: 홍길동</span></label>
+        <input v-model="postForm.bookerName" placeholder="예약자명" required />
+        <label>예약자 전화번호 <span class="example">예: 010-1234-5678</span></label>
+        <input v-model="postForm.bookerPhone" placeholder="전화번호" required />
+        <label>예약자 이메일 <span class="example">예: test@email.com</span></label>
+        <input v-model="postForm.bookerEmail" placeholder="이메일" required />
+        <label>비상연락처 <span class="example">예: 010-9999-8888</span></label>
+        <input v-model="postForm.emergencyContact" placeholder="비상연락처" />
+        <label>입금자명 <span class="example">예: 홍길동</span></label>
+        <input v-model="postForm.depositorName" placeholder="입금자명" />
+        <label>성인 수 <span class="example">예: 2</span></label>
+        <input v-model.number="postForm.adultCount" type="number" min="0" placeholder="성인 수" required />
+        <label>소인 수 <span class="example">예: 1</span></label>
+        <input v-model.number="postForm.childCount" type="number" min="0" placeholder="소인 수" required />
+        <label>상품 ID <span class="example">예: 1</span></label>
+        <input v-model="postForm.productId" type="number" placeholder="상품 ID" required />
+        <label>출발지 ID <span class="example">예: 1</span></label>
+        <input v-model="postForm.startingPointId" type="number" placeholder="출발지 ID" required />
+        <label>출발일 <span class="example">예: 2025-08-08</span></label>
+        <input v-model="postForm.departureDate" type="date" placeholder="출발일" required />
+        <div class="agree-terms-row">
+          <input v-model="postForm.agreeTerms" type="checkbox" id="agreeTerms" /> <label for="agreeTerms">약관동의 (필수)</label>
+        </div>
+        <label>상태 <span class="example">예: 예약확정, 대기 등</span></label>
+        <input v-model="postForm.status" placeholder="상태" />
+        <label>여행자명 <span class="example">여러 명은 콤마로 구분, 예: 홍길동,김철수</span></label>
+        <input v-model="travelerName" placeholder="여행자명" />
+        <label>여행자 전화 <span class="example">여러 명은 콤마로 구분, 예: 010-1234-5678,010-2222-3333</span></label>
+        <input v-model="travelerPhone" placeholder="여행자 전화" />
+        <button type="submit" :disabled="loadingPost">등록</button>
+      </form>
+      <div v-if="loadingPost">등록 중...</div>
+      <div v-else-if="errorPost" style="color:red">에러: {{ errorPost }}</div>
+      <div v-else-if="postResult">등록 성공! 예약 ID: {{ postResult }}</div>
+    </div>
   </div>
 </template>
 
@@ -99,6 +221,7 @@
 import { ref, onMounted } from 'vue'
 import { categoryService } from '@/lib/categories.js'
 import { getPopularTours } from '@/lib/products.js'
+import { getReservationDetail, createReservation } from '@/lib/reservations.js'
 
 const menuData = ref(null)
 const error = ref(null)
@@ -109,6 +232,33 @@ const errorTours = ref(null)
 const loadingTours = ref(true)
 
 const activeTab = ref('category')
+
+// 예약 상세 테스트용
+const reservationId = ref('')
+const reservationData = ref(null)
+const errorReservation = ref(null)
+const loadingReservation = ref(false)
+
+// 예약 생성 테스트용
+const postForm = ref({
+  bookerName: '홍길동',
+  bookerPhone: '010-1234-5678',
+  bookerEmail: 'test@email.com',
+  emergencyContact: '010-9999-8888',
+  depositorName: '홍길동',
+  adultCount: 2,
+  childCount: 1,
+  productId: 1,
+  startingPointId: 1,
+  departureDate: '2025-08-08',
+  agreeTerms: true,
+  status: '예약확정'
+})
+const travelerName = ref('홍길동,김철수')
+const travelerPhone = ref('010-1234-5678,010-2222-3333')
+const postResult = ref(null)
+const errorPost = ref(null)
+const loadingPost = ref(false)
 
 onMounted(async () => {
   // 카테고리 메뉴 테스트
@@ -131,6 +281,61 @@ onMounted(async () => {
   }
   loadingTours.value = false
 })
+
+async function fetchReservation() {
+  if (!reservationId.value) return
+  loadingReservation.value = true
+  errorReservation.value = null
+  reservationData.value = null
+  const result = await getReservationDetail(Number(reservationId.value))
+  if (result.success) {
+    reservationData.value = JSON.stringify(result.reservation, null, 2)
+  } else {
+    errorReservation.value = result.error
+  }
+  loadingReservation.value = false
+}
+
+async function submitReservation() {
+  if (!postForm.value.agreeTerms) {
+    alert('약관에 동의해야 합니다.');
+    return;
+  }
+
+  loadingPost.value = true;
+  errorPost.value = null;
+  postResult.value = null;
+
+  try {
+    const reservationData = {
+      bookerName: postForm.value.bookerName,
+      bookerPhone: postForm.value.bookerPhone,
+      bookerEmail: postForm.value.bookerEmail,
+      emergencyContact: postForm.value.emergencyContact,
+      depositorName: postForm.value.depositorName,
+      adultCount: postForm.value.adultCount,
+      childCount: postForm.value.childCount,
+      productId: postForm.value.productId,
+      startingPointId: postForm.value.startingPointId,
+      departureDate: postForm.value.departureDate,
+      agreeTerms: postForm.value.agreeTerms,
+      status: postForm.value.status,
+      travelersName: travelerName.value,
+      travelersPhone: travelerPhone.value
+    };
+
+    const result = await createReservation(reservationData);
+    if (result.success) {
+      postResult.value = result.id;
+    } else {
+      errorPost.value = result.error;
+    }
+  } catch (e) {
+    errorPost.value = e.message;
+  } finally {
+    loadingPost.value = false;
+  }
+}
 </script>
 
 <style scoped>
@@ -217,5 +422,94 @@ pre {
   padding: 0.2em 0.4em;
   border-radius: 4px;
   font-size: 0.97em;
+}
+.reservation-test {
+  display: flex;
+  gap: 1rem;
+  margin-bottom: 1rem;
+  align-items: center;
+}
+.reservation-test input {
+  padding: 0.5rem 1rem;
+  border-radius: 6px;
+  border: 1px solid #e2e8f0;
+  font-size: 1rem;
+  width: 160px;
+}
+.reservation-test button {
+  padding: 0.5rem 1.2rem;
+  border-radius: 6px;
+  border: none;
+  background: #2563eb;
+  color: #fff;
+  font-size: 1rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+.reservation-test button:disabled {
+  background: #b6c3e6;
+  cursor: not-allowed;
+}
+.reservation-post-test {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  margin-top: 1rem;
+}
+.reservation-post-test input {
+  padding: 0.5rem 1rem;
+  border-radius: 6px;
+  border: 1px solid #e2e8f0;
+  font-size: 1rem;
+  width: 100%;
+}
+.reservation-post-test button {
+  padding: 0.7rem 1.5rem;
+  border: none;
+  border-radius: 8px;
+  background: #2563eb;
+  color: #fff;
+  font-size: 1.05rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+.reservation-post-test button:disabled {
+  background: #b6c3e6;
+  cursor: not-allowed;
+}
+.reservation-post-test label {
+  font-weight: 500;
+  margin-top: 0.5rem;
+  margin-bottom: 0.1rem;
+  display: block;
+}
+.reservation-post-test .example {
+  color: #64748b;
+  font-weight: 400;
+  font-size: 0.95em;
+  margin-left: 0.5em;
+}
+.reservation-post-guide {
+  background: #f1f5f9;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  padding: 1rem 1.5rem;
+  margin-bottom: 1rem;
+  font-size: 0.98rem;
+}
+.reservation-post-guide ul {
+  margin: 0.5rem 0 0 1.2rem;
+  padding: 0;
+}
+.reservation-post-guide li {
+  margin-bottom: 0.2rem;
+}
+.agree-terms-row {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 0.5rem;
 }
 </style> 
