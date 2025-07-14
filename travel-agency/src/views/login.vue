@@ -167,7 +167,9 @@ const handleLogin = async () => {
         const result = await authStore.signIn(loginData.userId, loginData.password)
         
         if (result.success) {
-            router.push('/')
+            // 로그인 후 원래 가려던 페이지로 리디렉션
+            const redirectPath = router.currentRoute.value.query.redirect || '/'
+            router.push(redirectPath)
         } else {
             alert(`로그인 실패: ${result.message}`)
         }

@@ -1,4 +1,5 @@
 import { createRouter, createWebHistory } from 'vue-router'
+import { useAuthStore } from '@/stores/auth.js'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -38,11 +39,13 @@ const router = createRouter({
     {
       path: '/booking',
       name: 'booking',
-      component: () => import('@/views/booking.vue')
+      component: () => import('@/views/booking.vue'),
+      meta: { requiresAuth: true }
     },
     {
       path: '/mypage',
       component: () => import('@/views/MyPage.vue'),
+      meta: { requiresAuth: true },
       children: [
         {
           path: '',
@@ -51,22 +54,26 @@ const router = createRouter({
         {
           path: 'profile',
           name: 'mypageProfile',
-          component: () => import('@/views/profileEdit.vue')
+          component: () => import('@/views/profileEdit.vue'),
+          meta: { requiresAuth: true }
         },
         {
           path: 'reservations',
           name: 'mypageReservations',
-          component: () => import('@/views/reservationList.vue')
+          component: () => import('@/views/reservationList.vue'),
+          meta: { requiresAuth: true }
         },
         {
           path: 'withdraw',
           name: 'mypageWithdraw',
-          component: () => import('@/views/withdraw.vue')
+          component: () => import('@/views/withdraw.vue'),
+          meta: { requiresAuth: true }
         },
         {
           path: 'reservations/:id',
           name: 'mypageReservationDetail',
-          component: () => import('@/views/reservationDetail.vue')
+          component: () => import('@/views/reservationDetail.vue'),
+          meta: { requiresAuth: true }
         }
       ]
     },
@@ -81,8 +88,105 @@ const router = createRouter({
       name: 'productSubList',
       component: () => import('@/views/ProductList.vue'),
       props: true
+    },
+    {
+      path: '/admin',
+      component: () => import('@/components/AdminLayout.vue'),
+      meta: { requiresAuth: true, requiresAdmin: true },
+      redirect: '/admin/dashboard',
+      children: [
+        {
+          path: 'dashboard',
+          name: 'adminDashboard',
+          component: () => import('@/views/admin/Dashboard.vue'),
+          meta: { requiresAuth: true, requiresAdmin: true }
+        },
+        {
+          path: 'categories',
+          name: 'adminCategories',
+          component: () => import('@/views/admin/Categories.vue'),
+          meta: { requiresAuth: true, requiresAdmin: true }
+        },
+        {
+          path: 'products',
+          name: 'adminProducts',
+          component: () => import('@/views/admin/Products.vue'),
+          meta: { requiresAuth: true, requiresAdmin: true }
+        },
+        {
+          path: 'navigation',
+          name: 'adminNavigation',
+          component: () => import('@/views/admin/Navigation.vue'),
+          meta: { requiresAuth: true, requiresAdmin: true }
+        },
+        {
+          path: 'customers',
+          name: 'adminCustomers',
+          component: () => import('@/views/admin/Customers.vue'),
+          meta: { requiresAuth: true, requiresAdmin: true }
+        }
+        // ,
+        // {
+        //   path: 'reservations',
+        //   name: 'adminReservations',
+        //   component: () => import('@/views/admin/Reservations.vue'),
+        //   meta: { requiresAuth: true, requiresAdmin: true }
+        // }
+      ]
     }
   ],
+})
+
+// 인증 가드
+router.beforeEach((to, from, next) => {
+  // Header 컴포넌트에서 사용하는 테스트용 로그인 상태 확인
+  // 실제 환경에서는 authStore.isAuthenticated를 사용
+  const isLoggedIn = () => {
+    // localStorage 또는 다른 방법으로 로그인 상태 확인
+    // 테스트용으로 현재는 간단히 처리
+    try {
+      const authStore = useAuthStore()
+      // 테스트용: 실제로는 authStore.isAuthenticated 사용
+      return authStore.user !== null || localStorage.getItem('test_auth') === 'true'
+    } catch {
+      return localStorage.getItem('test_auth') === 'true'
+    }
+  }
+  
+  // 로그인된 상태에서 로그인/회원가입/계정찾기 페이지 접근 시 홈으로 리디렉션
+  if (isLoggedIn() && (to.path === '/login' || to.path === '/join' || to.path === '/find-account')) {
+    alert('이미 로그인 되어있습니다.')
+    next('/')
+    return
+  }
+  
+  // 인증이 필요한 페이지인지 확인
+  const requiresAuth = to.matched.some(record => record.meta.requiresAuth)
+  const requiresAdmin = to.matched.some(record => record.meta.requiresAdmin)
+  
+  if (requiresAuth && !isLoggedIn()) {
+    // 로그인이 필요한 페이지에 비로그인 상태로 접근 시
+    alert('로그인이 필요한 페이지입니다.')
+    // 로그인 후 원래 가려던 페이지로 리다이렉트하기 위해 쿼리 파라미터로 저장
+    next({
+      path: '/login',
+      query: { redirect: to.fullPath }
+    })
+  } else if (requiresAdmin && !isAdmin()) {
+    // 관리자 권한이 필요한 페이지에 일반 사용자가 접근 시
+    alert('관리자 권한이 필요한 페이지입니다.')
+    next('/')
+  } else {
+    // 정상적으로 진행
+    next()
+  }
+  
+  // 관리자 권한 확인 함수 (테스트용)
+  function isAdmin() {
+    // 실제 환경에서는 사용자의 role을 확인
+    // 현재는 테스트를 위해 localStorage에 admin 플래그 확인
+    return localStorage.getItem('test_admin') === 'true'
+  }
 })
 
 export default router

@@ -24,7 +24,10 @@
 
 <script setup>
 import { ref, onMounted } from 'vue'
+import { useRouter } from 'vue-router'
 import Sidebar from '../components/Sidebar.vue'
+
+const router = useRouter()
 
 const mypageMenu = ref(null)
 const loading = ref(true)
@@ -58,6 +61,14 @@ const loadMypageMenu = async () => {
 }
 
 onMounted(() => {
+  // 로그인 상태 재확인 (추가 보안)
+  const isLoggedIn = localStorage.getItem('test_auth') === 'true'
+  if (!isLoggedIn) {
+    alert('로그인이 필요한 페이지입니다.')
+    router.push('/login')
+    return
+  }
+  
   loadMypageMenu()
 })
 </script>
@@ -126,13 +137,15 @@ onMounted(() => {
 @media (max-width: 768px) {
   .sidebar-wrapper {
     position: relative;
+    top: 0;
+    left: 0;
     width: 100%;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-    border-radius: 0;
+    margin-bottom: 1rem;
   }
   
   .mypage-content {
     min-height: auto;
+    padding: 1rem;
   }
 }
 </style> 
