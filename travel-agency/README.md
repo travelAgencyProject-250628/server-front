@@ -16,10 +16,10 @@ See [Vite Configuration Reference](https://vite.dev/config/).
 npm install
 ```
 
-### Compile and Hot-Reload for Development
+### Install v-calendar for date picking functionality
 
 ```sh
-npm run dev
+npm install v-calendar@next
 ```
 
 ### Compile and Minify for Production

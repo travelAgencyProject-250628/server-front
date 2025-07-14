@@ -24,6 +24,8 @@ coverage
 /cypress/videos/
 /cypress/screenshots/
 
+.cursor/mcp.json
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json
