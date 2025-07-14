@@ -3,6 +3,8 @@
     <div class="tab-buttons">
       <button :class="{active: activeTab === 'category'}" @click="activeTab = 'category'">카테고리 메뉴 API</button>
       <button :class="{active: activeTab === 'popular'}" @click="activeTab = 'popular'">인기 투어 API</button>
+      <button :class="{active: activeTab === 'product'}" @click="activeTab = 'product'">상품 상세 API</button>
+      <button :class="{active: activeTab === 'banner'}" @click="activeTab = 'banner'">배너 이미지 API</button>
       <button :class="{active: activeTab === 'reservation'}" @click="activeTab = 'reservation'">예약 상세 API</button>
     </div>
 
@@ -92,6 +94,91 @@
       <div v-if="loadingTours">로딩 중...</div>
       <div v-else-if="errorTours" style="color:red">에러: {{ errorTours }}</div>
       <pre v-else>{{ toursData }}</pre>
+    </div>
+
+    <div v-else-if="activeTab === 'product'">
+      <div class="swagger-doc">
+        <h2>📚 API 문서: 상품 상세 데이터</h2>
+        <div class="api-section">
+          <div class="api-title">GET /lib/products.js</div>
+          <div class="api-method">
+            <span class="method">getProductDetail(productId)</span>
+          </div>
+          <div class="api-desc">
+            <p>
+              <strong>설명:</strong> <br>
+              product_id로 특정 상품의 상세 정보를 조회합니다.<br>
+              location, badge 등 조인, 인기투어와 동일한 구조로 반환.<br>
+              <br>
+              <strong>반환 예시:</strong>
+              <pre>{
+  id: 1,
+  title: '제주도 3일 완전정복',
+  description: '한라산, 성산일출봉, ...',
+  duration: '2박 3일',
+  location: '제주도',
+  price: 285000,
+  badge: '베스트',
+  image: 'https://...'
+}</pre>
+            </p>
+            <p>
+              <strong>사용 예시:</strong><br>
+              <code>
+                import &#123; getProductDetail &#125; from '@/lib/products.js'<br>
+                const result = await getProductDetail(1)
+              </code>
+            </p>
+          </div>
+        </div>
+      </div>
+      <h2>상품 상세 데이터 테스트</h2>
+      <div class="product-test">
+        <input v-model="productId" type="number" min="1" placeholder="상품 id 입력" />
+        <button @click="fetchProduct" :disabled="loadingProduct">조회</button>
+      </div>
+      <div v-if="loadingProduct">로딩 중...</div>
+      <div v-else-if="errorProduct" style="color:red">에러: {{ errorProduct }}</div>
+      <pre v-else-if="productData">{{ productData }}</pre>
+    </div>
+
+    <div v-else-if="activeTab === 'banner'">
+      <div class="swagger-doc">
+        <h2>📚 API 문서: 배너 이미지 데이터</h2>
+        <div class="api-section">
+          <div class="api-title">GET /lib/banners.js</div>
+          <div class="api-method">
+            <span class="method">getBannerImages()</span>
+          </div>
+          <div class="api-desc">
+            <p>
+              <strong>설명:</strong> <br>
+              BannerImages 테이블에서 모든 image_url을 배열로 반환합니다.<br>
+              <br>
+              <strong>반환 예시:</strong>
+              <pre>[
+  "https://.../banner1.jpg",
+  "https://.../banner2.jpg",
+  ...
+]</pre>
+            </p>
+            <p>
+              <strong>사용 예시:</strong><br>
+              <code>
+                import &#123; getBannerImages &#125; from '@/lib/banners.js'<br>
+                const result = await getBannerImages()
+              </code>
+            </p>
+          </div>
+        </div>
+      </div>
+      <h2>배너 이미지 데이터 테스트</h2>
+      <div class="banner-test">
+        <button @click="fetchBannerImages" :disabled="loadingBanner">배너 이미지 불러오기</button>
+      </div>
+      <div v-if="loadingBanner">로딩 중...</div>
+      <div v-else-if="errorBanner" style="color:red">에러: {{ errorBanner }}</div>
+      <pre v-else-if="bannerData">{{ bannerData }}</pre>
     </div>
 
     <div v-else>
@@ -218,9 +305,10 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, watch } from 'vue'
 import { categoryService } from '@/lib/categories.js'
-import { getPopularTours } from '@/lib/products.js'
+import { getPopularTours, getProductDetail } from '@/lib/products.js'
+import { getBannerImages } from '@/lib/banners.js'
 import { getReservationDetail, createReservation } from '@/lib/reservations.js'
 
 const menuData = ref(null)
@@ -232,6 +320,17 @@ const errorTours = ref(null)
 const loadingTours = ref(true)
 
 const activeTab = ref('category')
+
+// 배너 이미지 테스트용
+const bannerData = ref(null)
+const errorBanner = ref(null)
+const loadingBanner = ref(false)
+
+// 상품 상세 테스트용
+const productId = ref('')
+const productData = ref(null)
+const errorProduct = ref(null)
+const loadingProduct = ref(false)
 
 // 예약 상세 테스트용
 const reservationId = ref('')
@@ -336,6 +435,52 @@ async function submitReservation() {
     loadingPost.value = false;
   }
 }
+
+function resetProductTest() {
+  productId.value = ''
+  productData.value = null
+  errorProduct.value = null
+  loadingProduct.value = false
+}
+
+async function fetchProduct() {
+  if (!productId.value) return
+  loadingProduct.value = true
+  errorProduct.value = null
+  productData.value = null
+  const result = await getProductDetail(Number(productId.value))
+  if (result.success) {
+    productData.value = JSON.stringify(result.product, null, 2)
+  } else {
+    errorProduct.value = result.error
+  }
+  loadingProduct.value = false
+}
+
+function resetBannerTest() {
+  bannerData.value = null
+  errorBanner.value = null
+  loadingBanner.value = false
+}
+
+async function fetchBannerImages() {
+  loadingBanner.value = true
+  errorBanner.value = null
+  bannerData.value = null
+  const result = await getBannerImages()
+  if (result.success) {
+    bannerData.value = JSON.stringify(result.images, null, 2)
+  } else {
+    errorBanner.value = result.error
+  }
+  loadingBanner.value = false
+}
+
+// 탭 전환 시 상품 상세 테스트 초기화
+watch(activeTab, (tab) => {
+  if (tab === 'product') resetProductTest()
+  if (tab === 'banner') resetBannerTest()
+})
 </script>
 
 <style scoped>
@@ -511,5 +656,54 @@ pre {
   align-items: center;
   gap: 0.5rem;
   margin-bottom: 0.5rem;
+}
+.product-test {
+  display: flex;
+  gap: 1rem;
+  margin-bottom: 1rem;
+  align-items: center;
+}
+.product-test input {
+  padding: 0.5rem 1rem;
+  border-radius: 6px;
+  border: 1px solid #e2e8f0;
+  font-size: 1rem;
+  width: 160px;
+}
+.product-test button {
+  padding: 0.5rem 1.2rem;
+  border-radius: 6px;
+  border: none;
+  background: #2563eb;
+  color: #fff;
+  font-size: 1rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+.product-test button:disabled {
+  background: #b6c3e6;
+  cursor: not-allowed;
+}
+.banner-test {
+  display: flex;
+  gap: 1rem;
+  margin-bottom: 1rem;
+  align-items: center;
+}
+.banner-test button {
+  padding: 0.5rem 1.2rem;
+  border-radius: 6px;
+  border: none;
+  background: #2563eb;
+  color: #fff;
+  font-size: 1rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+.banner-test button:disabled {
+  background: #b6c3e6;
+  cursor: not-allowed;
 }
 </style> 
