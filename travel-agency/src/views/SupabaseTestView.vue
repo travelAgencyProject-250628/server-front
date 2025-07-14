@@ -1,205 +1,131 @@
 <template>
-  <div class="supabase-test-view">
-    <div class="container">
-      <h1>🔧 Supabase 연결 테스트</h1>
-      <p class="description">
-        이 페이지는 Supabase 연결 상태를 확인하는 개발용 페이지입니다.
-        프로덕션에서는 이 페이지를 제거하거나 접근을 제한해야 합니다.
-      </p>
-      
-      <div class="test-section">
-        <h2>연결 상태</h2>
-        <div v-if="loading" class="status loading">
-          🔄 연결 확인 중...
+  <div class="test-view">
+    <div class="swagger-doc">
+      <h2>📚 API 문서: 카테고리 메뉴 데이터</h2>
+      <div class="api-section">
+        <div class="api-title">GET /lib/categories.js</div>
+        <div class="api-method">
+          <span class="method">categoryService.getMenuData()</span>
         </div>
-        <div v-else-if="error" class="status error">
-          ❌ 연결 실패: {{ error }}
+        <div class="api-desc">
+          <p>
+            <strong>설명:</strong> <br>
+            Supabase에서 1차 카테고리(Categories)와 2차 카테고리(Products의 tag_id + Tags)를 조합하여<br>
+            <code>{ primaryCategories, secondaryCategories }</code> 구조의 메뉴 데이터를 반환합니다.<br>
+            <br>
+            <strong>반환 예시:</strong>
+            <pre>{
+  primaryCategories: [
+    { id: 1, name: '인기여행' },
+    { id: 2, name: '먹거리여행' },
+    ...
+  ],
+  secondaryCategories: {
+    1: [ { id: 1, name: '당일여행' }, ... ],
+    2: [ { id: 2, name: '1박 2일' }, ... ],
+    ...
+  }
+}</pre>
+          </p>
+          <p>
+            <strong>사용 예시:</strong><br>
+            <code>
+              import &#123; categoryService &#125; from '@/lib/categories.js'<br>
+              const result = await categoryService.getMenuData()
+            </code>
+          </p>
         </div>
-        <div v-else class="status success">
-          ✅ Supabase 연결 성공!
-        </div>
-        
-        <button @click="testConnection" :disabled="loading" class="test-btn">
-          {{ loading ? '테스트 중...' : '연결 재테스트' }}
-        </button>
-      </div>
-
-      <div class="info-section">
-        <h3>환경 변수 확인</h3>
-        <div class="env-info">
-          <p><strong>URL 설정:</strong> {{ hasUrl ? '✅ 설정됨' : '❌ 설정 안됨' }}</p>
-          <p><strong>API Key 설정:</strong> {{ hasKey ? '✅ 설정됨' : '❌ 설정 안됨' }}</p>
-        </div>
-      </div>
-
-      <div class="warning">
-        <h3>⚠️ 보안 주의사항</h3>
-        <ul>
-          <li>이 페이지는 개발 환경에서만 사용하세요</li>
-          <li>프로덕션 배포 시 이 페이지를 제거하세요</li>
-          <li>환경 변수는 절대 클라이언트에 노출하지 마세요</li>
-        </ul>
       </div>
     </div>
+    <h2>카테고리 메뉴 데이터 테스트</h2>
+    <div v-if="loading">로딩 중...</div>
+    <div v-else-if="error" style="color:red">에러: {{ error }}</div>
+    <pre v-else>{{ menuData }}</pre>
   </div>
 </template>
 
 <script setup>
 import { ref, onMounted } from 'vue'
-import { supabase } from '../lib/supabase.js'
+import { categoryService } from '@/lib/categories.js'
 
-const loading = ref(false)
+const menuData = ref(null)
 const error = ref(null)
-const hasUrl = ref(false)
-const hasKey = ref(false)
+const loading = ref(true)
 
-const testConnection = async () => {
+onMounted(async () => {
   loading.value = true
-  error.value = null
-  
-  try {
-    // 간단한 쿼리로 연결 테스트
-    const { data, error: queryError } = await supabase
-      .from('_dummy_table_')
-      .select('*')
-      .limit(1)
-    
-    // 테이블이 없어도 연결은 성공
-    if (queryError && queryError.code === 'PGRST116') {
-      // 테이블이 없는 경우 (정상적인 연결)
-      console.log('Supabase 연결 성공!')
-    } else if (queryError) {
-      throw queryError
-    }
-  } catch (err) {
-    error.value = err.message
-    console.error('Supabase 연결 오류:', err)
-  } finally {
-    loading.value = false
+  const result = await categoryService.getMenuData()
+  if (result.success) {
+    menuData.value = JSON.stringify(result.menuData, null, 2)
+  } else {
+    error.value = result.error
   }
-}
-
-const checkEnvironmentVariables = () => {
-  hasUrl.value = !!import.meta.env.VITE_SUPABASE_URL
-  hasKey.value = !!import.meta.env.VITE_SUPABASE_ANON_KEY
-}
-
-onMounted(() => {
-  checkEnvironmentVariables()
-  testConnection()
+  loading.value = false
 })
 </script>
 
 <style scoped>
-.supabase-test-view {
-  min-height: 100vh;
-  background: #f8f9fa;
-  padding: 20px;
-}
-
-.container {
-  max-width: 800px;
-  margin: 0 auto;
-  background: white;
-  padding: 30px;
+.test-view {
+  max-width: 700px;
+  margin: 2rem auto;
+  padding: 2rem;
+  background: #f8fafc;
   border-radius: 12px;
-  box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+  box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+  font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
 }
-
-h1 {
-  color: #2c3e50;
-  margin-bottom: 10px;
-}
-
-.description {
-  color: #666;
-  margin-bottom: 30px;
-  line-height: 1.6;
-}
-
-.test-section {
-  background: #f8f9fa;
-  padding: 20px;
+pre {
+  background: #fff;
+  padding: 1rem;
   border-radius: 8px;
-  margin-bottom: 30px;
+  font-size: 1rem;
+  overflow-x: auto;
+  border: 1px solid #e2e8f0;
 }
-
-.status {
-  padding: 15px;
+.swagger-doc {
+  max-width: 800px;
+  margin: 0 auto 2rem auto;
+  padding: 1.5rem;
+  background: #f8fafc;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+}
+.api-section {
+  margin-top: 1rem;
+  background: #fff;
+  border-radius: 8px;
+  padding: 1.2rem;
+  border: 1px solid #e2e8f0;
+}
+.api-title {
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: #2563eb;
+  margin-bottom: 0.5rem;
+}
+.api-method {
+  font-size: 1rem;
+  font-weight: 500;
+  color: #059669;
+  margin-bottom: 1rem;
+}
+.api-desc {
+  font-size: 1rem;
+  color: #22223b;
+}
+.api-desc pre {
+  background: #f8fafc;
+  padding: 0.75rem;
   border-radius: 6px;
-  margin: 15px 0;
-  font-weight: bold;
+  font-size: 0.95rem;
+  overflow-x: auto;
+  border: 1px solid #e2e8f0;
+  margin-top: 0.5rem;
 }
-
-.status.loading {
-  background: #fff3cd;
-  color: #856404;
-  border: 1px solid #ffeaa7;
-}
-
-.status.error {
-  background: #f8d7da;
-  color: #721c24;
-  border: 1px solid #f5c6cb;
-}
-
-.status.success {
-  background: #d4edda;
-  color: #155724;
-  border: 1px solid #c3e6cb;
-}
-
-.test-btn {
-  background: #007bff;
-  color: white;
-  border: none;
-  padding: 12px 24px;
-  border-radius: 6px;
-  cursor: pointer;
-  font-size: 16px;
-  transition: background 0.3s;
-}
-
-.test-btn:hover:not(:disabled) {
-  background: #0056b3;
-}
-
-.test-btn:disabled {
-  background: #ccc;
-  cursor: not-allowed;
-}
-
-.info-section {
-  background: #e9ecef;
-  padding: 20px;
-  border-radius: 8px;
-  margin-bottom: 30px;
-}
-
-.env-info p {
-  margin: 8px 0;
-  font-family: monospace;
-}
-
-.warning {
-  background: #fff3cd;
-  border: 1px solid #ffeaa7;
-  padding: 20px;
-  border-radius: 8px;
-}
-
-.warning h3 {
-  color: #856404;
-  margin-top: 0;
-}
-
-.warning ul {
-  color: #856404;
-  margin: 10px 0;
-  padding-left: 20px;
-}
-
-.warning li {
-  margin: 5px 0;
+.api-desc code {
+  background: #f1f5f9;
+  padding: 0.2em 0.4em;
+  border-radius: 4px;
+  font-size: 0.97em;
 }
 </style> 
