@@ -103,6 +103,14 @@ export async function createReservation(reservationData) {
       ? reservationData.travelersPhone
       : '';
 
+    // 현재 로그인된 사용자의 auth_id(uuid) 가져오기
+    let auth_id = null
+    const { data: userData, error: authError } = await supabase.auth.getUser()
+    if (!authError && userData?.user?.id) {
+      auth_id = userData.user.id
+    }
+    console.log(auth_id)
+
     // Bookings 테이블에 insert
     const { data, error } = await supabase
       .from('Bookings')
@@ -121,7 +129,8 @@ export async function createReservation(reservationData) {
           agree_terms: reservationData.agreeTerms,
           status: reservationData.status || '대기',
           travelers_name,
-          travelers_phone
+          travelers_phone,
+          auth_id // 로그인된 유저의 auth_id 추가
         }
       ])
       .select('id')
@@ -130,5 +139,51 @@ export async function createReservation(reservationData) {
     return { success: true, id: data.id }
   } catch (error) {
     return { success: false, error: error.message }
+  }
+}
+
+/**
+ * 내 예약 전체 조회 (auth_id 기준)
+ * @returns {Promise<{success: boolean, reservations: object[]|null, error?: string}>}
+ */
+export async function getMyReservations() {
+  try {
+    // 현재 로그인된 사용자의 auth_id(uuid) 가져오기
+    const { data: userData, error: authError } = await supabase.auth.getUser()
+    if (authError || !userData?.user?.id) {
+      throw new Error('로그인이 필요합니다.')
+    }
+    const auth_id = userData.user.id
+
+    // Bookings 테이블에서 내 예약 전체 조회
+    const { data, error } = await supabase
+      .from('Bookings')
+      .select(`
+        id,
+        created_at,
+        user_id,
+        product_id,
+        starting_point_id,
+        adult_count,
+        child_count,
+        agree_terms,
+        departure_date,
+        booker_name,
+        booker_phone,
+        booker_email,
+        emergency_contact,
+        travelers_name,
+        travelers_phone,
+        status,
+        depositor_name,
+        product:product_id(id, title, duration, included_items, excluded_items, adult_price, child_price),
+        starting_point:starting_point_id(id, name)
+      `)
+      .eq('auth_id', auth_id)
+      .order('created_at', { ascending: false })
+    if (error) throw error
+    return { success: true, reservations: data }
+  } catch (error) {
+    return { success: false, reservations: null, error: error.message }
   }
 } 

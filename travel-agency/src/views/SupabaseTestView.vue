@@ -8,6 +8,98 @@
       <button :class="{active: activeTab === 'searchProducts'}" @click="activeTab = 'searchProducts'">상품 검색 API</button>
       <button :class="{active: activeTab === 'banner'}" @click="activeTab = 'banner'">배너 이미지 API</button>
       <button :class="{active: activeTab === 'reservation'}" @click="activeTab = 'reservation'">예약 상세 API</button>
+      <button :class="{active: activeTab === 'user'}" @click="activeTab = 'user'">유저 정보 API</button>
+      <button :class="{active: activeTab === 'myBookings'}" @click="activeTab = 'myBookings'">내 예약 목록 API</button>
+    </div>
+
+    <!-- 유저 정보 API 탭 -->
+    <div v-if="activeTab === 'user'">
+      <div class="swagger-doc">
+        <h2>📚 API 문서: 유저 정보 데이터</h2>
+        <div class="api-section">
+          <div class="api-title">GET /lib/users.js</div>
+          <div class="api-method">
+            <span class="method">getCurrentUserInfo()</span>
+          </div>
+          <div class="api-desc">
+            <p>
+              <strong>설명:</strong> <br>
+              현재 로그인한 사용자의 상세 정보를 반환합니다.<br>
+              <br>
+              <strong>반환 예시:</strong>
+              <pre>{
+  userId: 'jbl6938',
+  name: '이정원',
+  phone: '010-2237-6938',
+  mobile: '010-2237-6938',
+  email: 'jbl6938@gmail.com',
+  zipcode: '04759',
+  address1: '서울 성동구 마조로15길 9 (마장동)',
+  address2: '105호',
+  smsReceive: 'Y'
+}</pre>
+            </p>
+            <p>
+              <strong>사용 예시:</strong><br>
+              <code>
+                import &#123; getCurrentUserInfo &#125; from '@/lib/users.js'<br>
+                const result = await getCurrentUserInfo()
+              </code>
+            </p>
+          </div>
+        </div>
+      </div>
+      <h2>유저 정보 데이터 테스트</h2>
+      <div class="user-test">
+        <button @click="fetchUserInfo" :disabled="loadingUser">유저 정보 불러오기</button>
+      </div>
+      <div v-if="loadingUser">로딩 중...</div>
+      <div v-else-if="errorUser" style="color:red">에러: {{ errorUser }}</div>
+      <pre v-else-if="userInfo">{{ userInfo }}</pre>
+    </div>
+
+    <!-- 내 예약 목록 API 탭 -->
+    <div v-if="activeTab === 'myBookings'">
+      <div class="swagger-doc">
+        <h2>📚 API 문서: 내 예약 목록 데이터</h2>
+        <div class="api-section">
+          <div class="api-title">GET /lib/reservations.js</div>
+          <div class="api-method">
+            <span class="method">getMyReservations()</span>
+          </div>
+          <div class="api-desc">
+            <p>
+              <strong>설명:</strong> <br>
+              현재 로그인된 사용자의 auth_id로 Bookings 테이블에서 내 예약 전체를 조회합니다.<br>
+              <br>
+              <strong>반환 예시:</strong>
+              <pre>[
+  {
+    id: 1,
+    booker_name: '홍길동',
+    product: { title: '제주도 3일 완전정복', ... },
+    ...
+  },
+  ...
+]</pre>
+            </p>
+            <p>
+              <strong>사용 예시:</strong><br>
+              <code>
+                import &#123; getMyReservations &#125; from '@/lib/reservations.js'<br>
+                const result = await getMyReservations()
+              </code>
+            </p>
+          </div>
+        </div>
+      </div>
+      <h2>내 예약 목록 데이터 테스트</h2>
+      <div class="my-bookings-test">
+        <button @click="fetchMyBookings" :disabled="loadingMyBookings">내 예약 불러오기</button>
+      </div>
+      <div v-if="loadingMyBookings">로딩 중...</div>
+      <div v-else-if="errorMyBookings" style="color:red">에러: {{ errorMyBookings }}</div>
+      <pre v-else-if="myBookingsData">{{ myBookingsData }}</pre>
     </div>
 
     <div v-if="activeTab === 'category'">
@@ -239,8 +331,8 @@
       <div v-if="loadingSearchProducts">로딩 중...</div>
       <div v-else-if="errorSearchProducts" style="color:red">에러: {{ errorSearchProducts }}</div>
       <pre v-else-if="searchProductsData">{{ searchProductsData }}</pre>
-    </div>
-
+        </div>
+        
     <div v-else-if="activeTab === 'banner'">
       <div class="swagger-doc">
         <h2>📚 API 문서: 배너 이미지 데이터</h2>
@@ -278,9 +370,9 @@
       <div v-if="loadingBanner">로딩 중...</div>
       <div v-else-if="errorBanner" style="color:red">에러: {{ errorBanner }}</div>
       <pre v-else-if="bannerData">{{ bannerData }}</pre>
-    </div>
+      </div>
 
-    <div v-else>
+    <div v-else-if="activeTab === 'reservation'">
       <div class="swagger-doc">
         <h2>📚 API 문서: 예약 상세 데이터</h2>
         <div class="api-section">
@@ -408,7 +500,8 @@ import { ref, onMounted, watch } from 'vue'
 import { categoryService } from '@/lib/categories.js'
 import { getPopularTours, getProductDetail, getProductsByCategory, searchProducts } from '@/lib/products.js'
 import { getBannerImages } from '@/lib/banners.js'
-import { getReservationDetail, createReservation } from '@/lib/reservations.js'
+import { getReservationDetail, createReservation, getMyReservations } from '@/lib/reservations.js'
+import { getCurrentUserInfo } from '@/lib/users.js'
 
 const menuData = ref(null)
 const error = ref(null)
@@ -512,6 +605,16 @@ const postResult = ref(null)
 const errorPost = ref(null)
 const loadingPost = ref(false)
 
+// 유저 정보 테스트용
+const userInfo = ref(null)
+const errorUser = ref(null)
+const loadingUser = ref(false)
+
+// 내 예약 목록 테스트용
+const myBookingsData = ref(null)
+const errorMyBookings = ref(null)
+const loadingMyBookings = ref(false)
+
 onMounted(async () => {
   // 카테고리 메뉴 테스트
   loading.value = true
@@ -589,6 +692,38 @@ async function submitReservation() {
   }
 }
 
+async function fetchUserInfo() {
+  loadingUser.value = true
+  errorUser.value = null
+  userInfo.value = null
+  const result = await getCurrentUserInfo()
+  if (result.success) {
+    userInfo.value = JSON.stringify(result.user, null, 2)
+  } else {
+    errorUser.value = result.error
+  }
+  loadingUser.value = false
+}
+
+async function fetchMyBookings() {
+  loadingMyBookings.value = true
+  errorMyBookings.value = null
+  myBookingsData.value = null
+  const result = await getMyReservations()
+  if (result.success) {
+    myBookingsData.value = JSON.stringify(result.reservations, null, 2)
+  } else {
+    errorMyBookings.value = result.error
+  }
+  loadingMyBookings.value = false
+}
+
+function resetMyBookingsTest() {
+  myBookingsData.value = null
+  errorMyBookings.value = null
+  loadingMyBookings.value = false
+}
+
 function resetProductTest() {
   productId.value = ''
   productData.value = null
@@ -635,6 +770,12 @@ watch(activeTab, (tab) => {
   if (tab === 'banner') resetBannerTest()
   if (tab === 'categoryProducts') resetCategoryProductsTest()
   if (tab === 'searchProducts') resetSearchProductsTest()
+  if (tab === 'user') {
+    userInfo.value = null
+    errorUser.value = null
+    loadingUser.value = false
+  }
+  if (tab === 'myBookings') resetMyBookingsTest()
 })
 </script>
 
@@ -914,6 +1055,48 @@ pre {
   transition: background 0.2s;
 }
 .search-products-test button:disabled {
+  background: #b6c3e6;
+  cursor: not-allowed;
+}
+.user-test {
+  display: flex;
+  gap: 1rem;
+  margin-bottom: 1rem;
+  align-items: center;
+}
+.user-test button {
+  padding: 0.5rem 1.2rem;
+  border-radius: 6px;
+  border: none;
+  background: #2563eb;
+  color: #fff;
+  font-size: 1rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+.user-test button:disabled {
+  background: #b6c3e6;
+  cursor: not-allowed;
+}
+.my-bookings-test {
+  display: flex;
+  gap: 1rem;
+  margin-bottom: 1rem;
+  align-items: center;
+}
+.my-bookings-test button {
+  padding: 0.5rem 1.2rem;
+  border-radius: 6px;
+  border: none;
+  background: #2563eb;
+  color: #fff;
+  font-size: 1rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+.my-bookings-test button:disabled {
   background: #b6c3e6;
   cursor: not-allowed;
 }

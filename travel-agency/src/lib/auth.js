@@ -37,9 +37,14 @@ export class AuthService {
       console.log('Auth 생성 성공:', authResult)
 
       // 2. Users 테이블에 상세 정보 저장 (비밀번호 제외)
+      // authResult.user.id를 auth_id로 저장
+      const userInsertData = {
+        ...userData,
+        auth_id: authResult.user?.id // Supabase Auth의 UUID
+      }
       const { data: userTableData, error: userTableError } = await this.supabase
         .from('Users')
-        .insert([userData])
+        .insert([userInsertData])
         .select()
 
       if (userTableError) {
