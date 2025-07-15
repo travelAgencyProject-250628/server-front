@@ -5,6 +5,21 @@
       <div class="top-bar-container">
         <div class="top-bar-spacer"></div>
         <div class="top-bar-right">
+          <!-- 테스트용 버튼 -->
+          <button @click="toggleTestAuth" class="test-auth-btn">
+            {{ isLoggedIn ? '🔓 테스트 로그아웃' : '🔐 테스트 로그인' }}
+          </button>
+          
+          <!-- 어드민 테스트 버튼 (로그인된 경우에만 표시) -->
+          <button v-if="isLoggedIn" @click="toggleAdminAuth" class="test-admin-btn">
+            {{ isAdmin ? '👨‍💼 어드민 해제' : '🔑 어드민 권한' }}
+          </button>
+          
+          <!-- 어드민 페이지 이동 버튼 (어드민 권한이 있는 경우에만 표시) -->
+          <button v-if="isAdmin" @click="goToAdmin" class="admin-go-btn">
+            ⚙️ 어드민 페이지
+          </button>
+          
           <!-- 로그인되지 않은 경우 -->
           <template v-if="!isLoggedIn">
             <router-link to="/login" class="top-link">로그인</router-link>
@@ -209,6 +224,11 @@
         </ul>
         
         <div class="mobile-user-menu">
+          <!-- 테스트용 버튼 -->
+          <button @click="toggleTestAuth" class="test-auth-btn-mobile">
+            {{ isLoggedIn ? '🔓 테스트 로그아웃' : '🔐 테스트 로그인' }}
+          </button>
+          
           <!-- 로그인되지 않은 경우 -->
           <template v-if="!isLoggedIn">
             <router-link to="/login" class="btn-secondary" @click="closeMobileMenu">로그인</router-link>
@@ -333,7 +353,8 @@ const menuData = ref({
 
 // 계산된 속성
 // const isLoggedIn = computed(() => authStore.isAuthenticated)
-const isLoggedIn = ref(true)
+const isLoggedIn = ref(false) // 테스트용으로 초기값을 false로 설정
+const isAdmin = ref(false) // 어드민 권한 상태
 const currentUser = computed(() => authStore.user)
 
 // 메서드들
@@ -366,8 +387,73 @@ const toggleMobileCategory = (categoryId) => {
 const handleLogout = async () => {
   if (confirm('로그아웃하시겠습니까?')) {
     await authStore.signOut()
+    // 테스트용으로 로컬 상태도 업데이트
+    isLoggedIn.value = false
     closeMobileMenu()
   }
+}
+
+// 테스트용 로그인/로그아웃 토글 함수
+const toggleTestAuth = () => {
+  isLoggedIn.value = !isLoggedIn.value
+  
+  if (isLoggedIn.value) {
+    // 테스트용 더미 사용자 설정
+    authStore.user = {
+      id: 'test_user',
+      name: '테스트 사용자',
+      email: 'test@example.com'
+    }
+    // 라우터 가드와 연동을 위해 localStorage에 상태 저장
+    localStorage.setItem('test_auth', 'true')
+    console.log('테스트 로그인 완료')
+    
+    // 로그인 페이지에서 redirect 파라미터가 있으면 해당 페이지로 이동
+    const currentRoute = router.currentRoute.value
+    if (currentRoute.path === '/login' && currentRoute.query.redirect) {
+      router.push(currentRoute.query.redirect)
+    }
+  } else {
+    // 테스트용 로그아웃
+    authStore.user = null
+    // localStorage에서 상태 제거
+    localStorage.removeItem('test_auth')
+    localStorage.removeItem('test_admin') // 어드민 권한도 함께 제거
+    isAdmin.value = false // 어드민 상태도 초기화
+    console.log('테스트 로그아웃 완료')
+    
+    // 로그아웃 시 마이페이지에 있다면 홈으로 이동
+    const currentRoute = router.currentRoute.value
+    if (currentRoute.path.startsWith('/mypage') || currentRoute.path === '/booking') {
+      router.push('/')
+    }
+  }
+}
+
+// 어드민 권한 토글 함수
+const toggleAdminAuth = () => {
+  isAdmin.value = !isAdmin.value
+  
+  if (isAdmin.value) {
+    localStorage.setItem('test_admin', 'true')
+    console.log('어드민 권한 부여됨')
+    alert('어드민 권한이 부여되었습니다! 이제 어드민 페이지에 접근할 수 있습니다.')
+  } else {
+    localStorage.removeItem('test_admin')
+    console.log('어드민 권한 해제됨')
+    alert('어드민 권한이 해제되었습니다.')
+    
+    // 어드민 페이지에 있다면 홈으로 이동
+    const currentRoute = router.currentRoute.value
+    if (currentRoute.path.startsWith('/admin')) {
+      router.push('/')
+    }
+  }
+}
+
+// 어드민 페이지로 이동
+const goToAdmin = () => {
+  router.push('/admin')
 }
 
 const handleCategoryClick = (category) => {
@@ -496,6 +582,25 @@ const handleSearch = () => {
 onMounted(async () => {
   await categoryStore.fetchCategories()
   await fetchMenuData()
+  
+  // 테스트용: localStorage에서 로그인 상태 복원
+  const testAuthState = localStorage.getItem('test_auth')
+  if (testAuthState === 'true') {
+    isLoggedIn.value = true
+    authStore.user = {
+      id: 'test_user',
+      name: '테스트 사용자',
+      email: 'test@example.com'
+    }
+    console.log('테스트 로그인 상태 복원됨')
+  }
+  
+  // 테스트용: localStorage에서 어드민 권한 상태 복원
+  const testAdminState = localStorage.getItem('test_admin')
+  if (testAdminState === 'true') {
+    isAdmin.value = true
+    console.log('어드민 권한 상태 복원됨')
+  }
 })
 </script>
 
@@ -1083,9 +1188,96 @@ onMounted(async () => {
   color: var(--primary-color);
 }
 
+/* 테스트용 버튼 스타일 */
+.test-auth-btn {
+  background: #ff6b6b;
+  color: white;
+  border: none;
+  padding: 0.4rem 0.8rem;
+  border-radius: 20px;
+  font-size: 0.8rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  margin-right: 1rem;
+  box-shadow: 0 2px 4px rgba(255, 107, 107, 0.3);
+}
+
+.test-auth-btn:hover {
+  background: #ff5252;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 8px rgba(255, 107, 107, 0.4);
+}
+
+.test-admin-btn {
+  background: #8b5cf6;
+  color: white;
+  border: none;
+  padding: 0.4rem 0.8rem;
+  border-radius: 20px;
+  font-size: 0.8rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  margin-right: 1rem;
+  box-shadow: 0 2px 4px rgba(139, 92, 246, 0.3);
+}
+
+.test-admin-btn:hover {
+  background: #7c3aed;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 8px rgba(139, 92, 246, 0.4);
+}
+
+.admin-go-btn {
+  background: #ef4444;
+  color: white;
+  border: none;
+  padding: 0.4rem 0.8rem;
+  border-radius: 20px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  margin-right: 1rem;
+  box-shadow: 0 2px 4px rgba(239, 68, 68, 0.3);
+}
+
+.admin-go-btn:hover {
+  background: #dc2626;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 8px rgba(239, 68, 68, 0.4);
+}
+
+.test-auth-btn-mobile {
+  background: #ff6b6b;
+  color: white;
+  border: none;
+  padding: 0.75rem 1rem;
+  border-radius: 8px;
+  font-size: 0.9rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  margin-bottom: 0.5rem;
+  box-shadow: 0 2px 4px rgba(255, 107, 107, 0.3);
+}
+
+.test-auth-btn-mobile:hover {
+  background: #ff5252;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 8px rgba(255, 107, 107, 0.4);
+}
+
 /* 반응형 디자인 */
 @media (max-width: 768px) {
   .top-bar {
+    display: none;
+  }
+  
+  .test-auth-btn,
+  .test-admin-btn,
+  .admin-go-btn {
     display: none;
   }
   
