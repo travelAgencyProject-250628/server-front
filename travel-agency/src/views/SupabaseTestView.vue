@@ -10,6 +10,7 @@
       <button :class="{active: activeTab === 'reservation'}" @click="activeTab = 'reservation'">예약 상세 API</button>
       <button :class="{active: activeTab === 'user'}" @click="activeTab = 'user'">유저 정보 API</button>
       <button :class="{active: activeTab === 'myBookings'}" @click="activeTab = 'myBookings'">내 예약 목록 API</button>
+      <button :class="{active: activeTab === 'startingPoints'}" @click="activeTab = 'startingPoints'">출발지 목록 API</button>
     </div>
 
     <!-- 유저 정보 API 탭 -->
@@ -496,6 +497,47 @@
       <div v-else-if="errorPost" style="color:red">에러: {{ errorPost }}</div>
       <div v-else-if="postResult">등록 성공! 예약 ID: {{ postResult }}</div>
     </div>
+
+    <!-- 출발지 목록 API 탭 -->
+    <div v-if="activeTab === 'startingPoints'">
+      <div class="swagger-doc">
+        <h2>📚 API 문서: 출발지 목록 데이터</h2>
+        <div class="api-section">
+          <div class="api-title">GET /lib/startingpoints.js</div>
+          <div class="api-method">
+            <span class="method">getStartingPoints()</span>
+          </div>
+          <div class="api-desc">
+            <p>
+              <strong>설명:</strong> <br>
+              Supabase StartingPoints 테이블에서 출발지(id, name) 목록을 배열로 반환합니다.<br>
+              <br>
+              <strong>반환 예시:</strong>
+              <pre>[
+  { id: 1, name: '영등포' },
+  { id: 2, name: '서울역' },
+  { id: 3, name: '잠실' },
+  ...
+]</pre>
+            </p>
+            <p>
+              <strong>사용 예시:</strong><br>
+              <code>
+                import &#123; getStartingPoints &#125; from '@/lib/startingpoints.js'<br>
+                const result = await getStartingPoints()
+              </code>
+            </p>
+          </div>
+        </div>
+      </div>
+      <h2>출발지 목록 데이터 테스트</h2>
+      <div class="startingpoints-test">
+        <button @click="fetchStartingPoints" :disabled="loadingStartingPoints">출발지 불러오기</button>
+      </div>
+      <div v-if="loadingStartingPoints">로딩 중...</div>
+      <div v-else-if="errorStartingPoints" style="color:red">에러: {{ errorStartingPoints }}</div>
+      <pre v-else-if="startingPointsData">{{ startingPointsData }}</pre>
+    </div>
   </div>
 </template>
 
@@ -506,6 +548,7 @@ import { getPopularTours, getProductDetail, getProductsByCategory, searchProduct
 import { getBannerImages } from '@/lib/banners.js'
 import { getReservationDetail, createReservation, getMyReservations } from '@/lib/reservations.js'
 import { getCurrentUserInfo } from '@/lib/users.js'
+import { getStartingPoints } from '@/lib/startingpoints.js'
 
 const menuData = ref(null)
 const error = ref(null)
@@ -618,6 +661,11 @@ const loadingUser = ref(false)
 const myBookingsData = ref(null)
 const errorMyBookings = ref(null)
 const loadingMyBookings = ref(false)
+
+// 출발지 목록 테스트용
+const startingPointsData = ref(null)
+const errorStartingPoints = ref(null)
+const loadingStartingPoints = ref(false)
 
 onMounted(async () => {
   // 카테고리 메뉴 테스트
@@ -768,6 +816,19 @@ async function fetchBannerImages() {
   loadingBanner.value = false
 }
 
+async function fetchStartingPoints() {
+  loadingStartingPoints.value = true
+  errorStartingPoints.value = null
+  startingPointsData.value = null
+  const result = await getStartingPoints()
+  if (result.success) {
+    startingPointsData.value = JSON.stringify(result.startingPoints, null, 2)
+  } else {
+    errorStartingPoints.value = result.error
+  }
+  loadingStartingPoints.value = false
+}
+
 // 탭 전환 시 상품 상세 테스트 초기화
 watch(activeTab, (tab) => {
   if (tab === 'product') resetProductTest()
@@ -780,6 +841,11 @@ watch(activeTab, (tab) => {
     loadingUser.value = false
   }
   if (tab === 'myBookings') resetMyBookingsTest()
+  if (tab === 'startingPoints') {
+    startingPointsData.value = null
+    errorStartingPoints.value = null
+    loadingStartingPoints.value = false
+  }
 })
 </script>
 
@@ -1101,6 +1167,27 @@ pre {
   transition: background 0.2s;
 }
 .my-bookings-test button:disabled {
+  background: #b6c3e6;
+  cursor: not-allowed;
+}
+.startingpoints-test {
+  display: flex;
+  gap: 1rem;
+  margin-bottom: 1rem;
+  align-items: center;
+}
+.startingpoints-test button {
+  padding: 0.5rem 1.2rem;
+  border-radius: 6px;
+  border: none;
+  background: #2563eb;
+  color: #fff;
+  font-size: 1rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+.startingpoints-test button:disabled {
   background: #b6c3e6;
   cursor: not-allowed;
 }
