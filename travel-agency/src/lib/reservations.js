@@ -155,34 +155,34 @@ export async function getMyReservations() {
     }
     const auth_id = userData.user.id
 
-    // Bookings 테이블에서 내 예약 전체 조회
+    // Bookings 테이블에서 내 예약 전체 조회 (Products 조인)
     const { data, error } = await supabase
       .from('Bookings')
       .select(`
         id,
         created_at,
-        user_id,
-        product_id,
-        starting_point_id,
+        product:product_id(id, title, adult_price, child_price),
+        departure_date,
         adult_count,
         child_count,
-        agree_terms,
-        departure_date,
-        booker_name,
-        booker_phone,
-        booker_email,
-        emergency_contact,
-        travelers_name,
-        travelers_phone,
-        status,
-        depositor_name,
-        product:product_id(id, title, duration, included_items, excluded_items, adult_price, child_price),
-        starting_point:starting_point_id(id, name)
+        status
       `)
       .eq('auth_id', auth_id)
       .order('created_at', { ascending: false })
     if (error) throw error
-    return { success: true, reservations: data }
+
+    // 프론트 요구 구조로 가공
+    const reservations = (data || []).map(item => ({
+      id: item.id,
+      reservationDate: item.created_at ? item.created_at.split('T')[0].replace(/-/g, '/') : '',
+      productTitle: item.product?.title || '',
+      departureDate: item.departure_date ? item.departure_date.replace(/-/g, '/') : '',
+      totalAmount: (item.product?.adult_price || 0) * (item.adult_count || 0) + (item.product?.child_price || 0) * (item.child_count || 0),
+      status: item.status || '예약확정',
+      adultCount: item.adult_count || 0,
+      childCount: item.child_count || 0
+    }))
+    return { success: true, reservations }
   } catch (error) {
     return { success: false, reservations: null, error: error.message }
   }

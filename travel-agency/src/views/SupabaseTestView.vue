@@ -76,9 +76,13 @@
               <pre>[
   {
     id: 1,
-    booker_name: '홍길동',
-    product: { title: '제주도 3일 완전정복', ... },
-    ...
+    reservationDate: '2025/07/06',
+    productTitle: '[당일]7월영주한정!(1만원상품권제공)천년고찰~영주부석사+힐링숲족욕겟길(족욕부~회방사페딩)+수수서원+인삼시장',
+    departureDate: '2025/07/18',
+    totalAmount: 32000,
+    status: '예약확정',
+    adultCount: 1,
+    childCount: 0
   },
   ...
 ]</pre>
