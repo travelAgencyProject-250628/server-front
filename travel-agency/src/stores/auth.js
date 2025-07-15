@@ -10,7 +10,7 @@ export const useAuthStore = defineStore('auth', () => {
 
   // 계산된 속성
   const isAuthenticated = computed(() => !!user.value)
-  const isAdmin = computed(() => user.value?.role === 'admin')
+  const isAdmin = computed(() => user.value?.is_admin === true)
 
   // 액션
   const signUp = async (userData, authData) => {

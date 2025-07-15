@@ -142,14 +142,11 @@ router.beforeEach((to, from, next) => {
   // Header 컴포넌트에서 사용하는 테스트용 로그인 상태 확인
   // 실제 환경에서는 authStore.isAuthenticated를 사용
   const isLoggedIn = () => {
-    // localStorage 또는 다른 방법으로 로그인 상태 확인
-    // 테스트용으로 현재는 간단히 처리
     try {
       const authStore = useAuthStore()
-      // 테스트용: 실제로는 authStore.isAuthenticated 사용
-      return authStore.user !== null || localStorage.getItem('test_auth') === 'true'
+      return authStore.user !== null
     } catch {
-      return localStorage.getItem('test_auth') === 'true'
+      return false
     }
   }
   
@@ -163,29 +160,21 @@ router.beforeEach((to, from, next) => {
   // 인증이 필요한 페이지인지 확인
   const requiresAuth = to.matched.some(record => record.meta.requiresAuth)
   const requiresAdmin = to.matched.some(record => record.meta.requiresAdmin)
-  
+
+  // Pinia의 authStore를 사용하여 어드민 권한 확인
+  const authStore = useAuthStore()
+
   if (requiresAuth && !isLoggedIn()) {
-    // 로그인이 필요한 페이지에 비로그인 상태로 접근 시
     alert('로그인이 필요한 페이지입니다.')
-    // 로그인 후 원래 가려던 페이지로 리다이렉트하기 위해 쿼리 파라미터로 저장
     next({
       path: '/login',
       query: { redirect: to.fullPath }
     })
-  } else if (requiresAdmin && !isAdmin()) {
-    // 관리자 권한이 필요한 페이지에 일반 사용자가 접근 시
+  } else if (requiresAdmin && !(authStore.user && authStore.user.is_admin === true)) {
     alert('관리자 권한이 필요한 페이지입니다.')
     next('/')
   } else {
-    // 정상적으로 진행
     next()
-  }
-  
-  // 관리자 권한 확인 함수 (테스트용)
-  function isAdmin() {
-    // 실제 환경에서는 사용자의 role을 확인
-    // 현재는 테스트를 위해 localStorage에 admin 플래그 확인
-    return localStorage.getItem('test_admin') === 'true'
   }
 })
 
