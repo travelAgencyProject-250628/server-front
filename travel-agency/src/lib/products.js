@@ -60,6 +60,18 @@ export async function getProductDetail(productId) {
       .single()
     if (error) throw error
 
+    // ProductImages에서 해당 product_id의 이미지 가져오기
+    const { data: imagesData, error: imagesError } = await supabase
+      .from('ProductImages')
+      .select('image_url')
+      .eq('product_id', productId);
+    if (imagesError) throw imagesError;
+
+    const images = [
+      ...(data.main_image_url ? [data.main_image_url] : []),
+      ...((imagesData || []).map(img => img.image_url))
+    ];
+
     const product = {
       id: data.id,
       category: data.category?.name || '',
@@ -75,7 +87,7 @@ export async function getProductDetail(productId) {
       includedItems: data.included_items || '',
       excludedItems: data.excluded_items || '',
       meetingPoint: '', // Products 테이블에 meeting_point 없음. 필요시 location 조인 등으로 확장 가능
-      images: data.main_image_url ? [data.main_image_url] : []
+      images
     }
 
     return { success: true, product }
