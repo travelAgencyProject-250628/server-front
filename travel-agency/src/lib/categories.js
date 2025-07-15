@@ -25,7 +25,7 @@ export class CategoryService {
       // 3. Products에서 실제 연결된 (category, tag_id) 쌍만 추출
       const { data: prodPairs, error: prodError } = await this.supabase
         .from('Products')
-        .select('category, tag_id')
+        .select('category_id, tag_id')
       if (prodError) throw prodError
 
       // 4. secondaryCategories 구조 생성
@@ -34,7 +34,7 @@ export class CategoryService {
       categories.forEach(cat => {
         // 해당 카테고리에서 실제 상품에 연결된 tag_id만 추출
         const tagIds = prodPairs
-          .filter(p => p.category === cat.id && p.tag_id)
+          .filter(p => p.category_id === cat.id && p.tag_id)
           .map(p => p.tag_id)
         // 중복 제거
         const uniqueTagIds = [...new Set(tagIds)]

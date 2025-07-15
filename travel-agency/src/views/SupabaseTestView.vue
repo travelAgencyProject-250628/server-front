@@ -4,6 +4,8 @@
       <button :class="{active: activeTab === 'category'}" @click="activeTab = 'category'">카테고리 메뉴 API</button>
       <button :class="{active: activeTab === 'popular'}" @click="activeTab = 'popular'">인기 투어 API</button>
       <button :class="{active: activeTab === 'product'}" @click="activeTab = 'product'">상품 상세 API</button>
+      <button :class="{active: activeTab === 'categoryProducts'}" @click="activeTab = 'categoryProducts'">카테고리별 상품 API</button>
+      <button :class="{active: activeTab === 'searchProducts'}" @click="activeTab = 'searchProducts'">상품 검색 API</button>
       <button :class="{active: activeTab === 'banner'}" @click="activeTab = 'banner'">배너 이미지 API</button>
       <button :class="{active: activeTab === 'reservation'}" @click="activeTab = 'reservation'">예약 상세 API</button>
     </div>
@@ -140,6 +142,103 @@
       <div v-if="loadingProduct">로딩 중...</div>
       <div v-else-if="errorProduct" style="color:red">에러: {{ errorProduct }}</div>
       <pre v-else-if="productData">{{ productData }}</pre>
+    </div>
+
+    <div v-else-if="activeTab === 'categoryProducts'">
+      <div class="swagger-doc">
+        <h2>📚 API 문서: 카테고리별 상품 데이터</h2>
+        <div class="api-section">
+          <div class="api-title">GET /lib/products.js</div>
+          <div class="api-method">
+            <span class="method">getProductsByCategory(categoryId)</span>
+          </div>
+          <div class="api-desc">
+            <p>
+              <strong>설명:</strong> <br>
+              category_id로 해당 카테고리의 모든 상품을 조회합니다.<br>
+              location, badge 등 조인, 인기투어와 동일한 구조로 반환.<br>
+              <br>
+              <strong>반환 예시:</strong>
+              <pre>[
+  {
+    id: 1,
+    title: '제주도 3일 완전정복',
+    description: '한라산, 성산일출봉, ...',
+    duration: '2박 3일',
+    location: '제주도',
+    price: 285000,
+    badge: '베스트',
+    image: 'https://...'
+  },
+  ...
+]</pre>
+            </p>
+            <p>
+              <strong>사용 예시:</strong><br>
+              <code>
+                import &#123; getProductsByCategory &#125; from '@/lib/products.js'<br>
+                const result = await getProductsByCategory(1)
+              </code>
+            </p>
+          </div>
+        </div>
+      </div>
+      <h2>카테고리별 상품 데이터 테스트</h2>
+      <div class="category-products-test">
+        <input v-model="categoryId" type="number" min="1" placeholder="카테고리 id 입력" />
+        <button @click="fetchCategoryProducts" :disabled="loadingCategoryProducts">조회</button>
+      </div>
+      <div v-if="loadingCategoryProducts">로딩 중...</div>
+      <div v-else-if="errorCategoryProducts" style="color:red">에러: {{ errorCategoryProducts }}</div>
+      <pre v-else-if="categoryProductsData">{{ categoryProductsData }}</pre>
+    </div>
+
+    <div v-else-if="activeTab === 'searchProducts'">
+      <div class="swagger-doc">
+        <h2>📚 API 문서: 상품 검색 데이터</h2>
+        <div class="api-section">
+          <div class="api-title">GET /lib/products.js</div>
+          <div class="api-method">
+            <span class="method">searchProducts(keyword)</span>
+          </div>
+          <div class="api-desc">
+            <p>
+              <strong>설명:</strong> <br>
+              검색어(keyword)가 상품명, 부제목, 설명, 기간, 지역명에 하나라도 포함된 상품 전체를 반환합니다.<br>
+              <br>
+              <strong>반환 예시:</strong>
+              <pre>[
+  {
+    id: 1,
+    title: '제주도 3일 완전정복',
+    description: '한라산, 성산일출봉, ...',
+    duration: '2박 3일',
+    location: '제주도',
+    price: 285000,
+    badge: '베스트',
+    image: 'https://...'
+  },
+  ...
+]</pre>
+            </p>
+            <p>
+              <strong>사용 예시:</strong><br>
+              <code>
+                import &#123; searchProducts &#125; from '@/lib/products.js'<br>
+                const result = await searchProducts('제주')
+              </code>
+            </p>
+          </div>
+        </div>
+      </div>
+      <h2>상품 검색 데이터 테스트</h2>
+      <div class="search-products-test">
+        <input v-model="searchKeyword" placeholder="검색어 입력" />
+        <button @click="fetchSearchProducts" :disabled="loadingSearchProducts">검색</button>
+      </div>
+      <div v-if="loadingSearchProducts">로딩 중...</div>
+      <div v-else-if="errorSearchProducts" style="color:red">에러: {{ errorSearchProducts }}</div>
+      <pre v-else-if="searchProductsData">{{ searchProductsData }}</pre>
     </div>
 
     <div v-else-if="activeTab === 'banner'">
@@ -307,7 +406,7 @@
 <script setup>
 import { ref, onMounted, watch } from 'vue'
 import { categoryService } from '@/lib/categories.js'
-import { getPopularTours, getProductDetail } from '@/lib/products.js'
+import { getPopularTours, getProductDetail, getProductsByCategory, searchProducts } from '@/lib/products.js'
 import { getBannerImages } from '@/lib/banners.js'
 import { getReservationDetail, createReservation } from '@/lib/reservations.js'
 
@@ -320,6 +419,60 @@ const errorTours = ref(null)
 const loadingTours = ref(true)
 
 const activeTab = ref('category')
+
+// 카테고리별 상품 테스트용
+const categoryId = ref('')
+const categoryProductsData = ref(null)
+const errorCategoryProducts = ref(null)
+const loadingCategoryProducts = ref(false)
+
+function resetCategoryProductsTest() {
+  categoryId.value = ''
+  categoryProductsData.value = null
+  errorCategoryProducts.value = null
+  loadingCategoryProducts.value = false
+}
+
+async function fetchCategoryProducts() {
+  if (!categoryId.value) return
+  loadingCategoryProducts.value = true
+  errorCategoryProducts.value = null
+  categoryProductsData.value = null
+  const result = await getProductsByCategory(Number(categoryId.value))
+  if (result.success) {
+    categoryProductsData.value = JSON.stringify(result.products, null, 2)
+  } else {
+    errorCategoryProducts.value = result.error
+  }
+  loadingCategoryProducts.value = false
+}
+
+// 상품 검색 테스트용
+const searchKeyword = ref('')
+const searchProductsData = ref(null)
+const errorSearchProducts = ref(null)
+const loadingSearchProducts = ref(false)
+
+function resetSearchProductsTest() {
+  searchKeyword.value = ''
+  searchProductsData.value = null
+  errorSearchProducts.value = null
+  loadingSearchProducts.value = false
+}
+
+async function fetchSearchProducts() {
+  if (!searchKeyword.value) return
+  loadingSearchProducts.value = true
+  errorSearchProducts.value = null
+  searchProductsData.value = null
+  const result = await searchProducts(searchKeyword.value)
+  if (result.success) {
+    searchProductsData.value = JSON.stringify(result.products, null, 2)
+  } else {
+    errorSearchProducts.value = result.error
+  }
+  loadingSearchProducts.value = false
+}
 
 // 배너 이미지 테스트용
 const bannerData = ref(null)
@@ -480,6 +633,8 @@ async function fetchBannerImages() {
 watch(activeTab, (tab) => {
   if (tab === 'product') resetProductTest()
   if (tab === 'banner') resetBannerTest()
+  if (tab === 'categoryProducts') resetCategoryProductsTest()
+  if (tab === 'searchProducts') resetSearchProductsTest()
 })
 </script>
 
@@ -703,6 +858,62 @@ pre {
   transition: background 0.2s;
 }
 .banner-test button:disabled {
+  background: #b6c3e6;
+  cursor: not-allowed;
+}
+.category-products-test {
+  display: flex;
+  gap: 1rem;
+  margin-bottom: 1rem;
+  align-items: center;
+}
+.category-products-test input {
+  padding: 0.5rem 1rem;
+  border-radius: 6px;
+  border: 1px solid #e2e8f0;
+  font-size: 1rem;
+  width: 160px;
+}
+.category-products-test button {
+  padding: 0.5rem 1.2rem;
+  border-radius: 6px;
+  border: none;
+  background: #2563eb;
+  color: #fff;
+  font-size: 1rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+.category-products-test button:disabled {
+  background: #b6c3e6;
+  cursor: not-allowed;
+}
+.search-products-test {
+  display: flex;
+  gap: 1rem;
+  margin-bottom: 1rem;
+  align-items: center;
+}
+.search-products-test input {
+  padding: 0.5rem 1rem;
+  border-radius: 6px;
+  border: 1px solid #e2e8f0;
+  font-size: 1rem;
+  width: 220px;
+}
+.search-products-test button {
+  padding: 0.5rem 1.2rem;
+  border-radius: 6px;
+  border: none;
+  background: #2563eb;
+  color: #fff;
+  font-size: 1rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+.search-products-test button:disabled {
   background: #b6c3e6;
   cursor: not-allowed;
 }
