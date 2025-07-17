@@ -57,6 +57,32 @@
       <div v-if="loadingUser">로딩 중...</div>
       <div v-else-if="errorUser" style="color:red">에러: {{ errorUser }}</div>
       <pre v-else-if="userInfo">{{ userInfo }}</pre>
+      <h2>유저 정보 수정 테스트</h2>
+      <form @submit.prevent="submitEdit" class="user-edit-form">
+        <label>이름</label>
+        <input v-model="editForm.name" required />
+        <label>휴대폰</label>
+        <input v-model="editForm.phone" />
+        <label>모바일</label>
+        <input v-model="editForm.mobile" />
+        <label>우편번호</label>
+        <input v-model="editForm.zipcode" />
+        <label>주소1</label>
+        <input v-model="editForm.address1" />
+        <label>주소2</label>
+        <input v-model="editForm.address2" />
+        <label>SMS 수신</label>
+        <select v-model="editForm.smsReceive">
+          <option value="Y">Y</option>
+          <option value="N">N</option>
+        </select>
+        <label>비밀번호(변경 시 입력)</label>
+        <input v-model="editForm.password" type="password" autocomplete="new-password" />
+        <button type="submit" :disabled="loadingEdit">수정</button>
+      </form>
+      <div v-if="loadingEdit">수정 중...</div>
+      <div v-else-if="editError" style="color:red">에러: {{ editError }}</div>
+      <div v-else-if="editResult" style="color:green">{{ editResult }}</div>
     </div>
 
     <!-- 내 예약 목록 API 탭 -->
@@ -547,7 +573,7 @@ import { categoryService } from '@/lib/categories.js'
 import { getPopularTours, getProductDetail, getProductsByCategory, searchProducts } from '@/lib/products.js'
 import { getBannerImages } from '@/lib/banners.js'
 import { getReservationDetail, createReservation, getMyReservations } from '@/lib/reservations.js'
-import { getCurrentUserInfo } from '@/lib/users.js'
+import { getCurrentUserInfo, updateUserInfo } from '@/lib/users.js'
 import { getStartingPoints } from '@/lib/startingpoints.js'
 
 const menuData = ref(null)
@@ -656,6 +682,20 @@ const loadingPost = ref(false)
 const userInfo = ref(null)
 const errorUser = ref(null)
 const loadingUser = ref(false)
+// 유저 정보 수정 테스트용
+const editForm = ref({
+  name: '',
+  phone: '',
+  mobile: '',
+  zipcode: '',
+  address1: '',
+  address2: '',
+  smsReceive: 'Y',
+  password: ''
+})
+const editResult = ref(null)
+const editError = ref(null)
+const loadingEdit = ref(false)
 
 // 내 예약 목록 테스트용
 const myBookingsData = ref(null)
@@ -751,10 +791,26 @@ async function fetchUserInfo() {
   const result = await getCurrentUserInfo()
   if (result.success) {
     userInfo.value = JSON.stringify(result.user, null, 2)
+    // editForm에 값 세팅
+    Object.assign(editForm.value, result.user)
+    editForm.value.password = ''
   } else {
     errorUser.value = result.error
   }
   loadingUser.value = false
+}
+
+async function submitEdit() {
+  loadingEdit.value = true
+  editError.value = null
+  editResult.value = null
+  const result = await updateUserInfo(editForm.value)
+  if (result.success) {
+    editResult.value = '수정 성공!'
+  } else {
+    editError.value = result.error
+  }
+  loadingEdit.value = false
 }
 
 async function fetchMyBookings() {
@@ -839,6 +895,20 @@ watch(activeTab, (tab) => {
     userInfo.value = null
     errorUser.value = null
     loadingUser.value = false
+    // 유저 정보 수정 테스트 초기화
+    editForm.value = {
+      name: '',
+      phone: '',
+      mobile: '',
+      zipcode: '',
+      address1: '',
+      address2: '',
+      smsReceive: 'Y',
+      password: ''
+    }
+    editResult.value = null
+    editError.value = null
+    loadingEdit.value = false
   }
   if (tab === 'myBookings') resetMyBookingsTest()
   if (tab === 'startingPoints') {
@@ -1188,6 +1258,35 @@ pre {
   transition: background 0.2s;
 }
 .startingpoints-test button:disabled {
+  background: #b6c3e6;
+  cursor: not-allowed;
+}
+.user-edit-form {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  margin-top: 1rem;
+}
+.user-edit-form input,
+.user-edit-form select {
+  padding: 0.5rem 1rem;
+  border-radius: 6px;
+  border: 1px solid #e2e8f0;
+  font-size: 1rem;
+  width: 100%;
+}
+.user-edit-form button {
+  padding: 0.7rem 1.5rem;
+  border: none;
+  border-radius: 8px;
+  background: #2563eb;
+  color: #fff;
+  font-size: 1.05rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+.user-edit-form button:disabled {
   background: #b6c3e6;
   cursor: not-allowed;
 }
