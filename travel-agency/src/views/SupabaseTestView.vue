@@ -12,6 +12,8 @@
       <button :class="{active: activeTab === 'myBookings'}" @click="activeTab = 'myBookings'">내 예약 목록 API</button>
       <button :class="{active: activeTab === 'startingPoints'}" @click="activeTab = 'startingPoints'">출발지 목록 API</button>
       <button :class="{active: activeTab === 'addProduct'}" @click="activeTab = 'addProduct'">상품 추가 API</button>
+      <button :class="{active: activeTab === 'tags'}" @click="activeTab = 'tags'">태그 API</button>
+      <button :class="{active: activeTab === 'categories'}" @click="activeTab = 'categories'">카테고리 API</button>
     </div>
 
     <!-- 유저 정보 API 탭 -->
@@ -638,6 +640,93 @@
       <div v-else-if="addProductError" style="color:red">에러: {{ addProductError }}</div>
       <div v-else-if="addProductResult" style="color:green">등록 성공! 상품 ID: {{ addProductResult }}</div>
     </div>
+
+    <!-- 태그 API 탭 -->
+    <div v-if="activeTab === 'tags'">
+      <div class="swagger-doc">
+        <h2>📚 API 문서: 태그 데이터</h2>
+        <div class="api-section">
+          <div class="api-title">GET /lib/tag.js</div>
+          <div class="api-method">
+            <span class="method">getAllTags()</span>
+          </div>
+          <div class="api-desc">
+            <p>
+              <strong>설명:</strong> <br>
+              전체 태그 목록을 조회합니다.<br>
+              <br>
+              <strong>반환 예시:</strong>
+            </p>
+            <pre>[
+  { id: 1, name: '당일' },
+  { id: 2, name: '1박2일' },
+  ...
+]</pre>
+            <p>
+              <strong>사용 예시:</strong><br>
+              <code>
+                import &#123; getAllTags &#125; from '@/lib/tag.js'<br>
+                const result = await getAllTags()
+              </code>
+            </p>
+          </div>
+        </div>
+      </div>
+      <h2>태그 전체 조회 테스트</h2>
+      <div class="tag-test-row">
+        <button @click="fetchTags" :disabled="loadingTags">태그 목록 불러오기</button>
+      </div>
+      <div v-if="loadingTags">로딩 중...</div>
+      <div v-else-if="errorTags" style="color:red">에러: {{ errorTags }}</div>
+      <pre v-else-if="tagsData">{{ tagsData }}</pre>
+      <h2>태그 추가(POST) 테스트</h2>
+      <form class="add-tag-form" @submit.prevent="submitAddTag">
+        <label>태그명</label>
+        <input v-model="addTagName" required />
+        <button type="submit" :disabled="loadingAddTag">추가</button>
+      </form>
+      <div v-if="loadingAddTag">추가 중...</div>
+      <div v-else-if="addTagError" style="color:red">에러: {{ addTagError }}</div>
+      <div v-else-if="addTagResult" style="color:green">추가 성공! 태그 ID: {{ addTagResult }}</div>
+    </div>
+
+    <!-- 카테고리 API 탭 -->
+    <div v-if="activeTab === 'categories'">
+      <div class="swagger-doc">
+        <h2>📚 API 문서: 카테고리 데이터</h2>
+        <div class="api-section">
+          <div class="api-title">POST /lib/categories.js</div>
+          <div class="api-method">
+            <span class="method">categoryService.createCategory(categoryData)</span>
+          </div>
+          <div class="api-desc">
+            <p>
+              <strong>설명:</strong> <br>
+              카테고리 정보를 입력받아 Categories 테이블에 등록합니다.<br>
+              <br>
+              <strong>반환 예시:</strong>
+            </p>
+            <pre>{ success: true, category: { id: 1, name: '인기여행' }, message: '카테고리가 성공적으로 생성되었습니다.' }</pre>
+            <p>
+              <strong>사용 예시:</strong><br>
+              <code>
+                import &#123; categoryService &#125; from '@/lib/categories.js'<br>
+                const result = await categoryService.createCategory(&#123; name: '인기여행' &#125;)
+              </code>
+            </p>
+          </div>
+        </div>
+      </div>
+      <h2>카테고리 추가(POST) 테스트</h2>
+      <form class="add-category-form" @submit.prevent="submitAddCategory">
+        <label>카테고리명</label>
+        <input v-model="addCategoryName" required />
+        <button type="submit" :disabled="loadingAddCategory">추가</button>
+      </form>
+      <div v-if="loadingAddCategory">추가 중...</div>
+      <div v-else-if="addCategoryError" style="color:red">에러: {{ addCategoryError }}</div>
+      <div v-else-if="addCategoryResult" style="color:green">추가 성공! 카테고리 ID: {{ addCategoryResult }}</div>
+    </div>
   </div>
 </template>
 
@@ -649,6 +738,7 @@ import { getBannerImages } from '@/lib/banners.js'
 import { getReservationDetail, createReservation, getMyReservations } from '@/lib/reservations.js'
 import { getCurrentUserInfo, updateUserInfo } from '@/lib/users.js'
 import { getStartingPoints } from '@/lib/startingpoints.js'
+import { getAllTags, createTag } from '@/lib/tag.js'
 
 const menuData = ref(null)
 const error = ref(null)
@@ -842,6 +932,74 @@ async function submitAddProduct() {
     addProductError.value = e.message
   } finally {
     loadingAddProduct.value = false
+  }
+}
+
+// 태그 테스트용
+const tagsData = ref(null)
+const errorTags = ref(null)
+const loadingTags = ref(false)
+const addTagName = ref('')
+const addTagResult = ref(null)
+const addTagError = ref(null)
+const loadingAddTag = ref(false)
+
+async function fetchTags() {
+  loadingTags.value = true
+  errorTags.value = null
+  tagsData.value = null
+  const result = await getAllTags()
+  if (result.success) {
+    tagsData.value = JSON.stringify(result.tags, null, 2)
+  } else {
+    errorTags.value = result.error
+  }
+  loadingTags.value = false
+}
+
+async function submitAddTag() {
+  loadingAddTag.value = true
+  addTagError.value = null
+  addTagResult.value = null
+  try {
+    const result = await createTag(addTagName.value)
+    if (result.success) {
+      addTagResult.value = result.id
+      addTagName.value = ''
+      // 태그 목록 새로고침
+      await fetchTags()
+    } else {
+      addTagError.value = result.error
+    }
+  } catch (e) {
+    addTagError.value = e.message
+  } finally {
+    loadingAddTag.value = false
+  }
+}
+
+// 카테고리 추가 테스트용
+const addCategoryName = ref('')
+const addCategoryResult = ref(null)
+const addCategoryError = ref(null)
+const loadingAddCategory = ref(false)
+
+async function submitAddCategory() {
+  loadingAddCategory.value = true
+  addCategoryError.value = null
+  addCategoryResult.value = null
+  try {
+    const result = await categoryService.createCategory({ name: addCategoryName.value })
+    if (result.success) {
+      addCategoryResult.value = result.category.id
+      addCategoryName.value = ''
+    } else {
+      addCategoryError.value = result.error
+    }
+  } catch (e) {
+    addCategoryError.value = e.message
+  } finally {
+    loadingAddCategory.value = false
   }
 }
 
@@ -1061,6 +1219,21 @@ watch(activeTab, (tab) => {
     loadingAddProduct.value = false
     addProductFiles.value.forEach(f => URL.revokeObjectURL(f.preview))
     addProductFiles.value = []
+  }
+  if (tab === 'tags') {
+    tagsData.value = null
+    errorTags.value = null
+    loadingTags.value = false
+    addTagName.value = ''
+    addTagResult.value = null
+    addTagError.value = null
+    loadingAddTag.value = false
+  }
+  if (tab === 'categories') {
+    addCategoryName.value = ''
+    addCategoryResult.value = null
+    addCategoryError.value = null
+    loadingAddCategory.value = false
   }
 })
 </script>
@@ -1478,5 +1651,67 @@ pre {
   border: 1px solid #e2e8f0;
   border-radius: 8px;
   padding: 0.5rem 0.7rem;
+}
+.tag-test-row {
+  display: flex;
+  gap: 1rem;
+  margin-bottom: 1rem;
+  align-items: center;
+}
+.add-tag-form {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+  margin-bottom: 1rem;
+}
+.add-tag-form input {
+  padding: 0.5rem 1rem;
+  border-radius: 6px;
+  border: 1px solid #e2e8f0;
+  font-size: 1rem;
+  width: 200px;
+}
+.add-tag-form button {
+  padding: 0.5rem 1.2rem;
+  border-radius: 6px;
+  border: none;
+  background: #2563eb;
+  color: #fff;
+  font-size: 1rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+.add-tag-form button:disabled {
+  background: #b6c3e6;
+  cursor: not-allowed;
+}
+.add-category-form {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+  margin-bottom: 1rem;
+}
+.add-category-form input {
+  padding: 0.5rem 1rem;
+  border-radius: 6px;
+  border: 1px solid #e2e8f0;
+  font-size: 1rem;
+  width: 200px;
+}
+.add-category-form button {
+  padding: 0.5rem 1.2rem;
+  border-radius: 6px;
+  border: none;
+  background: #2563eb;
+  color: #fff;
+  font-size: 1rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+.add-category-form button:disabled {
+  background: #b6c3e6;
+  cursor: not-allowed;
 }
 </style> 
