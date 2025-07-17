@@ -1,5 +1,41 @@
 import { supabase } from './supabase.js'
 
+// 랜덤 10자리 product_number 생성 함수
+function getRandomProductNumber() {
+  const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+  let result = '';
+  for (let i = 0; i < 10; i++) {
+    result += chars.charAt(Math.floor(Math.random() * chars.length));
+  }
+  return result;
+}
+
+/**
+ * Supabase Storage에 상품 이미지 업로드
+ * @param {File[]} files - 업로드할 이미지 파일 배열
+ * @param {string} productNumber - product_number (폴더명)
+ * @returns {Promise<{success: boolean, urls?: string[], error?: string}>}
+ */
+export async function uploadProductImages(files, productNumber) {
+  try {
+    if (!files || !files.length) return { success: false, error: '이미지 파일이 없습니다.' };
+    const urls = [];
+    for (let i = 0; i < files.length; i++) {
+      const file = files[i];
+      const fileName = i === 0 ? 'main' : String(i);
+      const path = `${productNumber}/${fileName}`;
+      const { error } = await supabase.storage.from('products').upload(path, file, { upsert: true });
+      if (error) throw error;
+      // publicUrl 구하기
+      const { data } = supabase.storage.from('products').getPublicUrl(path);
+      urls.push(data.publicUrl);
+    }
+    return { success: true, urls };
+  } catch (error) {
+    return { success: false, error: error.message };
+  }
+}
+
 /**
  * 인기 투어 상품 리스트를 가져온다. -> 6개만
  * @returns {Promise<{success: boolean, tours: Array, error?: string}>}
@@ -179,5 +215,48 @@ export async function searchProducts(keyword) {
     return { success: true, products }
   } catch (error) {
     return { success: false, products: [], error: error.message }
+  }
+}
+
+/**
+ * 상품 추가(등록) + 이미지 업로드 지원
+ * @param {object} productData - 등록할 상품 정보 (images: File[] 포함 가능)
+ * @returns {Promise<{success: boolean, id?: number, error?: string}>}
+ */
+export async function createProduct(productData) {
+  try {
+    // 1. product_number 생성
+    const productNumber = getRandomProductNumber();
+    // 2. 이미지 업로드 (images: File[])
+    let mainImageUrl = '';
+    let imageUrls = [];
+    if (productData.images && productData.images.length) {
+      const uploadResult = await uploadProductImages(productData.images, productNumber);
+      if (!uploadResult.success) throw new Error(uploadResult.error);
+      mainImageUrl = uploadResult.urls[0];
+      imageUrls = uploadResult.urls.slice(1);
+    }
+    // 3. Products 테이블에 등록
+    const insertData = {
+      ...productData,
+      product_number: productNumber,
+      main_image_url: mainImageUrl,
+    };
+    delete insertData.images;
+    const { data, error } = await supabase
+      .from('Products')
+      .insert([insertData])
+      .select('id')
+      .single();
+    if (error) throw error;
+    // 4. ProductImages 테이블에 나머지 이미지 저장
+    if (imageUrls.length) {
+      const imagesToInsert = imageUrls.map(url => ({ product_id: data.id, image_url: url }));
+      const { error: imgError } = await supabase.from('ProductImages').insert(imagesToInsert);
+      if (imgError) throw imgError;
+    }
+    return { success: true, id: data.id };
+  } catch (error) {
+    return { success: false, error: error.message };
   }
 } 

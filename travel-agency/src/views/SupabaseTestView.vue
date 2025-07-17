@@ -11,6 +11,7 @@
       <button :class="{active: activeTab === 'user'}" @click="activeTab = 'user'">유저 정보 API</button>
       <button :class="{active: activeTab === 'myBookings'}" @click="activeTab = 'myBookings'">내 예약 목록 API</button>
       <button :class="{active: activeTab === 'startingPoints'}" @click="activeTab = 'startingPoints'">출발지 목록 API</button>
+      <button :class="{active: activeTab === 'addProduct'}" @click="activeTab = 'addProduct'">상품 추가 API</button>
     </div>
 
     <!-- 유저 정보 API 탭 -->
@@ -28,7 +29,8 @@
               현재 로그인한 사용자의 상세 정보를 반환합니다.<br>
               <br>
               <strong>반환 예시:</strong>
-              <pre>{
+            </p>
+            <pre>{
   userId: 'jbl6938',
   name: '이정원',
   phone: '010-2237-6938',
@@ -39,7 +41,6 @@
   address2: '105호',
   smsReceive: 'Y'
 }</pre>
-            </p>
             <p>
               <strong>사용 예시:</strong><br>
               <code>
@@ -100,7 +101,8 @@
               현재 로그인된 사용자의 auth_id로 Bookings 테이블에서 내 예약 전체를 조회합니다.<br>
               <br>
               <strong>반환 예시:</strong>
-              <pre>[
+            </p>
+            <pre>[
   {
     id: 1,
     reservationDate: '2025/07/06',
@@ -113,7 +115,6 @@
   },
   ...
 ]</pre>
-            </p>
             <p>
               <strong>사용 예시:</strong><br>
               <code>
@@ -148,7 +149,8 @@
               <code>{ primaryCategories, secondaryCategories }</code> 구조의 메뉴 데이터를 반환합니다.<br>
               <br>
               <strong>반환 예시:</strong>
-              <pre>{
+            </p>
+            <pre>{
   primaryCategories: [
     { id: 1, name: '인기여행' },
     { id: 2, name: '먹거리여행' },
@@ -160,7 +162,6 @@
     ...
   }
 }</pre>
-            </p>
             <p>
               <strong>사용 예시:</strong><br>
               <code>
@@ -191,7 +192,8 @@
               Supabase Products 테이블에서 duration, location(조인), 가격, 이미지 등 인기 투어 상품 6개를 반환합니다.<br>
               <br>
               <strong>반환 예시:</strong>
-              <pre>[
+            </p>
+            <pre>[
   {
     id: 1,
     title: '제주도 3일 완전정복',
@@ -204,7 +206,6 @@
   },
   ...
 ]</pre>
-            </p>
             <p>
               <strong>사용 예시:</strong><br>
               <code>
@@ -236,7 +237,8 @@
               location, badge 등 조인, 인기투어와 동일한 구조로 반환.<br>
               <br>
               <strong>반환 예시:</strong>
-              <pre>{
+            </p>
+            <pre>{
   id: 1,
   title: '제주도 3일 완전정복',
   description: '한라산, 성산일출봉, ...',
@@ -246,7 +248,6 @@
   badge: '베스트',
   image: 'https://...'
 }</pre>
-            </p>
             <p>
               <strong>사용 예시:</strong><br>
               <code>
@@ -282,7 +283,8 @@
               location, badge 등 조인, 인기투어와 동일한 구조로 반환.<br>
               <br>
               <strong>반환 예시:</strong>
-              <pre>[
+            </p>
+            <pre>[
   {
     id: 1,
     title: '제주도 3일 완전정복',
@@ -295,7 +297,6 @@
   },
   ...
 ]</pre>
-            </p>
             <p>
               <strong>사용 예시:</strong><br>
               <code>
@@ -330,7 +331,8 @@
               검색어(keyword)가 상품명, 부제목, 설명, 기간, 지역명에 하나라도 포함된 상품 전체를 반환합니다.<br>
               <br>
               <strong>반환 예시:</strong>
-              <pre>[
+            </p>
+            <pre>[
   {
     id: 1,
     title: '제주도 3일 완전정복',
@@ -343,7 +345,6 @@
   },
   ...
 ]</pre>
-            </p>
             <p>
               <strong>사용 예시:</strong><br>
               <code>
@@ -378,12 +379,12 @@
               BannerImages 테이블에서 모든 image_url을 배열로 반환합니다.<br>
               <br>
               <strong>반환 예시:</strong>
-              <pre>[
+            </p>
+            <pre>[
   "https://.../banner1.jpg",
   "https://.../banner2.jpg",
   ...
 ]</pre>
-            </p>
             <p>
               <strong>사용 예시:</strong><br>
               <code>
@@ -418,7 +419,8 @@
               Bookings(예약) + Products(상품) + StartingPoints(출발지) + Users(예약자) 조인.<br>
               <br>
               <strong>반환 예시:</strong>
-              <pre>{
+            </p>
+            <pre>{
   id: 1,
   bookerName: '홍길동',
   bookerPhone: '010-2237-6938',
@@ -440,7 +442,6 @@
     { name: '홍길동', phone: '010-2237-6938', type: '성인' }
   ]
 }</pre>
-            </p>
             <p>
               <strong>사용 예시:</strong><br>
               <code>
@@ -474,8 +475,8 @@
               travelers_name, travelers_phone은 콤마로 join해서 저장.<br>
               <br>
               <strong>반환 예시:</strong>
-              <pre>{ success: true, id: 123 }</pre>
             </p>
+            <pre>{ success: true, id: 123 }</pre>
             <p>
               <strong>사용 예시:</strong><br>
               <code>
@@ -522,7 +523,7 @@
       <div v-if="loadingPost">등록 중...</div>
       <div v-else-if="errorPost" style="color:red">에러: {{ errorPost }}</div>
       <div v-else-if="postResult">등록 성공! 예약 ID: {{ postResult }}</div>
-    </div>
+      </div>
 
     <!-- 출발지 목록 API 탭 -->
     <div v-if="activeTab === 'startingPoints'">
@@ -539,13 +540,13 @@
               Supabase StartingPoints 테이블에서 출발지(id, name) 목록을 배열로 반환합니다.<br>
               <br>
               <strong>반환 예시:</strong>
-              <pre>[
+            </p>
+            <pre>[
   { id: 1, name: '영등포' },
   { id: 2, name: '서울역' },
   { id: 3, name: '잠실' },
   ...
 ]</pre>
-            </p>
             <p>
               <strong>사용 예시:</strong><br>
               <code>
@@ -563,6 +564,79 @@
       <div v-if="loadingStartingPoints">로딩 중...</div>
       <div v-else-if="errorStartingPoints" style="color:red">에러: {{ errorStartingPoints }}</div>
       <pre v-else-if="startingPointsData">{{ startingPointsData }}</pre>
+      </div>
+
+    <!-- 상품 추가 API 탭 -->
+    <div v-if="activeTab === 'addProduct'">
+      <div class="swagger-doc">
+        <h2>📚 API 문서: 상품 추가(등록)</h2>
+        <div class="api-section">
+          <div class="api-title">POST /lib/products.js</div>
+          <div class="api-method">
+            <span class="method">createProduct(productData)</span>
+          </div>
+          <div class="api-desc">
+            <p>
+              <strong>설명:</strong> <br>
+              상품 정보를 입력받아 Products 테이블에 등록합니다.<br>
+              <br>
+              <strong>반환 예시:</strong>
+            </p>
+            <pre>{ success: true, id: 123 }</pre>
+            <p>
+              <strong>사용 예시:</strong><br>
+              <code>
+                import &#123; createProduct &#125; from '@/lib/products.js'<br>
+                const result = await createProduct(productData)
+              </code>
+            </p>
+          </div>
+        </div>
+      </div>
+      <h2>상품 추가(등록) 테스트</h2>
+      <form class="add-product-form" @submit.prevent="submitAddProduct">
+        <label>상품명</label>
+        <input v-model="addProductForm.title" required />
+        <label>부제목</label>
+        <input v-model="addProductForm.subtitle" />
+        <label>대표 이미지 URL</label>
+        <input v-model="addProductForm.main_image_url" disabled placeholder="이미지 업로드 시 자동 저장" />
+        <label>상품 이미지 업로드 (여러 장 가능, 첫 번째가 대표)</label>
+        <input type="file" multiple accept="image/*" @change="handleAddProductFiles" />
+        <div v-if="addProductFiles.length" class="image-preview-list">
+          <div v-for="(file, idx) in addProductFiles" :key="idx" class="image-preview-item">
+            <img v-if="file.preview" :src="file.preview" style="max-width:80px;max-height:80px;object-fit:cover;border-radius:6px;" />
+            <div>{{ idx === 0 ? 'main' : idx }}</div>
+            <div style="font-size:0.9em;color:#64748b">{{ file.name }}</div>
+          </div>
+        </div>
+        <label>성인 가격</label>
+        <input v-model.number="addProductForm.adult_price" type="number" />
+        <label>소인 가격</label>
+        <input v-model.number="addProductForm.child_price" type="number" />
+        <label>여행 기간</label>
+        <input v-model="addProductForm.duration" />
+        <label>카테고리 ID</label>
+        <input v-model.number="addProductForm.category_id" type="number" />
+        <label>지역(로케이션) ID</label>
+        <input v-model.number="addProductForm.location_id" type="number" />
+        <label>뱃지 ID(선택)</label>
+        <input v-model.number="addProductForm.badge_id" type="number" />
+        <label>태그 ID(tag_id, 선택)</label>
+        <input v-model.number="addProductForm.tag_id" type="number" />
+        <label>상품 코드(product_code, 선택)</label>
+        <input v-model="addProductForm.product_code" />
+        <label>이벤트 내용(선택)</label>
+        <input v-model="addProductForm.event_content" />
+        <label>포함사항(선택)</label>
+        <input v-model="addProductForm.included_items" />
+        <label>불포함사항(선택)</label>
+        <input v-model="addProductForm.excluded_items" />
+        <button type="submit" :disabled="loadingAddProduct">등록</button>
+      </form>
+      <div v-if="loadingAddProduct">등록 중...</div>
+      <div v-else-if="addProductError" style="color:red">에러: {{ addProductError }}</div>
+      <div v-else-if="addProductResult" style="color:green">등록 성공! 상품 ID: {{ addProductResult }}</div>
     </div>
   </div>
 </template>
@@ -570,7 +644,7 @@
 <script setup>
 import { ref, onMounted, watch } from 'vue'
 import { categoryService } from '@/lib/categories.js'
-import { getPopularTours, getProductDetail, getProductsByCategory, searchProducts } from '@/lib/products.js'
+import { getPopularTours, getProductDetail, getProductsByCategory, searchProducts, createProduct } from '@/lib/products.js'
 import { getBannerImages } from '@/lib/banners.js'
 import { getReservationDetail, createReservation, getMyReservations } from '@/lib/reservations.js'
 import { getCurrentUserInfo, updateUserInfo } from '@/lib/users.js'
@@ -706,6 +780,70 @@ const loadingMyBookings = ref(false)
 const startingPointsData = ref(null)
 const errorStartingPoints = ref(null)
 const loadingStartingPoints = ref(false)
+
+// 상품 추가 테스트용
+const addProductForm = ref({
+  title: '',
+  subtitle: '',
+  main_image_url: '',
+  adult_price: 0,
+  child_price: 0,
+  duration: '',
+  category_id: null,
+  location_id: null,
+  badge_id: null,
+  tag_id: null,
+  product_code: '',
+  event_content: '',
+  included_items: '',
+  excluded_items: ''
+})
+const addProductResult = ref(null)
+const addProductError = ref(null)
+const loadingAddProduct = ref(false)
+
+// 상품 추가 이미지 파일 상태
+const addProductFiles = ref([])
+
+function handleAddProductFiles(e) {
+  const files = Array.from(e.target.files || [])
+  // 미리보기 URL 생성
+  addProductFiles.value = files.map(f => {
+    const preview = URL.createObjectURL(f)
+    return Object.assign(f, { preview })
+  })
+}
+
+async function submitAddProduct() {
+  loadingAddProduct.value = true
+  addProductError.value = null
+  addProductResult.value = null
+  try {
+    // 빈 값/0/null은 제외하고 전송
+    const payload = {}
+    for (const key in addProductForm.value) {
+      const v = addProductForm.value[key]
+      if (v !== '' && v !== null && v !== undefined) payload[key] = v
+    }
+    if (addProductFiles.value.length) {
+      payload.images = addProductFiles.value
+    }
+    const result = await createProduct(payload)
+    if (result.success) {
+      addProductResult.value = result.id
+      // 폼 초기화
+      Object.keys(addProductForm.value).forEach(k => addProductForm.value[k] = (typeof addProductForm.value[k] === 'number' ? 0 : ''))
+      addProductFiles.value.forEach(f => URL.revokeObjectURL(f.preview))
+      addProductFiles.value = []
+    } else {
+      addProductError.value = result.error
+    }
+  } catch (e) {
+    addProductError.value = e.message
+  } finally {
+    loadingAddProduct.value = false
+  }
+}
 
 onMounted(async () => {
   // 카테고리 메뉴 테스트
@@ -915,6 +1053,14 @@ watch(activeTab, (tab) => {
     startingPointsData.value = null
     errorStartingPoints.value = null
     loadingStartingPoints.value = false
+  }
+  if (tab === 'addProduct') {
+    Object.keys(addProductForm.value).forEach(k => addProductForm.value[k] = (typeof addProductForm.value[k] === 'number' ? 0 : ''))
+    addProductResult.value = null
+    addProductError.value = null
+    loadingAddProduct.value = false
+    addProductFiles.value.forEach(f => URL.revokeObjectURL(f.preview))
+    addProductFiles.value = []
   }
 })
 </script>
@@ -1289,5 +1435,48 @@ pre {
 .user-edit-form button:disabled {
   background: #b6c3e6;
   cursor: not-allowed;
+}
+.add-product-form {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  margin-top: 1rem;
+}
+.add-product-form input {
+  padding: 0.5rem 1rem;
+  border-radius: 6px;
+  border: 1px solid #e2e8f0;
+  font-size: 1rem;
+  width: 100%;
+}
+.add-product-form button {
+  padding: 0.7rem 1.5rem;
+  border: none;
+  border-radius: 8px;
+  background: #2563eb;
+  color: #fff;
+  font-size: 1.05rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+.add-product-form button:disabled {
+  background: #b6c3e6;
+  cursor: not-allowed;
+}
+.image-preview-list {
+  display: flex;
+  gap: 1rem;
+  margin: 0.5rem 0 1rem 0;
+}
+.image-preview-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.2rem;
+  background: #f1f5f9;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  padding: 0.5rem 0.7rem;
 }
 </style> 
