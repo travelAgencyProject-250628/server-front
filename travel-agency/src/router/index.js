@@ -33,6 +33,11 @@ const router = createRouter({
       component: () => import('@/views/SupabaseTestView.vue')
     },
     {
+      path: '/products',
+      name: 'ProductList',
+      component: () => import('@/views/ProductList.vue')
+    },
+    {
       path: '/product/:id',
       component: () => import('@/views/productDetail.vue')
     },

@@ -43,6 +43,16 @@ const props = defineProps({
 const route = useRoute()
 
 const isActive = (path) => {
+  // 쿼리 파라미터 기반으로 활성 상태 판단
+  if (path.includes('?')) {
+    const url = new URL(path, window.location.origin)
+    const pathParams = Object.fromEntries(url.searchParams.entries())
+    const currentParams = route.query
+    
+    // 카테고리 ID와 서브카테고리 ID가 모두 일치하는지 확인
+    return pathParams.categoryId === currentParams.categoryId && 
+           pathParams.subCategoryId === currentParams.subCategoryId
+  }
   return route.path === path
 }
 </script>

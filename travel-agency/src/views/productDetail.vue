@@ -243,6 +243,7 @@
 import { ref, onMounted, onBeforeUnmount } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import TravelCalendar from '@/components/TravelCalendar.vue'
+import { getProductDetail } from '@/lib/products.js'
 
 const route = useRoute()
 const router = useRouter()
@@ -271,48 +272,41 @@ const fetchProductDetail = async (productId) => {
     error.value = null
     
     try {
-        // API 연동 시 실제 API 호출로 대체
-        // const response = await fetch(\`/api/products/\${productId}\`)
-        // const data = await response.json()
+        // 기존 구현된 getProductDetail 함수 사용
+        const response = await getProductDetail(productId)
         
-        // 임시 데이터
-        const mockData = {
-            id: productId,
-            category: '당일 여행',
-            title: '[당일/모닝출발]제주"회"랑놀자~한라산올레 제주맛집먹방투어 여행 1탄!',
-            subtitle: '예송낭 "영화테우랑"바닷가놀자+중앙로먹방+화정해수욕장+가파도중앙로음식막거리',
-            mainImage: 'https://images.unsplash.com/photo-1539650116574-75c0c6d36dc7?w=800&h=400&fit=crop',
-            productCode: 'JEJU001',
-            productNumber: 'P20240301',
-            travelDuration: '당일',
-            eventContent: '제주도 당일 여행',
-            adultPrice: 87000,
-            childPrice: 67000,
-            includedItems: '1식[조식제공], 교통비',
-            excludedItems: '포함 외 식사, 기타 개인경비, 국내여행자보험',
-            meetingPoint: '영등포 신세계백화점앞 / 서울역10번출구 남대문경찰서옆 / 잠실역4번출구 롯데마트앞 / 동천, 죽전, 신갈 간이정류장',
-            images: [
-                'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=800&h=400&fit=crop', // 제주도 해안
-                'https://images.unsplash.com/photo-1544551763-46a013bb70d5?w=800&h=400&fit=crop', // 한라산
-                'https://images.unsplash.com/photo-1578662996442-48f60103fc96?w=800&h=400&fit=crop', // 제주도 돌하르방
-                'https://images.unsplash.com/photo-1524492412937-b28074a5d7da?w=800&h=400&fit=crop', // 제주도 오름
-                'https://images.unsplash.com/photo-1441974231-5f9b92e4df3e?w=800&h=400&fit=crop', // 제주도 성산일출봉
-                'https://images.unsplash.com/photo-1469474968-9eeefcd482b5?w=800&h=400&fit=crop', // 제주도 우도
-                'https://images.unsplash.com/photo-1470071459-3aa88e2458dd?w=800&h=400&fit=crop', // 제주도 천지연폭포
-                'https://images.unsplash.com/photo-1518837695-8b13bc4f7e78?w=800&h=400&fit=crop', // 제주도 협재해수욕장
-                'https://images.unsplash.com/photo-1551698618-1c6c2f7db9b6?w=800&h=400&fit=crop', // 제주도 섭지코지
-                'https://images.unsplash.com/photo-1559827260-3318565c6ad8?w=800&h=400&fit=crop', // 제주도 용머리해안
-                'https://images.unsplash.com/photo-1519904981063-65d7b4d0b4f4?w=800&h=400&fit=crop', // 제주도 정방폭포
-                'https://images.unsplash.com/photo-1539650116574-75c0c6d36dc7?w=800&h=400&fit=crop'  // 제주도 중문해수욕장
-            ]
+        if (response.success) {
+            // API 응답 데이터를 화면에 맞게 매핑
+            const product = response.product
+            productDetail.value = {
+                id: product.id,
+                category: product.category,
+                title: product.title,
+                subtitle: product.subtitle,
+                mainImage: product.mainImage,
+                productCode: product.productCode,
+                productNumber: product.productNumber,
+                travelDuration: product.travelDuration,
+                eventContent: product.eventContent,
+                adultPrice: product.adultPrice,
+                childPrice: product.childPrice,
+                includedItems: product.includedItems,
+                excludedItems: product.excludedItems,
+                meetingPoint: product.meetingPoint,
+                images: product.images.length > 0 ? product.images : ['/images/default-product.jpg']
+            }
+            
+            // 예약 데이터 로드 (더미 데이터)
+            loadBookingData()
+        } else {
+            if (response.error && response.error.includes('No rows found')) {
+                error.value = '존재하지 않는 상품입니다.'
+            } else {
+                error.value = response.error || '상품 정보를 불러오는데 실패했습니다.'
+            }
         }
-
-        productDetail.value = mockData
-        
-        // 예약 데이터 로드 (더미 데이터)
-        loadBookingData()
     } catch (e) {
-        error.value = '상품 정보를 불러오는데 실패했습니다.'
+        error.value = e.message || '상품 정보를 불러오는데 실패했습니다.'
         console.error('상품 정보 조회 실패:', e)
     } finally {
         isLoading.value = false
@@ -361,7 +355,8 @@ const handleBooking = () => {
     router.push({
         name: 'booking',
         query: {
-            productId: route.params.id
+            productId: parseInt(route.params.id),
+            selectedDate: selectedDate.value ? selectedDate.value.toISOString().split('T')[0] : null
         }
     })
 }
@@ -428,11 +423,11 @@ const copyCurrentUrl = async () => {
 
 // 컴포넌트 마운트 시 데이터 로드
 onMounted(() => {
-    const productId = route.params.id
-    if (productId) {
+    const productId = parseInt(route.params.id)
+    if (productId && !isNaN(productId)) {
         fetchProductDetail(productId)
     } else {
-        error.value = '상품 ID가 없습니다.'
+        error.value = '올바르지 않은 상품 ID입니다.'
     }
     
     window.addEventListener('scroll', handleScroll)

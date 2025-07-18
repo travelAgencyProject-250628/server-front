@@ -238,7 +238,7 @@ const goToJoin = () => {
 /* 메인 컨텐츠 */
 .main-content {
     min-height: calc(100vh - 200px);
-    padding: 2rem 0;
+    padding: 3.5rem 0 2rem 0;
 }
 
 /* 페이지 헤더 */

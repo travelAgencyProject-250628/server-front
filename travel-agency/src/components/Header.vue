@@ -93,6 +93,9 @@
         </button>
         
         <ul class="nav-menu">
+          <li v-if="menuLoading" class="nav-item">
+            <span class="nav-link">메뉴 로딩중...</span>
+          </li>
           <li 
             v-for="category in menuData.primaryCategories" 
             :key="category.id"
@@ -121,7 +124,7 @@
               :key="item.id"
               class="sub-menu-item"
             >
-              <a href="#" @click="handleSubCategoryClick(activeSubMenu, item)">
+              <a href="#" @click="handleSubCategoryClick(getCurrentCategory(activeSubMenu), item)">
                 {{ item.name }}
               </a>
             </li>
@@ -137,7 +140,10 @@
         @mouseleave="hideAllMenu"
       >
         <div class="all-menu-content">
-          <div class="all-menu-grid">
+          <div v-if="menuLoading" class="all-menu-loading">
+            <p>메뉴 로딩중...</p>
+          </div>
+          <div v-else class="all-menu-grid">
             <div 
               v-for="category in menuData.primaryCategories" 
               :key="category.id"
@@ -150,7 +156,7 @@
                   :key="item.id"
                   class="all-menu-sub-item"
                 >
-                  <a href="#" @click="handleSubCategoryClick(category.id, item)">
+                  <a href="#" @click="handleSubCategoryClick(category, item)">
                     {{ item.name }}
                   </a>
                 </li>
@@ -177,6 +183,11 @@
       
       <div class="mobile-content">
         <ul class="mobile-nav-menu">
+          <li v-if="menuLoading" class="mobile-nav-item">
+            <div class="mobile-category-header">
+              <span class="category-name">메뉴 로딩중...</span>
+            </div>
+          </li>
           <li 
             v-for="category in menuData.primaryCategories" 
             :key="category.id"
@@ -207,7 +218,7 @@
                 :key="item.id"
                 class="mobile-sub-item"
               >
-                <a href="#" @click="handleSubCategoryClick(category.id, item); closeMobileMenu()">
+                <a href="#" @click="handleSubCategoryClick(category, item); closeMobileMenu()">
                   {{ item.name }}
                 </a>
               </li>
@@ -258,11 +269,10 @@
 import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '../stores/auth.js'
-import { useCategoryStore } from '../stores/categories.js'
+import { categoryService } from '../lib/categories.js'
 
 const router = useRouter()
 const authStore = useAuthStore()
-const categoryStore = useCategoryStore()
 
 // 반응형 데이터
 const mobileMenuOpen = ref(false)
@@ -272,77 +282,19 @@ const subMenuTimeout = ref(null)
 const showAllMenuFlag = ref(false)
 const allMenuTimeout = ref(null)
 const expandedMobileCategory = ref(null)
+const menuLoading = ref(true)
 
-// 메뉴 데이터 (서버에서 받아올 데이터 구조)
+// 메뉴 데이터 (supabase에서 동적으로 불러올 데이터)
 const menuData = ref({
-  primaryCategories: [
-    { id: 1, name: '절찬인기여행' },
-    { id: 2, name: '먹거리여행' },
-    { id: 3, name: '당일여행' },
-    { id: 4, name: '숙박여행' },
-    { id: 5, name: '리무진버스' },
-    { id: 6, name: '제주도여행' },
-    { id: 7, name: '섬여행' },
-    { id: 8, name: '기차여행' },
-    { id: 9, name: '해외여행' }
-  ],
-  // 심플한 2차 메뉴 구조
-  secondaryCategories: {
-    1: [ // 절찬인기여행
-      { id: 111, name: '당일여행' },
-      { id: 112, name: '1박2일' },
-      { id: 113, name: '2박3일' }
-    ],
-    2: [ // 먹거리여행
-      { id: 211, name: '당일여행' },
-      { id: 212, name: '1박2일' },
-      { id: 213, name: '2박3일' }
-    ],
-    3: [ // 당일여행
-      { id: 311, name: '당일여행' }
-    ],
-    4: [ // 숙박여행
-      { id: 411, name: '1박2일' },
-      { id: 412, name: '1박3일' },
-      { id: 413, name: '2박3일' },
-      { id: 414, name: '3박4일' }
-    ],
-    5: [ // 리무진버스
-      { id: 511, name: '당일여행' },
-      { id: 512, name: '1박2일' },
-      { id: 513, name: '2박3일' },
-      { id: 514, name: '3박4일' }
-    ],
-    6: [ // 제주도여행
-      { id: 611, name: '2박3일' },
-      { id: 612, name: '3박4일' }
-    ],
-    7: [ // 섬여행
-      { id: 711, name: '울릉도' },
-      { id: 712, name: '홍도' },
-      { id: 713, name: '백령도' }
-    ],
-    8: [ // 기차여행
-      { id: 811, name: '당일여행' },
-      { id: 812, name: '1박2일' },
-      { id: 813, name: '2박3일' },
-      { id: 814, name: '3박4일' }
-    ],
-    9: [ // 해외여행
-      { id: 911, name: '일본' },
-      { id: 912, name: '태국' },
-      { id: 913, name: '베트남' },
-      { id: 914, name: '라오스' },
-      { id: 915, name: '중국' },
-      { id: 916, name: '몽골' }
-    ]
-  }
+  primaryCategories: [],
+  secondaryCategories: {}
 })
 
 // 로그인 상태 및 어드민 권한은 authStore에서 가져옴
 const isLoggedIn = computed(() => authStore.isAuthenticated)
 const isAdmin = computed(() => authStore.isAdmin)
 const currentUser = computed(() => authStore.user)
+
 
 // 메서드들
 const toggleMobileMenu = () => {
@@ -380,52 +332,37 @@ const handleLogout = async () => {
   }
 }
 
-
-
 // 어드민 페이지로 이동
 const goToAdmin = () => {
   router.push('/admin')
 }
 
 const handleCategoryClick = (category) => {
-  console.log('카테고리 클릭:', category)
-  // 카테고리별 상품 페이지로 이동하는 로직
-  const categoryPath = category.name === '국내여행' ? 'domestic' : 
-                      category.name === '해외여행' ? 'international' : 
-                      category.name === '패키지여행' ? 'package' : 
-                      category.name === '자유여행' ? 'free' : 
-                      category.name.toLowerCase()
-  
-  router.push(`/products/${categoryPath}`)
+  router.push({
+    path: '/products',
+    query: {
+      categoryId: category.id
+    }
+  })
 }
 
-const handleSubCategoryClick = (categoryId, item) => {
-  const category = menuData.value.primaryCategories.find(cat => cat.id === categoryId)
-  console.log('서브카테고리 클릭:', category, item)
+const handleSubCategoryClick = (category, item) => {
+  router.push({
+    path: '/products',
+    query: {
+      categoryId: category.id,
+      subCategoryId: item.id
+    }
+  })
   
-  // 서브카테고리별 상품 페이지로 이동하는 로직
-  const categoryPath = category?.name === '국내여행' ? 'domestic' : 
-                      category?.name === '해외여행' ? 'international' : 
-                      category?.name === '패키지여행' ? 'package' : 
-                      category?.name === '자유여행' ? 'free' : 
-                      category?.name.toLowerCase()
-  
-  // 서브카테고리 이름을 URL에 적합한 형태로 변환
-  const subCategoryPath = item.name.toLowerCase()
-    .replace(/\s+/g, '-')
-    .replace(/[^a-z0-9-]/g, '')
-    .replace(/--+/g, '-')
-    .replace(/^-|-$/g, '')
-  
-  router.push(`/products/${categoryPath}/${subCategoryPath}`)
   hideSubMenu()
   hideAllMenu()
 }
 
 // 서브메뉴 관련 메서드
 const showSubMenu = (categoryId) => {
-  // 전체메뉴가 열려있으면 서브메뉴를 표시하지 않음
-  if (showAllMenuFlag.value) return
+  // 전체메뉴가 열려있거나 메뉴 로딩 중이면 서브메뉴를 표시하지 않음
+  if (showAllMenuFlag.value || menuLoading.value) return
   
   if (subMenuTimeout.value) {
     clearTimeout(subMenuTimeout.value)
@@ -449,6 +386,10 @@ const getSimpleSubCategories = (categoryId) => {
   return menuData.value.secondaryCategories[categoryId] || []
 }
 
+const getCurrentCategory = (categoryId) => {
+  return menuData.value.primaryCategories.find(cat => cat.id === categoryId)
+}
+
 const toggleAllMenu = () => {
   // 전체메뉴 토글 로직
   console.log('전체메뉴 토글')
@@ -457,6 +398,9 @@ const toggleAllMenu = () => {
 
 // 전체메뉴 관련 메서드
 const showAllMenu = () => {
+  // 메뉴 로딩 중이면 전체메뉴를 표시하지 않음
+  if (menuLoading.value) return
+  
   if (allMenuTimeout.value) {
     clearTimeout(allMenuTimeout.value)
   }
@@ -477,15 +421,33 @@ const keepAllMenuOpen = () => {
   }
 }
 
-// 메뉴 데이터를 서버에서 받아오는 함수 (추후 구현)
+// 메뉴 데이터를 supabase에서 받아오는 함수
 const fetchMenuData = async () => {
   try {
-    // const response = await fetch('/api/menu')
-    // const data = await response.json()
-    // menuData.value = data
-    console.log('메뉴 데이터 로드 완료')
+    menuLoading.value = true
+    console.log('메뉴 데이터 로드 시작...')
+    const response = await categoryService.getMenuData()
+    
+    if (response.success) {
+      menuData.value = response.menuData
+      console.log('메뉴 데이터 로드 완료:', response.menuData)
+    } else {
+      console.error('메뉴 데이터 로드 실패:', response.error)
+      // 에러 시 빈 데이터로 설정
+      menuData.value = {
+        primaryCategories: [],
+        secondaryCategories: {}
+      }
+    }
   } catch (error) {
-    console.error('메뉴 데이터 로드 실패:', error)
+    console.error('메뉴 데이터 로드 오류:', error)
+    // 에러 시 빈 데이터로 설정
+    menuData.value = {
+      primaryCategories: [],
+      secondaryCategories: {}
+    }
+  } finally {
+    menuLoading.value = false
   }
 }
 
@@ -511,7 +473,7 @@ const handleSearch = () => {
 
 // 컴포넌트 마운트 시 메뉴 데이터 불러오기
 onMounted(async () => {
-  await categoryStore.fetchCategories()
+  // supabase에서 메뉴 데이터 불러오기
   await fetchMenuData()
   
   // 테스트용: localStorage에서 로그인 상태 복원
@@ -1242,6 +1204,14 @@ onMounted(async () => {
   
   .all-menu-content {
     padding: 1rem;
+  }
+  
+  .all-menu-loading {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 2rem;
+    color: var(--text-secondary);
   }
   
   .all-menu-grid {

@@ -78,10 +78,10 @@
                                             placeholder="010" maxlength="3">
                                         <span class="phone-dash">-</span>
                                         <input type="text" v-model="formData.mobile2" class="form-input phone-input"
-                                            placeholder="1234" maxlength="4">
+                                            placeholder="" maxlength="4">
                                         <span class="phone-dash">-</span>
                                         <input type="text" v-model="formData.mobile3" class="form-input phone-input"
-                                            placeholder="5678" maxlength="4">
+                                            placeholder="" maxlength="4">
                                     </div>
                                     <div v-if="errors.mobile" class="error-message">{{ errors.mobile }}</div>
                                 </div>
@@ -92,13 +92,13 @@
                                     </label>
                                     <div class="phone-group">
                                         <input type="text" v-model="formData.phone1" class="form-input phone-input"
-                                            placeholder="02" maxlength="3">
+                                            placeholder="" maxlength="3">
                                         <span class="phone-dash">-</span>
                                         <input type="text" v-model="formData.phone2" class="form-input phone-input"
-                                            placeholder="1234" maxlength="4">
+                                            placeholder="" maxlength="4">
                                         <span class="phone-dash">-</span>
                                         <input type="text" v-model="formData.phone3" class="form-input phone-input"
-                                            placeholder="5678" maxlength="4">
+                                            placeholder="" maxlength="4">
                                     </div>
                                     <div v-if="errors.phone" class="error-message">{{ errors.phone }}</div>
                                 </div>
@@ -487,8 +487,8 @@ watch([() => formData.agreePrivacy, () => formData.agreePolicy, () => formData.a
 </script>
 
 <style scoped>
-/* CSS 변수 정의 */
-:root {
+/* CSS 변수 정의 - 전역으로 적용 */
+:global(:root) {
     --primary-color: #2563eb;
     --primary-dark: #1e40af;
     --secondary-color: #64748b;
@@ -509,10 +509,8 @@ watch([() => formData.agreePrivacy, () => formData.agreePolicy, () => formData.a
 /* 전체 레이아웃 */
 .join-page {
     font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
-    line-height: 1.5;
+    line-height: 1.6;
     color: var(--text-primary);
-    background: var(--bg-light);
-    min-height: 100vh;
 }
 
 .container {
@@ -523,7 +521,8 @@ watch([() => formData.agreePrivacy, () => formData.agreePolicy, () => formData.a
 
 /* 메인 컨텐츠 */
 .main-content {
-    padding: 1.5rem 0;
+    min-height: calc(100vh - 200px);
+    padding: 3.5rem 0 2rem 0;
 }
 
 /* 페이지 헤더 */
@@ -533,7 +532,7 @@ watch([() => formData.agreePrivacy, () => formData.agreePolicy, () => formData.a
 }
 
 .page-title {
-    font-size: 1.5rem;
+    font-size: 2.5rem;
     font-weight: 700;
     color: var(--text-primary);
     margin-bottom: 0.5rem;
@@ -558,8 +557,6 @@ watch([() => formData.agreePrivacy, () => formData.agreePolicy, () => formData.a
     background: white;
     padding: 1.25rem;
     border-radius: var(--border-radius);
-    box-shadow: var(--shadow-sm);
-    border: 1px solid var(--border-color);
     margin-bottom: 1.5rem;
 }
 
@@ -567,15 +564,17 @@ watch([() => formData.agreePrivacy, () => formData.agreePolicy, () => formData.a
     display: flex;
     align-items: center;
     justify-content: space-between;
-    font-size: 1rem;
+    font-size: 1.125rem;
     font-weight: 600;
     color: var(--text-primary);
     margin-bottom: 1.5rem;
+    padding-bottom: 0.75rem;
+    border-bottom: 2px solid var(--primary-color);
 }
 
 .required-notice {
     color: var(--text-secondary);
-    font-size: 0.875rem;
+    font-size: 0.8rem;
     font-weight: 500;
 }
 
@@ -597,7 +596,7 @@ watch([() => formData.agreePrivacy, () => formData.agreePolicy, () => formData.a
 }
 
 .form-label {
-    font-size: 0.9rem;
+    font-size: 0.85rem;
     color: var(--text-secondary);
     font-weight: 500;
     display: flex;
@@ -620,7 +619,7 @@ watch([() => formData.agreePrivacy, () => formData.agreePolicy, () => formData.a
     padding: 0.75rem;
     border: 1px solid var(--border-color);
     border-radius: var(--border-radius);
-    font-size: 0.95rem;
+    font-size: 0.9rem;
     transition: var(--transition);
     background: white;
 }
@@ -693,7 +692,7 @@ watch([() => formData.agreePrivacy, () => formData.agreePolicy, () => formData.a
     display: flex;
     align-items: center;
     cursor: pointer;
-    font-size: 0.95rem;
+    font-size: 0.9rem;
     gap: 0.5rem;
 }
 
@@ -707,7 +706,7 @@ watch([() => formData.agreePrivacy, () => formData.agreePolicy, () => formData.a
 }
 
 .field-notice {
-    font-size: 0.85rem;
+    font-size: 0.8rem;
     color: var(--text-secondary);
     margin: 0;
     font-style: italic;
@@ -718,7 +717,7 @@ watch([() => formData.agreePrivacy, () => formData.agreePolicy, () => formData.a
     display: flex;
     align-items: center;
     cursor: pointer;
-    font-size: 0.95rem;
+    font-size: 0.9rem;
     gap: 0.5rem;
 }
 
@@ -743,8 +742,6 @@ watch([() => formData.agreePrivacy, () => formData.agreePolicy, () => formData.a
 .terms-section {
     background: white;
     border-radius: var(--border-radius);
-    box-shadow: var(--shadow-sm);
-    border: 1px solid var(--border-color);
     padding: 1.25rem;
     margin-bottom: 1.5rem;
 }
@@ -871,12 +868,8 @@ watch([() => formData.agreePrivacy, () => formData.agreePolicy, () => formData.a
         padding: 0 1rem;
     }
 
-    .main-content {
-        padding: 1rem 0;
-    }
-
     .page-title {
-        font-size: 1.25rem;
+        font-size: 2rem;
     }
 
     .page-subtitle {
@@ -964,7 +957,7 @@ watch([() => formData.agreePrivacy, () => formData.agreePolicy, () => formData.a
     }
 
     .page-title {
-        font-size: 1.125rem;
+        font-size: 1.75rem;
     }
 
     .page-subtitle {
@@ -977,26 +970,26 @@ watch([() => formData.agreePrivacy, () => formData.agreePolicy, () => formData.a
     }
 
     .section-title {
-        font-size: 0.95rem;
+        font-size: 1rem;
         margin-bottom: 1rem;
     }
 
     .form-label {
-        font-size: 0.85rem;
+        font-size: 0.8rem;
     }
 
     .form-input {
         padding: 0.75rem;
-        font-size: 0.95rem;
+        font-size: 0.9rem;
     }
 
     .checkbox-label,
     .radio-label {
-        font-size: 0.9rem;
+        font-size: 0.85rem;
     }
 
     .field-notice {
-        font-size: 0.8rem;
+        font-size: 0.75rem;
         line-height: 1.4;
     }
 
