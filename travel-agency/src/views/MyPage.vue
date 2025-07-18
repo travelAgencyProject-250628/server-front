@@ -59,18 +59,6 @@ const loadMypageMenu = async () => {
     loading.value = false
   }
 }
-
-onMounted(() => {
-  // 로그인 상태 재확인 (추가 보안)
-  const isLoggedIn = localStorage.getItem('test_auth') === 'true'
-  if (!isLoggedIn) {
-    alert('로그인이 필요한 페이지입니다.')
-    router.push('/login')
-    return
-  }
-  
-  loadMypageMenu()
-})
 </script>
 
 <style scoped>

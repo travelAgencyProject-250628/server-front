@@ -54,8 +54,8 @@
           </div>
         </div>
 
-        <!-- 예약확인 버튼 -->
-        <div class="reservation-menu">
+        <!-- 예약확인 버튼 (로그인된 경우에만 표시) -->
+        <div v-if="isLoggedIn" class="reservation-menu">
           <div class="menu-item" @click="handleReservation">
             <div class="menu-icon">
               <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -232,16 +232,6 @@
           <template v-if="!isLoggedIn">
             <router-link to="/login" class="btn-secondary" @click="closeMobileMenu">로그인</router-link>
             <router-link to="/join" class="btn-secondary" @click="closeMobileMenu">회원가입</router-link>
-            <button class="btn-primary" @click="() => { handleReservation(); closeMobileMenu(); }">
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
-                <polyline points="14,2 14,8 20,8"/>
-                <line x1="16" y1="13" x2="8" y2="13"/>
-                <line x1="16" y1="17" x2="8" y2="17"/>
-                <polyline points="10,9 9,9 8,9"/>
-              </svg>
-              예약확인
-            </button>
           </template>
           
           <!-- 로그인된 경우 -->
