@@ -46,10 +46,11 @@ export class CategoryService {
         .order('id')
       if (tagError) throw tagError
 
-      // 3. Products에서 실제 연결된 (category, tag_id) 쌍만 추출
+      // 3. Products에서 실제 연결된 (category, tag_id) 쌍만 추출 (status가 true인 활성 상품만)
       const { data: prodPairs, error: prodError } = await this.supabase
         .from('Products')
         .select('category_id, tag_id')
+        .eq('status', true)
       if (prodError) throw prodError
 
       // 4. secondaryCategories 구조 생성

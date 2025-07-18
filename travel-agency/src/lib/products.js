@@ -62,9 +62,11 @@ export async function uploadProductImages(files, productNumber) {
 export async function getPopularTours() {
   try {
     // Products에서 duration, location(id) 포함, location은 Locations 테이블과 조인
+    // status가 true인 활성 상품만 조회
     const { data, error } = await supabase
       .from('Products')
       .select('id, title, subtitle, main_image_url, adult_price, child_price, duration, location_id:location_id(id, name), badge_id:badge_id(id, name)')
+      .eq('status', true)
       .order('created_at', { ascending: false })
       .limit(6)
     if (error) throw error
@@ -114,6 +116,7 @@ export async function getProductDetail(productId) {
         category:category_id(id, name)
       `)
       .eq('id', productId)
+      .eq('status', true)
       .single()
     if (error) throw error
 
@@ -168,6 +171,7 @@ export async function getProductsByCategory(categoryId, tagId = null, sortBy = '
       .from('Products')
       .select('id, title, subtitle, main_image_url, adult_price, child_price, duration, tag_id, location:location_id(id, name), badge:badge_id(id, name)')
       .eq('category_id', categoryId)
+      .eq('status', true)
     
     // 서브카테고리(태그) 필터링
     if (tagId) {
@@ -221,7 +225,7 @@ export async function getProductsByCategory(categoryId, tagId = null, sortBy = '
  */
 export async function searchProducts(keyword) {
   try {
-    // 1차: Products의 텍스트 필드만 or 검색
+    // 1차: Products의 텍스트 필드만 or 검색 (status가 true인 활성 상품만)
     const { data, error } = await supabase
       .from('Products')
       .select(`
@@ -236,6 +240,7 @@ export async function searchProducts(keyword) {
         location:location_id(id, name),
         badge:badge_id(id, name)
       `)
+      .eq('status', true)
       .or([
         `title.ilike.%${keyword}%`,
         `subtitle.ilike.%${keyword}%`,
