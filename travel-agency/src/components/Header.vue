@@ -628,7 +628,7 @@ onMounted(async () => {
 
 /* 메인 헤더 */
 .main-header {
-  padding: 0.5rem 0;
+  padding: 0.8rem 0;
 }
 
 .main-header-container {
