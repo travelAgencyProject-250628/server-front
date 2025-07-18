@@ -202,6 +202,66 @@ async function getWeeklyUserData() {
 }
 
 /**
+ * 주간 활성 예약 데이터 조회
+ * @returns {Promise<{success: boolean, weeklyData: object, error?: string}>}
+ */
+export async function getWeeklyBookingStats() {
+  try {
+    const { currentWeekData, lastWeekData } = await getWeeklyBookingData()
+    
+    return {
+      success: true,
+      weeklyData: {
+        currentWeek: currentWeekData,
+        lastWeek: lastWeekData
+      }
+    }
+  } catch (error) {
+    console.error('주간 예약 통계 조회 오류:', error)
+    return {
+      success: false,
+      weeklyData: {
+        currentWeek: { daily: [0, 0, 0, 0, 0, 0, 0], total: 0 },
+        lastWeek: { daily: [0, 0, 0, 0, 0, 0, 0], total: 0 }
+      },
+      error: error.message
+    }
+  }
+}
+
+/**
+ * 주간 예약 데이터 계산
+ * @returns {Promise<{currentWeekData: object, lastWeekData: object}>}
+ */
+async function getWeeklyBookingData() {
+  // 현재 날짜 기준으로 주차 계산
+  const now = new Date()
+  const currentWeekStart = getWeekStart(now)
+  const currentWeekEnd = new Date(currentWeekStart)
+  currentWeekEnd.setDate(currentWeekStart.getDate() + 6)
+  
+  const lastWeekStart = new Date(currentWeekStart)
+  lastWeekStart.setDate(currentWeekStart.getDate() - 7)
+  const lastWeekEnd = new Date(currentWeekStart)
+  lastWeekEnd.setDate(currentWeekStart.getDate() - 1)
+  
+  // 현재 주와 이전 주의 예약 데이터 조회 (예약확정 상태만)
+  const [currentWeekBookings, lastWeekBookings] = await Promise.all([
+    getBookingsByDateRange(currentWeekStart, currentWeekEnd),
+    getBookingsByDateRange(lastWeekStart, lastWeekEnd)
+  ])
+  
+  // 일별 데이터로 변환
+  const currentWeekData = convertToDailyBookingData(currentWeekBookings, currentWeekStart)
+  const lastWeekData = convertToDailyBookingData(lastWeekBookings, lastWeekStart)
+  
+  return {
+    currentWeekData,
+    lastWeekData
+  }
+}
+
+/**
  * 주의 시작일 (월요일) 계산
  * @param {Date} date 
  * @returns {Date}
@@ -257,5 +317,53 @@ function convertToDailyData(users, weekStart) {
   return {
     daily,
     total: users.length
+  }
+} 
+
+/**
+ * 특정 날짜 범위의 예약 조회 (예약확정 상태만)
+ * @param {Date} startDate 
+ * @param {Date} endDate 
+ * @returns {Promise<Array>}
+ */
+async function getBookingsByDateRange(startDate, endDate) {
+  try {
+    const { data, error } = await supabase
+      .from('Bookings')
+      .select('created_at')
+      .eq('status', '예약확정')
+      .gte('created_at', startDate.toISOString())
+      .lte('created_at', endDate.toISOString())
+    
+    if (error) throw error
+    
+    return data || []
+  } catch (error) {
+    console.error('날짜 범위 예약 조회 오류:', error)
+    return []
+  }
+}
+
+/**
+ * 예약 데이터를 일별 데이터로 변환
+ * @param {Array} bookings 
+ * @param {Date} weekStart 
+ * @returns {object}
+ */
+function convertToDailyBookingData(bookings, weekStart) {
+  const daily = [0, 0, 0, 0, 0, 0, 0] // 월~일
+  
+  bookings.forEach(booking => {
+    const bookingDate = new Date(booking.created_at)
+    const dayDiff = Math.floor((bookingDate - weekStart) / (1000 * 60 * 60 * 24))
+    
+    if (dayDiff >= 0 && dayDiff < 7) {
+      daily[dayDiff]++
+    }
+  })
+  
+  return {
+    daily,
+    total: bookings.length
   }
 } 

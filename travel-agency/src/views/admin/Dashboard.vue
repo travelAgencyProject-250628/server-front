@@ -93,7 +93,7 @@
                     <span class="bar-value">{{ value }}</span>
                   </div>
                 </div>
-                <div class="chart-labels">
+                <div class="chart-labels-user">
                   <span v-for="label in chartData.users.labels" :key="label">{{ label }}</span>
                 </div>
               </div>
@@ -101,13 +101,63 @@
           </div>
         </div>
         
-        <!-- 카테고리별 예약 차트 -->
+        <!-- 주간 예약 차트 -->
         <div class="chart-card">
           <div class="chart-header">
-            <h3>카테고리별 예약</h3>
+            <h3>주간 예약</h3>
+            <select v-model="selectedBookingWeek" @change="updateBookingChartData">
+              <option value="current">이번 주</option>
+              <option value="last">지난 주</option>
+            </select>
           </div>
           <div class="chart-container">
-            <canvas ref="categoryChart"></canvas>
+            <div class="chart-placeholder">
+              <div class="chart-wrapper">
+                <svg class="line-chart" viewBox="0 0 400 200" preserveAspectRatio="xMidYMid meet" style="width: 100%; height: 200px;">
+                  <defs>
+                    <linearGradient id="lineGradient" x1="0%" y1="0%" x2="0%" y2="100%">
+                      <stop offset="0%" style="stop-color:#10b981;stop-opacity:0.3" />
+                      <stop offset="100%" style="stop-color:#10b981;stop-opacity:0.1" />
+                    </linearGradient>
+                  </defs>
+                  <!-- 그리드 라인 -->
+                  <g class="grid-lines">
+                    <line x1="0" y1="40" x2="400" y2="40" stroke="#e5e7eb" stroke-width="1"/>
+                    <line x1="0" y1="80" x2="400" y2="80" stroke="#e5e7eb" stroke-width="1"/>
+                    <line x1="0" y1="120" x2="400" y2="120" stroke="#e5e7eb" stroke-width="1"/>
+                    <line x1="0" y1="160" x2="400" y2="160" stroke="#e5e7eb" stroke-width="1"/>
+                  </g>
+                  <!-- 영역 채우기 -->
+                  <path 
+                    :d="getBookingAreaPath()" 
+                    fill="url(#lineGradient)"
+                  />
+                  <!-- 선 -->
+                  <path 
+                    :d="getBookingLinePath()" 
+                    stroke="#10b981" 
+                    stroke-width="3" 
+                    fill="none"
+                  />
+                  <!-- 포인트 -->
+                  <g class="data-points">
+                    <circle 
+                      v-for="(value, index) in chartData.bookings.data" 
+                      :key="index"
+                      :cx="getBookingXPosition(index)"
+                      :cy="getBookingYPosition(value)"
+                      r="4"
+                      fill="#10b981"
+                      stroke="white"
+                      stroke-width="2"
+                    />
+                  </g>
+                </svg>
+                <div class="chart-labels-booking">
+                  <span v-for="label in chartData.bookings.labels" :key="label">{{ label }}</span>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       </div>
@@ -155,12 +205,12 @@
 
 <script setup>
 import { ref, onMounted, nextTick } from 'vue'
-import { getDashboardStats, getWeeklyUserStats } from '@/lib/stats.js'
+import { getDashboardStats, getWeeklyUserStats, getWeeklyBookingStats } from '@/lib/stats.js'
 
 // 반응형 데이터
 const selectedWeek = ref('current')
+const selectedBookingWeek = ref('current')
 const userChart = ref(null)
-const categoryChart = ref(null)
 const loading = ref(false)
 
 // 통계 데이터
@@ -221,9 +271,9 @@ const chartData = ref({
     labels: ['월', '화', '수', '목', '금', '토', '일'],
     data: [0, 0, 0, 0, 0, 0, 0]
   },
-  categories: {
-    labels: ['국내여행', '해외여행', '당일여행', '테마여행', '패키지여행'],
-    data: [350, 280, 180, 120, 90]
+  bookings: {
+    labels: ['월', '화', '수', '목', '금', '토', '일'],
+    data: [0, 0, 0, 0, 0, 0, 0]
   }
 })
 
@@ -231,9 +281,10 @@ const chartData = ref({
 const loadStats = async () => {
   loading.value = true
   try {
-    const [statsResult, weeklyResult] = await Promise.all([
+    const [statsResult, weeklyUserResult, weeklyBookingResult] = await Promise.all([
       getDashboardStats(),
-      getWeeklyUserStats()
+      getWeeklyUserStats(),
+      getWeeklyBookingStats()
     ])
     
     if (statsResult.success) {
@@ -247,11 +298,18 @@ const loadStats = async () => {
       console.error('통계 데이터 로드 실패:', statsResult.error)
     }
     
-    if (weeklyResult.success) {
+    if (weeklyUserResult.success) {
       // 현재 주 데이터로 초기화
-      chartData.value.users.data = weeklyResult.weeklyData.currentWeek.daily
+      chartData.value.users.data = weeklyUserResult.weeklyData.currentWeek.daily
     } else {
-      console.error('주간 유저 데이터 로드 실패:', weeklyResult.error)
+      console.error('주간 유저 데이터 로드 실패:', weeklyUserResult.error)
+    }
+    
+    if (weeklyBookingResult.success) {
+      // 현재 주 데이터로 초기화
+      chartData.value.bookings.data = weeklyBookingResult.weeklyData.currentWeek.daily
+    } else {
+      console.error('주간 예약 데이터 로드 실패:', weeklyBookingResult.error)
     }
   } catch (error) {
     console.error('데이터 로드 오류:', error)
@@ -300,6 +358,59 @@ const updateChartData = async () => {
   } catch (error) {
     console.error('주간 데이터 업데이트 오류:', error)
   }
+}
+
+const updateBookingChartData = async () => {
+  // 주 변경 시 예약 차트 데이터 업데이트
+  try {
+    const result = await getWeeklyBookingStats()
+    if (result.success) {
+      if (selectedBookingWeek.value === 'current') {
+        chartData.value.bookings.data = result.weeklyData.currentWeek.daily
+      } else {
+        chartData.value.bookings.data = result.weeklyData.lastWeek.daily
+      }
+    }
+  } catch (error) {
+    console.error('주간 예약 데이터 업데이트 오류:', error)
+  }
+}
+
+// 예약 차트 SVG 경로 생성 함수들
+const getBookingXPosition = (index) => {
+  const width = 400
+  const padding = 40
+  const availableWidth = width - (padding * 2)
+  const stepWidth = availableWidth / 6
+  return padding + stepWidth * index
+}
+
+const getBookingYPosition = (value) => {
+  const height = 200
+  const padding = 40
+  const availableHeight = height - (padding * 2)
+  const maxValue = Math.max(...chartData.value.bookings.data, 1)
+  return height - padding - (value / maxValue) * availableHeight
+}
+
+const getBookingLinePath = () => {
+  const points = chartData.value.bookings.data.map((value, index) => {
+    const x = getBookingXPosition(index)
+    const y = getBookingYPosition(value)
+    return `${index === 0 ? 'M' : 'L'} ${x} ${y}`
+  })
+  return points.join(' ')
+}
+
+const getBookingAreaPath = () => {
+  const points = chartData.value.bookings.data.map((value, index) => {
+    const x = getBookingXPosition(index)
+    const y = getBookingYPosition(value)
+    return `${index === 0 ? 'M' : 'L'} ${x} ${y}`
+  })
+  const lastX = getBookingXPosition(chartData.value.bookings.data.length - 1)
+  const firstX = getBookingXPosition(0)
+  return `${points.join(' ')} L ${lastX} 160 L ${firstX} 160 Z`
 }
 
 // 라이프사이클
@@ -447,6 +558,7 @@ onMounted(() => {
   display: flex;
   flex-direction: column;
   align-items: center;
+  margin: 0 auto;
 }
 
 .chart-bars {
@@ -483,15 +595,26 @@ onMounted(() => {
   color: #374151;
 }
 
-.chart-labels {
+.chart-labels-user {
   display: flex;
   gap: 0;
   width: 100%;
   justify-content: space-between;
+  padding-left: 14px;
+  padding-right: 14px;
+}
+
+.chart-labels-booking {
+  display: flex;
+  gap: 0;
+  width: 100%;
+  justify-content: space-between;
+  padding-left: 35px;
+  padding-right: 35px;
 }
 
 .chart-labels span {
-  width: 40px;
+  width: 53.33px;
   text-align: center;
   font-size: 0.75rem;
   color: #6b7280;
