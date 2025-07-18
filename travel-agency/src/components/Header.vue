@@ -100,17 +100,20 @@
           <li v-if="menuLoading" class="nav-item">
             <span class="nav-link">메뉴 로딩중...</span>
           </li>
-          <li 
-            v-for="category in menuData.primaryCategories" 
-            :key="category.id"
-            class="nav-item"
-            @mouseenter="showSubMenu(category.id)"
-            @mouseleave="hideSubMenu"
-          >
-            <a href="#" class="nav-link" @click="handleCategoryClick(category)">
-              {{ category.name }}
-            </a>
-          </li>
+          <template v-else>
+            <li 
+              v-for="(category, index) in menuData.primaryCategories" 
+              :key="category.id"
+              class="nav-item"
+              @mouseenter="showSubMenu(category.id)"
+              @mouseleave="hideSubMenu"
+            >
+              <a href="#" class="nav-link" @click="handleCategoryClick(category)">
+                {{ category.name }}
+              </a>
+              <span v-if="index < menuData.primaryCategories.length - 1" class="nav-separator">|</span>
+            </li>
+          </template>
         </ul>
       </div>
 
@@ -835,11 +838,12 @@ onMounted(async () => {
   list-style: none;
   margin: 0;
   padding: 0;
-  gap: 2rem;
 }
 
 .nav-item {
   position: relative;
+  display: flex;
+  align-items: center;
 }
 
 .nav-link {
@@ -853,6 +857,17 @@ onMounted(async () => {
 
 .nav-link:hover {
   color: var(--primary-color);
+}
+
+.nav-separator {
+  color: var(--text-secondary);
+  font-weight: 300;
+  margin: 0 1.2rem;
+  opacity: 0.6;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
 }
 
 /* 서브메뉴 컨테이너 */
