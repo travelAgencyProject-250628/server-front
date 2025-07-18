@@ -138,7 +138,7 @@
 
                         <!-- 안내 문구 -->
                         <div class="notice">
-                            <p class="notice-text">※임시 비밀번호를 문자로 발급합니다.</p>
+                            <p class="notice-text">※임시 비밀번호를 이메일로 전송합니다.</p>
                         </div>
                     </div>
                 </div>
@@ -209,22 +209,42 @@ const handleFindId = async () => {
     }
 }
 
-const handleFindPassword = () => {
+const handleFindPassword = async () => {
     if (!findPasswordData.email || !findPasswordData.name || !findPasswordData.phone) {
         alert('모든 항목을 입력해주세요.')
         return
     }
 
-    // 실제로는 서버 API 호출
-    console.log('비밀번호 찾기:', findPasswordData)
-    
-    // 임시 로직
-    if (findPasswordData.email === 'test@example.com' && 
-        findPasswordData.name === '홍길동' && 
-        findPasswordData.phone === '01012345678') {
-        alert('임시 비밀번호가 문자로 발송되었습니다.')
-    } else {
-        alert('입력하신 정보가 일치하지 않습니다.')
+    try {
+        console.log('비밀번호 찾기 시도:', findPasswordData)
+        
+        // 1단계: 사용자 정보 확인
+        const verifyResult = await authService.verifyUserForPasswordReset(
+            findPasswordData.email, 
+            findPasswordData.name, 
+            findPasswordData.phone
+        )
+        
+        if (!verifyResult.success) {
+            alert(verifyResult.message)
+            return
+        }
+
+        // 2단계: 비밀번호 재설정 이메일 발송
+        const resetResult = await authService.resetPassword(findPasswordData.email)
+        
+        if (resetResult.success) {
+            alert('비밀번호 재설정 이메일이 발송되었습니다. 이메일을 확인하여 비밀번호를 변경해주세요.')
+            // 성공 후 폼 초기화
+            findPasswordData.email = ''
+            findPasswordData.name = ''
+            findPasswordData.phone = ''
+        } else {
+            alert(resetResult.message)
+        }
+    } catch (error) {
+        console.error('비밀번호 찾기 오류:', error)
+        alert('비밀번호 찾기에 실패했습니다. 다시 시도해주세요.')
     }
 }
 </script>

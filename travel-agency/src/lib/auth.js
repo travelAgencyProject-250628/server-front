@@ -146,7 +146,16 @@ export class AuthService {
   // 현재 사용자 정보 조회
   async getCurrentUser() {
     try {
-      const { data: { user }, error } = await this.supabase.auth.getUser()
+      console.log('getCurrentUser 시작')
+      
+      // 타임아웃을 추가한 getUser 호출
+      const getUserPromise = this.supabase.auth.getUser()
+      const timeoutPromise = new Promise((_, reject) => 
+        setTimeout(() => reject(new Error('getUser 타임아웃')), 5000)
+      )
+      
+      const { data: { user }, error } = await Promise.race([getUserPromise, timeoutPromise])
+      console.log('getUser 결과:', { user: user ? '있음' : '없음', error })
       
       if (error || !user) {
         console.log('Auth 사용자 없음')
@@ -159,6 +168,7 @@ export class AuthService {
       console.log('Auth 사용자 확인:', user.email)
 
       // Users 테이블에서 상세 정보 조회 (UserRoles 테이블과 left join)
+      console.log('Users 테이블 조회 시작, auth_id:', user.id)
       const { data: userInfo, error: userInfoError } = await this.supabase
         .from('Users')
         .select(`
@@ -167,6 +177,7 @@ export class AuthService {
         `)
         .eq('auth_id', user.id)
         .maybeSingle()
+      console.log('Users 테이블 조회 완료:', { userInfo: userInfo ? '있음' : '없음', userInfoError })
 
       if (userInfoError) {
         console.error('Users 테이블 조회 실패:', userInfoError)
@@ -247,14 +258,16 @@ export class AuthService {
         throw new Error('로그인이 필요합니다.')
       }
 
-      // 현재 비밀번호 확인
-      const { error: signInError } = await this.supabase.auth.signInWithPassword({
-        email: user.email,
-        password: currentPassword
-      })
+      // 현재 비밀번호가 제공된 경우에만 확인
+      if (currentPassword) {
+        const { error: signInError } = await this.supabase.auth.signInWithPassword({
+          email: user.email,
+          password: currentPassword
+        })
 
-      if (signInError) {
-        throw new Error('현재 비밀번호가 올바르지 않습니다.')
+        if (signInError) {
+          throw new Error('현재 비밀번호가 올바르지 않습니다.')
+        }
       }
 
       // 새 비밀번호로 업데이트
@@ -288,7 +301,7 @@ export class AuthService {
 
       return {
         success: true,
-        message: '비밀번호 재설정 이메일이 발송되었습니다.'
+        message: '비밀번호 재설정 이메일이 발송되었습니다. 이메일을 확인하여 비밀번호를 변경해주세요.'
       }
     } catch (error) {
       return {
@@ -299,25 +312,93 @@ export class AuthService {
     }
   }
 
+  // 비밀번호 찾기 전 사용자 정보 확인
+  async verifyUserForPasswordReset(email, name, phone) {
+    try {
+      console.log('비밀번호 찾기 사용자 확인:', { email, name, phone })
+      
+      // Users 테이블에서 이메일로 먼저 조회
+      const { data, error } = await this.supabase
+        .from('Users')
+        .select('email, name, phone_number, mobile_number')
+        .eq('email', email)
+        .maybeSingle()
+
+      if (error) {
+        console.error('비밀번호 찾기 사용자 조회 실패:', error)
+        throw error
+      }
+
+      if (!data) {
+        console.log('일치하는 이메일의 사용자 정보 없음')
+        return {
+          success: false,
+          error: '입력하신 정보로 등록된 계정을 찾을 수 없습니다.',
+          message: '입력하신 정보로 등록된 계정을 찾을 수 없습니다.'
+        }
+      }
+
+      // 이름과 전화번호가 일치하는지 확인
+      const nameMatch = data.name === name
+      const phoneMatch = data.phone_number === phone || data.mobile_number === phone
+
+      if (!nameMatch || !phoneMatch) {
+        console.log('이름 또는 전화번호 불일치')
+        return {
+          success: false,
+          error: '입력하신 정보로 등록된 계정을 찾을 수 없습니다.',
+          message: '입력하신 정보로 등록된 계정을 찾을 수 없습니다.'
+        }
+      }
+
+      console.log('비밀번호 찾기 사용자 확인 성공:', data.email)
+      return {
+        success: true,
+        user: data,
+        message: '사용자 정보가 확인되었습니다.'
+      }
+    } catch (error) {
+      console.error('비밀번호 찾기 사용자 확인 오류:', error)
+      return {
+        success: false,
+        error: error.message,
+        message: '사용자 정보 확인에 실패했습니다.'
+      }
+    }
+  }
+
   // 새 비밀번호 설정 (비밀번호 재설정 후)
   async updatePassword(newPassword) {
     try {
-      const { error } = await this.supabase.auth.updateUser({
+      console.log('updatePassword 호출됨:', { newPassword: newPassword ? '***' : 'undefined' })
+      
+      const { data, error } = await this.supabase.auth.updateUser({
         password: newPassword
       })
 
-      if (error) throw error
+      console.log('updateUser 결과:', { data, error })
 
-      return {
+      if (error) {
+        console.error('updateUser 에러:', error)
+        throw error
+      }
+
+      console.log('비밀번호 변경 성공, 응답 반환')
+      const result = {
         success: true,
         message: '비밀번호가 성공적으로 변경되었습니다.'
       }
+      console.log('반환할 결과:', result)
+      return result
     } catch (error) {
-      return {
+      console.error('updatePassword 에러:', error)
+      const result = {
         success: false,
         error: error.message,
         message: '비밀번호 변경에 실패했습니다.'
       }
+      console.log('에러 결과 반환:', result)
+      return result
     }
   }
 

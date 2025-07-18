@@ -95,7 +95,7 @@
           <div class="api-title">GET /lib/reservations.js</div>
           <div class="api-method">
             <span class="method">getMyReservations()</span>
-          </div>
+        </div>
           <div class="api-desc">
             <p>
               <strong>설명:</strong> <br>
@@ -123,7 +123,7 @@
                 const result = await getMyReservations()
               </code>
             </p>
-          </div>
+        </div>
         </div>
       </div>
       <h2>내 예약 목록 데이터 테스트</h2>
@@ -133,8 +133,8 @@
       <div v-if="loadingMyBookings">로딩 중...</div>
       <div v-else-if="errorMyBookings" style="color:red">에러: {{ errorMyBookings }}</div>
       <pre v-else-if="myBookingsData">{{ myBookingsData }}</pre>
-    </div>
-
+        </div>
+        
     <div v-if="activeTab === 'category'">
       <div class="swagger-doc">
         <h2>📚 API 문서: 카테고리 메뉴 데이터</h2>
@@ -177,7 +177,7 @@
       <div v-if="loading">로딩 중...</div>
       <div v-else-if="error" style="color:red">에러: {{ error }}</div>
       <pre v-else>{{ menuData }}</pre>
-    </div>
+      </div>
 
     <div v-else-if="activeTab === 'popular'">
       <div class="swagger-doc">
@@ -186,7 +186,7 @@
           <div class="api-title">GET /lib/products.js</div>
           <div class="api-method">
             <span class="method">getPopularTours()</span>
-          </div>
+        </div>
           <div class="api-desc">
             <p>
               <strong>설명:</strong> <br>
@@ -221,7 +221,7 @@
       <div v-if="loadingTours">로딩 중...</div>
       <div v-else-if="errorTours" style="color:red">에러: {{ errorTours }}</div>
       <pre v-else>{{ toursData }}</pre>
-    </div>
+      </div>
 
     <div v-else-if="activeTab === 'product'">
       <div class="swagger-doc">
@@ -230,7 +230,7 @@
           <div class="api-title">GET /lib/products.js</div>
           <div class="api-method">
             <span class="method">getProductDetail(productId)</span>
-          </div>
+      </div>
           <div class="api-desc">
             <p>
               <strong>설명:</strong> <br>

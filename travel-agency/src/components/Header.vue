@@ -283,23 +283,31 @@ const menuData = ref({
 const isLoggedIn = ref(false)
 const isAdmin = ref(false)
 
-// 현재 사용자 정보 가져오기
-const getCurrentUser = async () => {
+// 현재 세션 정보 가져오기
+const getCurrentSession = async () => {
   try {
-    console.log('사용자 정보 조회 시작...')
-    const result = await authService.getCurrentUser()
+    console.log('세션 정보 조회 시작...')
+    const { data: { session }, error } = await authService.supabase.auth.getSession()
     
-    if (result.success && result.user) {
-      console.log('사용자 정보 조회 성공:', result.user.email)
+    if (error) {
+      console.error('세션 조회 에러:', error)
+      isLoggedIn.value = false
+      isAdmin.value = false
+      return
+    }
+    
+    if (session && session.user) {
+      console.log('세션 정보 조회 성공:', session.user.email)
       isLoggedIn.value = true
-      isAdmin.value = result.user?.is_admin || false
+      // 세션에서는 is_admin 정보를 직접 확인할 수 없으므로 기본값 false
+      isAdmin.value = false
     } else {
-      console.log('사용자 정보 없음 - 로그아웃 상태')
+      console.log('세션 없음 - 로그아웃 상태')
       isLoggedIn.value = false
       isAdmin.value = false
     }
   } catch (error) {
-    console.error('사용자 정보 조회 실패:', error)
+    console.error('세션 정보 조회 실패:', error)
     isLoggedIn.value = false
     isAdmin.value = false
   }
@@ -517,7 +525,7 @@ const handleSearch = () => {
 onMounted(async () => {
   await Promise.all([
     fetchMenuData(),
-    getCurrentUser()
+    getCurrentSession()
   ])
   
   // 인증 상태 변경 리스너 설정
@@ -529,11 +537,13 @@ onMounted(async () => {
       isLoggedIn.value = false
       isAdmin.value = false
     } else if (event === 'SIGNED_IN') {
-      console.log('로그인 감지 - 사용자 정보 업데이트')
-      await getCurrentUser()
+      console.log('로그인 감지 - 세션 정보 업데이트')
+      await getCurrentSession()
+    } else if (event === 'USER_UPDATED') {
+      console.log('사용자 정보 업데이트 감지 - 세션 정보 업데이트')
     } else {
-      console.log('기타 인증 상태 변경 - 사용자 정보 업데이트')
-      await getCurrentUser()
+      console.log('기타 인증 상태 변경 - 세션 정보 업데이트')
+      await getCurrentSession()
     }
   })
 })

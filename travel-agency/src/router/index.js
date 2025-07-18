@@ -29,6 +29,10 @@ const router = createRouter({
       component: () => import('@/views/findAccount.vue')
     },
     {
+      path: '/reset-password',
+      component: () => import('@/views/resetPassword.vue')
+    },
+    {
       path: '/supabase-test',
       component: () => import('@/views/SupabaseTestView.vue')
     },
