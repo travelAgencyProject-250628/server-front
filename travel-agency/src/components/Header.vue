@@ -69,6 +69,9 @@
             <span class="menu-text">예약확인</span>
           </div>
         </div>
+        
+        <!-- 로그인되지 않은 경우 빈 공간 (검색창 가운데 정렬용) -->
+        <div v-else class="reservation-menu-spacer"></div>
 
         <!-- 모바일 햄버거 메뉴 -->
         <button class="mobile-menu-btn" @click="toggleMobileMenu">
@@ -722,6 +725,13 @@ onMounted(async () => {
 .reservation-menu {
   display: flex;
   flex-shrink: 0;
+}
+
+/* 로그인되지 않은 경우 빈 공간 */
+.reservation-menu-spacer {
+  display: flex;
+  flex-shrink: 0;
+  width: 80px; /* 예약확인 버튼과 동일한 너비 */
 }
 
 .menu-item {
