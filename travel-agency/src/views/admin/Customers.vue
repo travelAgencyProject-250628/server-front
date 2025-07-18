@@ -1,8 +1,3 @@
-
-
-
-
-
 <template>
   <div class="customers-page">
     <!-- 상단 액션 바 -->
@@ -29,72 +24,8 @@
           <span class="stat-label">활성 고객</span>
           <span class="stat-value">{{ activeCustomers }}</span>
         </div>
-
-
-
-
-
-
-
-
-
-        ?
-
-
-
-
-        "
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        "
       </div>
     </div>
-
     <!-- 고객 목록 -->
     <div class="customers-grid">
       <div v-if="loading" class="loading-state">
