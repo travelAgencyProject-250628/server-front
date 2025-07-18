@@ -155,7 +155,7 @@
 
 <script setup>
 import { ref, onMounted, nextTick } from 'vue'
-import { getDashboardStats } from '@/lib/stats.js'
+import { getDashboardStats, getWeeklyUserStats } from '@/lib/stats.js'
 
 // 반응형 데이터
 const selectedWeek = ref('current')
@@ -219,7 +219,7 @@ const recentReservations = ref([
 const chartData = ref({
   users: {
     labels: ['월', '화', '수', '목', '금', '토', '일'],
-    data: [12, 19, 15, 25, 22, 30, 28]
+    data: [0, 0, 0, 0, 0, 0, 0]
   },
   categories: {
     labels: ['국내여행', '해외여행', '당일여행', '테마여행', '패키지여행'],
@@ -231,19 +231,30 @@ const chartData = ref({
 const loadStats = async () => {
   loading.value = true
   try {
-    const result = await getDashboardStats()
-    if (result.success) {
+    const [statsResult, weeklyResult] = await Promise.all([
+      getDashboardStats(),
+      getWeeklyUserStats()
+    ])
+    
+    if (statsResult.success) {
       stats.value = {
-        totalProducts: result.stats.products.total,
-        totalReservations: result.stats.reservations.total,
-        activeProducts: result.stats.products.active,
-        totalUsers: result.stats.customers.total
+        totalProducts: statsResult.stats.products.total,
+        totalReservations: statsResult.stats.reservations.total,
+        activeProducts: statsResult.stats.products.active,
+        totalUsers: statsResult.stats.customers.total
       }
     } else {
-      console.error('통계 데이터 로드 실패:', result.error)
+      console.error('통계 데이터 로드 실패:', statsResult.error)
+    }
+    
+    if (weeklyResult.success) {
+      // 현재 주 데이터로 초기화
+      chartData.value.users.data = weeklyResult.weeklyData.currentWeek.daily
+    } else {
+      console.error('주간 유저 데이터 로드 실패:', weeklyResult.error)
     }
   } catch (error) {
-    console.error('통계 데이터 로드 오류:', error)
+    console.error('데이터 로드 오류:', error)
   } finally {
     loading.value = false
   }
@@ -275,9 +286,20 @@ const createCharts = () => {
   console.log('차트 생성 완료')
 }
 
-const updateChartData = () => {
+const updateChartData = async () => {
   // 주 변경 시 차트 데이터 업데이트
-  console.log('차트 데이터 업데이트:', selectedWeek.value)
+  try {
+    const result = await getWeeklyUserStats()
+    if (result.success) {
+      if (selectedWeek.value === 'current') {
+        chartData.value.users.data = result.weeklyData.currentWeek.daily
+      } else {
+        chartData.value.users.data = result.weeklyData.lastWeek.daily
+      }
+    }
+  } catch (error) {
+    console.error('주간 데이터 업데이트 오류:', error)
+  }
 }
 
 // 라이프사이클

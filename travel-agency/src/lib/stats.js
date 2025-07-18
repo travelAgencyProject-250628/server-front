@@ -140,3 +140,122 @@ async function getCustomerStats() {
     return { total: 0, active: 0 }
   }
 } 
+
+/**
+ * 주간 유저 생성 데이터 조회
+ * @returns {Promise<{success: boolean, weeklyData: object, error?: string}>}
+ */
+export async function getWeeklyUserStats() {
+  try {
+    const { currentWeekData, lastWeekData } = await getWeeklyUserData()
+    
+    return {
+      success: true,
+      weeklyData: {
+        currentWeek: currentWeekData,
+        lastWeek: lastWeekData
+      }
+    }
+  } catch (error) {
+    console.error('주간 유저 통계 조회 오류:', error)
+    return {
+      success: false,
+      weeklyData: {
+        currentWeek: { daily: [0, 0, 0, 0, 0, 0, 0], total: 0 },
+        lastWeek: { daily: [0, 0, 0, 0, 0, 0, 0], total: 0 }
+      },
+      error: error.message
+    }
+  }
+}
+
+/**
+ * 주간 유저 데이터 계산
+ * @returns {Promise<{currentWeekData: object, lastWeekData: object}>}
+ */
+async function getWeeklyUserData() {
+  // 현재 날짜 기준으로 주차 계산
+  const now = new Date()
+  const currentWeekStart = getWeekStart(now)
+  const currentWeekEnd = new Date(currentWeekStart)
+  currentWeekEnd.setDate(currentWeekStart.getDate() + 6)
+  
+  const lastWeekStart = new Date(currentWeekStart)
+  lastWeekStart.setDate(currentWeekStart.getDate() - 7)
+  const lastWeekEnd = new Date(currentWeekStart)
+  lastWeekEnd.setDate(currentWeekStart.getDate() - 1)
+  
+  // 현재 주와 이전 주의 유저 데이터 조회
+  const [currentWeekUsers, lastWeekUsers] = await Promise.all([
+    getUsersByDateRange(currentWeekStart, currentWeekEnd),
+    getUsersByDateRange(lastWeekStart, lastWeekEnd)
+  ])
+  
+  // 일별 데이터로 변환
+  const currentWeekData = convertToDailyData(currentWeekUsers, currentWeekStart)
+  const lastWeekData = convertToDailyData(lastWeekUsers, lastWeekStart)
+  
+  return {
+    currentWeekData,
+    lastWeekData
+  }
+}
+
+/**
+ * 주의 시작일 (월요일) 계산
+ * @param {Date} date 
+ * @returns {Date}
+ */
+function getWeekStart(date) {
+  const d = new Date(date)
+  const day = d.getDay()
+  const diff = d.getDate() - day + (day === 0 ? -6 : 1) // 월요일을 1로 설정
+  return new Date(d.setDate(diff))
+}
+
+/**
+ * 특정 날짜 범위의 유저 조회
+ * @param {Date} startDate 
+ * @param {Date} endDate 
+ * @returns {Promise<Array>}
+ */
+async function getUsersByDateRange(startDate, endDate) {
+  try {
+    const { data, error } = await supabase
+      .from('Users')
+      .select('created_at')
+      .gte('created_at', startDate.toISOString())
+      .lte('created_at', endDate.toISOString())
+    
+    if (error) throw error
+    
+    return data || []
+  } catch (error) {
+    console.error('날짜 범위 유저 조회 오류:', error)
+    return []
+  }
+}
+
+/**
+ * 유저 데이터를 일별 데이터로 변환
+ * @param {Array} users 
+ * @param {Date} weekStart 
+ * @returns {object}
+ */
+function convertToDailyData(users, weekStart) {
+  const daily = [0, 0, 0, 0, 0, 0, 0] // 월~일
+  
+  users.forEach(user => {
+    const userDate = new Date(user.created_at)
+    const dayDiff = Math.floor((userDate - weekStart) / (1000 * 60 * 60 * 24))
+    
+    if (dayDiff >= 0 && dayDiff < 7) {
+      daily[dayDiff]++
+    }
+  })
+  
+  return {
+    daily,
+    total: users.length
+  }
+} 
