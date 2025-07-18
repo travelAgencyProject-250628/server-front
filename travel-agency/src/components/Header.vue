@@ -589,7 +589,7 @@ onMounted(async () => {
 /* 상단 유틸리티 바 */
 .top-bar {
   background: white;
-  padding: 0.4rem 0;
+  padding-top: 0.5rem;
   font-size: 0.8rem;
 }
 

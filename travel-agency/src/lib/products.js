@@ -65,26 +65,45 @@ export async function getPopularTours() {
     // status가 true인 활성 상품만 조회
     const { data, error } = await supabase
       .from('Products')
-      .select('id, title, subtitle, main_image_url, adult_price, child_price, duration, location_id:location_id(id, name), badge_id:badge_id(id, name)')
+      .select(`
+        id, 
+        title, 
+        subtitle, 
+        main_image_url, 
+        adult_price, 
+        child_price, 
+        duration, 
+        location_id,
+        location:location_id(id, name), 
+        badge_id,
+        badge:badge_id(id, name)
+      `)
       .eq('status', true)
       .order('created_at', { ascending: false })
       .limit(6)
     if (error) throw error
 
-    // 더미 데이터 형식에 맞게 매핑
-    const tours = (data || []).map((item, idx) => ({
-      id: item.id,
-      title: item.title || '',
-      description: item.subtitle || '',
-      duration: item.duration || '',
-      location: item.location?.name || '',
-      price: item.adult_price || 0,
-      badge: item.badge_id?.name || '',
-      image: item.main_image_url || ''
-    }))
+    console.log('getPopularTours raw data:', data)
 
+    // 더미 데이터 형식에 맞게 매핑
+    const tours = (data || []).map((item, idx) => {
+      console.log(`Tour ${idx}:`, item)
+      return {
+        id: item.id,
+        title: item.title || '',
+        description: item.subtitle || '',
+        duration: item.duration || '',
+        location: item.location?.name || '지역 미정',
+        price: item.adult_price || 0,
+        badge: item.badge?.name || '',
+        image: item.main_image_url || ''
+      }
+    })
+
+    console.log('getPopularTours mapped tours:', tours)
     return { success: true, tours }
   } catch (error) {
+    console.error('getPopularTours error:', error)
     return { success: false, tours: [], error: error.message }
   }
 }
