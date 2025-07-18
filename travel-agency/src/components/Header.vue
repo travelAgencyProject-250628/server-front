@@ -536,15 +536,16 @@ onMounted(async () => {
       console.log('로그아웃 감지 - 상태 즉시 업데이트')
       isLoggedIn.value = false
       isAdmin.value = false
-    } else if (event === 'SIGNED_IN') {
-      console.log('로그인 감지 - 세션 정보 업데이트')
-      await getCurrentSession()
-    } else if (event === 'USER_UPDATED') {
-      console.log('사용자 정보 업데이트 감지 - 세션 정보 업데이트')
-    } else {
-      console.log('기타 인증 상태 변경 - 세션 정보 업데이트')
-      await getCurrentSession()
     }
+    // } else if (event === 'SIGNED_IN') {
+    //   console.log('로그인 감지 - 세션 정보 업데이트')
+    //   await getCurrentSession()
+    // } else if (event === 'USER_UPDATED') {
+    //   console.log('사용자 정보 업데이트 감지 - 세션 정보 업데이트')
+    // } else {
+    //   console.log('기타 인증 상태 변경 - 세션 정보 업데이트')
+    //   await getCurrentSession()
+    // }
   })
 })
 </script>

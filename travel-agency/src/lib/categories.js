@@ -5,6 +5,30 @@ export class CategoryService {
     this.supabase = supabase
   }
 
+  // 모든 카테고리 조회
+  async getAllCategories() {
+    try {
+      const { data, error } = await this.supabase
+        .from('Categories')
+        .select('id, name, description')
+        .order('id')
+      
+      if (error) throw error
+
+      return {
+        success: true,
+        categories: data || []
+      }
+    } catch (error) {
+      console.error('카테고리 조회 오류:', error)
+      return {
+        success: false,
+        categories: [],
+        error: error.message
+      }
+    }
+  }
+
   // Supabase에서 1차/2차 카테고리 메뉴 데이터 동적 생성
   async getMenuData() {
     try {

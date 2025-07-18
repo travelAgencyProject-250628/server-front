@@ -11,6 +11,25 @@ function getRandomProductNumber() {
 }
 
 /**
+ * 모든 출발장소 조회
+ * @returns {Promise<{success: boolean, startingPoints: Array, error?: string}>}
+ */
+export async function getAllStartingPoints() {
+  try {
+    const { data, error } = await supabase
+      .from('StartingPoints')
+      .select('id, name')
+      .order('name');
+    
+    if (error) throw error;
+    
+    return { success: true, startingPoints: data || [] };
+  } catch (error) {
+    return { success: false, startingPoints: [], error: error.message };
+  }
+}
+
+/**
  * Supabase Storage에 상품 이미지 업로드
  * @param {File[]} files - 업로드할 이미지 파일 배열
  * @param {string} productNumber - product_number (폴더명)
@@ -251,14 +270,15 @@ export async function searchProducts(keyword) {
 }
 
 /**
- * 상품 추가(등록) + 이미지 업로드 지원
- * @param {object} productData - 등록할 상품 정보 (images: File[] 포함 가능, likely_departure_threshold, confirmed_departure_threshold 지원)
+ * 상품 추가(등록) + 이미지 업로드 + 출발장소 지원
+ * @param {object} productData - 등록할 상품 정보 (images: File[], startingPoints: Array 포함 가능)
  * @returns {Promise<{success: boolean, id?: number, error?: string}>}
  */
 export async function createProduct(productData) {
   try {
     // 1. product_number 생성
     const productNumber = getRandomProductNumber();
+    
     // 2. 이미지 업로드 (images: File[])
     let mainImageUrl = '';
     let imageUrls = [];
@@ -268,6 +288,7 @@ export async function createProduct(productData) {
       mainImageUrl = uploadResult.urls[0];
       imageUrls = uploadResult.urls.slice(1);
     }
+    
     // 3. Products 테이블에 등록
     const insertData = {
       ...productData,
@@ -275,20 +296,239 @@ export async function createProduct(productData) {
       main_image_url: mainImageUrl,
     };
     delete insertData.images;
+    delete insertData.startingPoints;
+    
     const { data, error } = await supabase
       .from('Products')
       .insert([insertData])
       .select('id')
       .single();
     if (error) throw error;
+    
     // 4. ProductImages 테이블에 나머지 이미지 저장
     if (imageUrls.length) {
       const imagesToInsert = imageUrls.map(url => ({ product_id: data.id, image_url: url }));
       const { error: imgError } = await supabase.from('ProductImages').insert(imagesToInsert);
       if (imgError) throw imgError;
     }
+    
+    // 5. ProductStartingPoints 테이블에 출발장소 저장
+    if (productData.startingPoints && productData.startingPoints.length) {
+      const startingPointsToInsert = productData.startingPoints.map(sp => ({
+        product_id: data.id,
+        starting_point_id: sp.starting_point_id,
+        time: sp.time
+      }));
+      const { error: spError } = await supabase.from('ProductStartingPoints').insert(startingPointsToInsert);
+      if (spError) throw spError;
+    }
+    
     return { success: true, id: data.id };
   } catch (error) {
     return { success: false, error: error.message };
+  }
+}
+
+/**
+ * 상품 수정 API
+ * @param {number} productId - 수정할 상품 ID
+ * @param {object} productData - 수정할 상품 정보
+ * @returns {Promise<{success: boolean, error?: string}>}
+ */
+export async function updateProduct(productId, productData) {
+  try {
+    // 이미지 업로드 처리
+    let mainImageUrl = '';
+    let imageUrls = [];
+    
+    if (productData.images && productData.images.length) {
+      // 기존 product_number 가져오기
+      const { data: existingProduct, error: fetchError } = await supabase
+        .from('Products')
+        .select('product_number')
+        .eq('id', productId)
+        .single();
+      
+      if (fetchError) throw fetchError;
+      
+      const uploadResult = await uploadProductImages(productData.images, existingProduct.product_number);
+      if (!uploadResult.success) throw new Error(uploadResult.error);
+      mainImageUrl = uploadResult.urls[0];
+      imageUrls = uploadResult.urls.slice(1);
+    }
+    
+    // Products 테이블 업데이트
+    const updateData = {
+      ...productData,
+      main_image_url: mainImageUrl || productData.main_image_url,
+    };
+    delete updateData.images;
+    delete updateData.startingPoints;
+    
+    const { error } = await supabase
+      .from('Products')
+      .update(updateData)
+      .eq('id', productId);
+    
+    if (error) throw error;
+    
+    // ProductImages 테이블 업데이트 (기존 이미지 삭제 후 새로 추가)
+    if (imageUrls.length > 0) {
+      // 기존 이미지 삭제
+      const { error: deleteError } = await supabase
+        .from('ProductImages')
+        .delete()
+        .eq('product_id', productId);
+      
+      if (deleteError) throw deleteError;
+      
+      // 새 이미지 추가
+      const imagesToInsert = imageUrls.map(url => ({ product_id: productId, image_url: url }));
+      const { error: imgError } = await supabase.from('ProductImages').insert(imagesToInsert);
+      if (imgError) throw imgError;
+    }
+    
+    // ProductStartingPoints 테이블 업데이트
+    if (productData.startingPoints) {
+      // 기존 출발장소 삭제
+      const { error: deleteSpError } = await supabase
+        .from('ProductStartingPoints')
+        .delete()
+        .eq('product_id', productId);
+      
+      if (deleteSpError) throw deleteSpError;
+      
+      // 새 출발장소 추가
+      if (productData.startingPoints.length > 0) {
+        const startingPointsToInsert = productData.startingPoints.map(sp => ({
+          product_id: productId,
+          starting_point_id: sp.starting_point_id,
+          time: sp.time
+        }));
+        const { error: spError } = await supabase.from('ProductStartingPoints').insert(startingPointsToInsert);
+        if (spError) throw spError;
+      }
+    }
+    
+    return { success: true };
+  } catch (error) {
+    return { success: false, error: error.message };
+  }
+}
+
+/**
+ * 상품 삭제 API
+ * @param {number} productId - 삭제할 상품 ID
+ * @returns {Promise<{success: boolean, error?: string}>}
+ */
+export async function deleteProduct(productId) {
+  try {
+    // 1. ProductImages 테이블에서 관련 이미지 삭제
+    const { error: imgError } = await supabase
+      .from('ProductImages')
+      .delete()
+      .eq('product_id', productId);
+    
+    if (imgError) throw imgError;
+    
+    // 2. ProductStartingPoints 테이블에서 관련 출발장소 삭제
+    const { error: spError } = await supabase
+      .from('ProductStartingPoints')
+      .delete()
+      .eq('product_id', productId);
+    
+    if (spError) throw spError;
+    
+    // 3. Products 테이블에서 상품 삭제
+    const { error } = await supabase
+      .from('Products')
+      .delete()
+      .eq('id', productId);
+    
+    if (error) throw error;
+    
+    return { success: true };
+  } catch (error) {
+    return { success: false, error: error.message };
+  }
+}
+
+/**
+ * 전체 상품 목록 조회 (관리자용)
+ * @returns {Promise<{success: boolean, products: Array, error?: string}>}
+ */
+export async function getAllProducts() {
+  try {
+    const { data, error } = await supabase
+      .from('Products')
+      .select(`
+        id,
+        title,
+        subtitle,
+        main_image_url,
+        product_code,
+        product_number,
+        duration,
+        adult_price,
+        child_price,
+        event_content,
+        included_items,
+        excluded_items,
+        likely_departure_threshold,
+        confirmed_departure_threshold,
+        status,
+        created_at,
+        category_id,
+        tag_id,
+        badge_id,
+        location_id,
+        category:category_id(id, name),
+        tag:tag_id(id, name),
+        badge:badge_id(id, name),
+        location:location_id(id, name)
+      `)
+      .order('created_at', { ascending: false });
+    
+    if (error) throw error;
+    
+    // ProductImages와 ProductStartingPoints에서 관련 데이터 가져오기
+    const products = await Promise.all((data || []).map(async (product) => {
+      // 이미지 가져오기
+      const { data: imagesData } = await supabase
+        .from('ProductImages')
+        .select('image_url')
+        .eq('product_id', product.id);
+      
+      // 출발장소 가져오기
+      const { data: startingPointsData } = await supabase
+        .from('ProductStartingPoints')
+        .select(`
+          starting_point_id,
+          time,
+          starting_point:starting_point_id(id, name)
+        `)
+        .eq('product_id', product.id);
+      
+      const images = [
+        ...(product.main_image_url ? [{ name: 'main.jpg', url: product.main_image_url, size: 0 }] : []),
+        ...((imagesData || []).map(img => ({ name: 'sub.jpg', url: img.image_url, size: 0 })))
+      ];
+      
+      const startingPoints = (startingPointsData || []).map(sp => ({
+        starting_point_id: sp.starting_point_id,
+        name: sp.starting_point.name,
+        time: sp.time
+      }));
+      
+      return {
+        ...product,
+        images,
+        startingPoints
+      };
+    }));
+    
+    return { success: true, products };
+  } catch (error) {
+    return { success: false, products: [], error: error.message };
   }
 } 

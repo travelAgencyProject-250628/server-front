@@ -649,10 +649,10 @@
       <div class="swagger-doc">
         <h2>📚 API 문서: 태그 데이터</h2>
         <div class="api-section">
-          <div class="api-title">GET /lib/tag.js</div>
-          <div class="api-method">
-            <span class="method">getAllTags()</span>
-          </div>
+                  <div class="api-title">GET /lib/tags.js</div>
+        <div class="api-method">
+          <span class="method">tagService.getAllTags()</span>
+        </div>
           <div class="api-desc">
             <p>
               <strong>설명:</strong> <br>
@@ -668,8 +668,8 @@
             <p>
               <strong>사용 예시:</strong><br>
               <code>
-                import &#123; getAllTags &#125; from '@/lib/tag.js'<br>
-                const result = await getAllTags()
+                import &#123; tagService &#125; from '@/lib/tags.js'<br>
+                const result = await tagService.getAllTags()
               </code>
             </p>
           </div>
@@ -741,7 +741,7 @@ import { getBannerImages } from '@/lib/banners.js'
 import { getReservationDetail, createReservation, getMyReservations } from '@/lib/reservations.js'
 import { getCurrentUserInfo, updateUserInfo } from '@/lib/users.js'
 import { getStartingPoints } from '@/lib/startingpoints.js'
-import { getAllTags, createTag } from '@/lib/tag.js'
+import { tagService } from '@/lib/tags.js'
 
 const menuData = ref(null)
 const error = ref(null)
@@ -953,7 +953,7 @@ async function fetchTags() {
   loadingTags.value = true
   errorTags.value = null
   tagsData.value = null
-  const result = await getAllTags()
+  const result = await tagService.getAllTags()
   if (result.success) {
     tagsData.value = JSON.stringify(result.tags, null, 2)
   } else {
@@ -967,9 +967,9 @@ async function submitAddTag() {
   addTagError.value = null
   addTagResult.value = null
   try {
-    const result = await createTag(addTagName.value)
+    const result = await tagService.createTag({ name: addTagName.value })
     if (result.success) {
-      addTagResult.value = result.id
+      addTagResult.value = result.tag.id
       addTagName.value = ''
       // 태그 목록 새로고침
       await fetchTags()
