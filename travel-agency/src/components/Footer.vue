@@ -38,7 +38,7 @@
       </div>
       
       <div class="footer-bottom">
-        <p>&copy; 2024 굿모닝투어. All Rights Reserved.</p>
+        <p>&copy; 2024 나라투어. All Rights Reserved.</p>
       </div>
     </div>
   </footer>

@@ -6,7 +6,7 @@
                 <!-- 페이지 제목 -->
                 <div class="page-header">
                     <h1 class="page-title">회원가입</h1>
-                    <p class="page-subtitle">굿모닝투어와 함께 특별한 여행을 시작하세요</p>
+                    <p class="page-subtitle">나라투어와 함께 특별한 여행을 시작하세요</p>
                 </div>
 
                 <!-- 회원가입 폼 -->

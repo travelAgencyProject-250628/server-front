@@ -33,7 +33,8 @@
         <!-- 로고 -->
         <div class="logo">
           <router-link to="/">
-            <h1>굿모닝투어</h1>
+            <img src="/logo.png" alt="나라투어 로고" class="logo-image">
+            <h1>나라투어</h1>
           </router-link>
         </div>
 
@@ -174,7 +175,8 @@
     <nav class="nav-mobile" :class="{ active: mobileMenuOpen }">
       <div class="mobile-header">
         <div class="mobile-logo">
-          <h1>굿모닝투어</h1>
+          <img src="/logo.png" alt="나라투어 로고" class="logo-image">
+          <h1>나라투어</h1>
         </div>
         <button class="mobile-close-btn" @click="closeMobileMenu">
           <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -555,6 +557,9 @@ onMounted(async () => {
 </script>
 
 <style scoped>
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700&display=swap');
+
 /* CSS 변수 정의 */
 :root {
   --primary-color: #2563eb;
@@ -633,7 +638,7 @@ onMounted(async () => {
 
 /* 메인 헤더 */
 .main-header {
-  padding: 0.8rem 0;
+  padding: 0.2rem 0;
 }
 
 .main-header-container {
@@ -649,6 +654,17 @@ onMounted(async () => {
 /* 로고 */
 .logo {
   flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  justify-content: center;
+  height: 100%;
+}
+
+.logo-image {
+  width: 80px;
+  height: 80px;
+  object-fit: contain;
 }
 
 .logo h1 {
@@ -656,10 +672,20 @@ onMounted(async () => {
   font-size: 1.8rem;
   font-weight: 700;
   margin: 0;
+  display: flex;
+  align-items: center;
+  line-height: 1;
+  font-family: 'Inter', 'Noto Sans KR', -apple-system, BlinkMacSystemFont, system-ui, Roboto, 'Helvetica Neue', 'Segoe UI', sans-serif;
+  letter-spacing: -0.02em;
 }
 
 .logo a {
   text-decoration: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  height: 100%;
 }
 
 /* 검색 영역 */
@@ -1245,6 +1271,12 @@ onMounted(async () => {
   
   .logo h1 {
     font-size: 1.5rem;
+  }
+  
+  .mobile-logo {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
   }
   
   .search-area {
