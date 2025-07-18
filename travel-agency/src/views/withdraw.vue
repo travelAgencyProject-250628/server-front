@@ -75,10 +75,9 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
-import { useAuthStore } from '../stores/auth.js'
+import { authService } from '../lib/auth.js'
 
 const router = useRouter()
-const authStore = useAuthStore()
 
 // 탈퇴 폼 데이터
 const withdrawForm = ref({
@@ -121,7 +120,7 @@ const handleWithdraw = async () => {
     alert('회원탈퇴가 신청되었습니다.\n관리자 확인 후 처리 완료 시 이메일로 안내드리겠습니다.')
     
     // 로그아웃 처리
-    await authStore.signOut()
+    await authService.signOut()
     router.push('/')
   } catch (error) {
     console.error('회원탈퇴 실패:', error)
@@ -137,16 +136,17 @@ const handleCancel = () => {
 }
 
 // 컴포넌트 마운트 시 사용자 정보 로드
-onMounted(() => {
+onMounted(async () => {
   // 로그인 체크
-//   if (!authStore.isAuthenticated) {
-//     alert('로그인이 필요합니다.')
-//     router.push('/login')
-//     return
-//   }
+  const { data: { user } } = await authService.getCurrentUser()
+  if (!user) {
+    alert('로그인이 필요합니다.')
+    router.push('/login')
+    return
+  }
 
-  // 사용자 아이디 설정 (실제로는 스토어에서 가져와야 함)
-  withdrawForm.value.userId = authStore.user?.userId || 'jbl6938'
+  // 사용자 아이디 설정
+  withdrawForm.value.userId = user.email || 'jbl6938'
 })
 </script>
 

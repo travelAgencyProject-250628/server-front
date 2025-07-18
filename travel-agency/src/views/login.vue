@@ -43,10 +43,10 @@
                                         </svg>
                                     </div>
                                     <input 
-                                        type="text" 
-                                        v-model="loginData.userId" 
+                                        type="email" 
+                                        v-model="loginData.email" 
                                         class="form-input"
-                                        placeholder="아이디"
+                                        placeholder="이메일"
                                         required
                                     >
                                 </div>
@@ -133,20 +133,19 @@
 <script setup>
 import { ref, reactive } from 'vue'
 import { useRouter } from 'vue-router'
-import { useAuthStore } from '../stores/auth.js'
+import { authService } from '../lib/auth.js'
 import Header from '../components/Header.vue'
 import Footer from '../components/Footer.vue'
 
 // 라우터 사용
 const router = useRouter()
-const authStore = useAuthStore()
 
 // 반응형 데이터
 const activeTab = ref('member')
 
 // 로그인 데이터
 const loginData = reactive({
-    userId: '',
+    email: '',
     password: ''
 })
 
@@ -158,13 +157,13 @@ const guestData = reactive({
 
 // 메서드들
 const handleLogin = async () => {
-    if (!loginData.userId || !loginData.password) {
-        alert('아이디와 비밀번호를 입력해주세요.')
+    if (!loginData.email || !loginData.password) {
+        alert('이메일과 비밀번호를 입력해주세요.')
         return
     }
 
     try {
-        const result = await authStore.signIn(loginData.userId, loginData.password)
+        const result = await authService.signIn(loginData.email, loginData.password)
         
         if (result.success) {
             // 로그인 후 원래 가려던 페이지로 리디렉션

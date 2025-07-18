@@ -257,12 +257,9 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
-import { useAuthStore } from '../stores/auth.js'
-import { useCategoryStore } from '../stores/categories.js'
+import { authService } from '../lib/auth.js'
 
 const router = useRouter()
-const authStore = useAuthStore()
-const categoryStore = useCategoryStore()
 
 // 반응형 데이터
 const mobileMenuOpen = ref(false)
@@ -339,10 +336,31 @@ const menuData = ref({
   }
 })
 
-// 로그인 상태 및 어드민 권한은 authStore에서 가져옴
-const isLoggedIn = computed(() => authStore.isAuthenticated)
-const isAdmin = computed(() => authStore.isAdmin)
-const currentUser = computed(() => authStore.user)
+// 로그인 상태 및 어드민 권한은 authService에서 가져옴
+const isLoggedIn = ref(false)
+const isAdmin = ref(false)
+const currentUser = ref(null)
+
+// 현재 사용자 정보 가져오기
+const getCurrentUser = async () => {
+  try {
+    const result = await authService.getCurrentUser()
+    if (result.success) {
+      currentUser.value = result.user
+      isLoggedIn.value = true
+      isAdmin.value = result.user?.is_admin || false
+    } else {
+      currentUser.value = null
+      isLoggedIn.value = false
+      isAdmin.value = false
+    }
+  } catch (error) {
+    console.error('사용자 정보 조회 실패:', error)
+    currentUser.value = null
+    isLoggedIn.value = false
+    isAdmin.value = false
+  }
+}
 
 // 메서드들
 const toggleMobileMenu = () => {
@@ -373,10 +391,22 @@ const toggleMobileCategory = (categoryId) => {
 
 const handleLogout = async () => {
   if (confirm('로그아웃하시겠습니까?')) {
-    await authStore.signOut()
-    closeMobileMenu()
-    // 로그아웃 후 홈으로 이동
-    router.push('/')
+    try {
+      const result = await authService.signOut()
+      if (result.success) {
+        currentUser.value = null
+        isLoggedIn.value = false
+        isAdmin.value = false
+        closeMobileMenu()
+        // 로그아웃 후 홈으로 이동
+        router.push('/')
+      } else {
+        alert('로그아웃에 실패했습니다.')
+      }
+    } catch (error) {
+      console.error('로그아웃 오류:', error)
+      alert('로그아웃 중 오류가 발생했습니다.')
+    }
   }
 }
 
@@ -511,26 +541,14 @@ const handleSearch = () => {
 
 // 컴포넌트 마운트 시 메뉴 데이터 불러오기
 onMounted(async () => {
-  await categoryStore.fetchCategories()
   await fetchMenuData()
+  await getCurrentUser()
   
-  // 테스트용: localStorage에서 로그인 상태 복원
-  const testAuthState = localStorage.getItem('test_auth')
-  if (testAuthState === 'true') {
-    authStore.user = {
-      id: 'test_user',
-      name: '테스트 사용자',
-      email: 'test@example.com'
-    }
-    console.log('테스트 로그인 상태 복원됨')
-  }
-  
-  // 테스트용: localStorage에서 어드민 권한 상태 복원
-  const testAdminState = localStorage.getItem('test_admin')
-  if (testAdminState === 'true') {
-    authStore.isAdmin = true
-    console.log('어드민 권한 상태 복원됨')
-  }
+  // 인증 상태 변경 리스너 설정
+  authService.onAuthStateChange(async (event, session) => {
+    console.log('Auth 상태 변경:', event, session)
+    await getCurrentUser()
+  })
 })
 </script>
 

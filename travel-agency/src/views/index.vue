@@ -86,7 +86,7 @@
 
 <script setup>
 import { ref, onMounted, onBeforeUnmount, computed} from 'vue'
-import { useAuthStore } from '../stores/auth.js'
+import { authService } from '../lib/auth.js'
 import { useRouter } from 'vue-router'
 import Header from '../components/Header.vue'
 import Footer from '../components/Footer.vue'
@@ -94,13 +94,18 @@ import Footer from '../components/Footer.vue'
 // 라우터 초기화
 const router = useRouter()
 
-const authStore = useAuthStore()
-const isLoggedIn = computed(() => authStore.isAuthenticated)
-const currentUser = computed(() => authStore.user)
-
 // 반응형 데이터
 const currentSlide = ref(0)
 const sliderInterval = ref(null)
+const isLoggedIn = ref(false)
+const currentUser = ref(null)
+
+// 로그인 상태 확인
+const checkAuthStatus = async () => {
+  const { data: { user } } = await authService.getCurrentUser()
+  isLoggedIn.value = !!user
+  currentUser.value = user
+}
 
 // 인기 투어 데이터
 const popularTours = ref([
@@ -185,7 +190,8 @@ const goToProductDetail = (productId) => {
 }
 
 // 라이프사이클 훅
-onMounted(() => {
+onMounted(async () => {
+  await checkAuthStatus()
   startSlider()
 })
 

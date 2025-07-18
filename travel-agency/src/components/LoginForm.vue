@@ -4,13 +4,13 @@
     
     <form @submit.prevent="handleLogin" class="form">
       <div class="form-group">
-        <label for="user_id">아이디</label>
+        <label for="email">이메일</label>
         <input
-          id="user_id"
-          v-model="form.user_id"
-          type="text"
+          id="email"
+          v-model="form.email"
+          type="email"
           required
-          placeholder="아이디를 입력하세요"
+          placeholder="이메일을 입력하세요"
         />
       </div>
 
@@ -57,9 +57,8 @@
     <div v-if="user" class="user-info">
       <h3>로그인 성공!</h3>
       <div class="user-details">
-        <p><strong>아이디:</strong> {{ user.user_id }}</p>
-        <p><strong>이름:</strong> {{ user.name }}</p>
         <p><strong>이메일:</strong> {{ user.email }}</p>
+        <p><strong>ID:</strong> {{ user.id }}</p>
       </div>
       <button @click="handleLogout" class="btn-secondary">로그아웃</button>
     </div>
@@ -67,53 +66,73 @@
 </template>
 
 <script setup>
-import { ref, computed } from 'vue'
-import { useAuthStore } from '../stores/auth.js'
-
-const authStore = useAuthStore()
+import { ref, computed, onMounted } from 'vue'
+import { authService } from '../lib/auth.js'
 
 // 폼 데이터
 const form = ref({
-  user_id: '',
+  email: '',
   password: ''
 })
 
 const rememberMe = ref(false)
 const message = ref('')
 const messageType = ref('success')
+const loading = ref(false)
+const user = ref(null)
 
-// 계산된 속성
-const loading = computed(() => authStore.loading)
-const user = computed(() => authStore.user)
+// 로그인 상태 확인
+const checkAuthStatus = async () => {
+  const { data: { user: currentUser } } = await authService.getCurrentUser()
+  user.value = currentUser
+}
 
 // 로그인 처리
 const handleLogin = async () => {
-  if (!form.value.user_id || !form.value.password) {
-    showMessage('아이디와 비밀번호를 입력해주세요.', 'error')
+  if (!form.value.email || !form.value.password) {
+    showMessage('이메일과 비밀번호를 입력해주세요.', 'error')
     return
   }
   
-  const result = await authStore.signIn(form.value.user_id, form.value.password)
-  
-  if (result.success) {
-    showMessage(result.message, 'success')
-    // 로그인 성공 시 메인 페이지로 이동
-    // router.push('/')
-  } else {
-    showMessage(result.message, 'error')
+  try {
+    loading.value = true
+    
+    const { data, error } = await authService.signIn(form.value.email, form.value.password)
+    
+    if (error) {
+      showMessage(error.message, 'error')
+    } else {
+      showMessage('로그인이 완료되었습니다.', 'success')
+      await checkAuthStatus()
+      // 로그인 성공 시 메인 페이지로 이동
+      // router.push('/')
+    }
+  } catch (error) {
+    showMessage('로그인 중 오류가 발생했습니다.', 'error')
+  } finally {
+    loading.value = false
   }
 }
 
 // 로그아웃 처리
 const handleLogout = async () => {
-  const result = await authStore.signOut()
-  
-  if (result.success) {
-    showMessage(result.message, 'success')
-    // 로그아웃 후 로그인 페이지로 이동
-    // router.push('/login')
-  } else {
-    showMessage(result.message, 'error')
+  try {
+    loading.value = true
+    
+    const { error } = await authService.signOut()
+    
+    if (error) {
+      showMessage(error.message, 'error')
+    } else {
+      showMessage('로그아웃이 완료되었습니다.', 'success')
+      user.value = null
+      // 로그아웃 후 로그인 페이지로 이동
+      // router.push('/login')
+    }
+  } catch (error) {
+    showMessage('로그아웃 중 오류가 발생했습니다.', 'error')
+  } finally {
+    loading.value = false
   }
 }
 
@@ -125,6 +144,11 @@ const showMessage = (msg, type = 'success') => {
     message.value = ''
   }, 5000)
 }
+
+// 컴포넌트 마운트 시 로그인 상태 확인
+onMounted(async () => {
+  await checkAuthStatus()
+})
 </script>
 
 <style scoped>

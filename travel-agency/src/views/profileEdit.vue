@@ -167,10 +167,9 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
-import { useAuthStore } from '../stores/auth.js'
+import { authService } from '../lib/auth.js'
 
 const router = useRouter()
-const authStore = useAuthStore()
 
 // 로딩 상태
 const isLoading = ref(true)
@@ -210,11 +209,17 @@ const loadUserProfile = async () => {
   try {
     isLoading.value = true
     
+    // 현재 로그인한 사용자 정보 가져오기
+    const { data: { user } } = await authService.getCurrentUser()
+    if (!user) {
+      throw new Error('로그인이 필요합니다.')
+    }
+
     // 실제 API 호출 (예시)
     // const response = await fetch('/api/profile', {
     //   method: 'GET',
     //   headers: {
-    //     'Authorization': `Bearer ${authStore.token}`,
+    //     'Authorization': `Bearer ${user.access_token}`,
     //     'Content-Type': 'application/json',
     //   }
     // })
@@ -222,11 +227,11 @@ const loadUserProfile = async () => {
 
     // 임시 데이터 (실제로는 위의 API 응답 데이터를 사용)
     const userData = {
-      userId: 'jbl6938',
+      userId: user.email,
       name: '이정원',
       phone: '010-2237-6938',
       mobile: '010-2237-6938',
-      email: 'jbl6938@gmail.com',
+      email: user.email,
       zipcode: '04759',
       address1: '서울 성동구 마조로15길 9 (마장동)',
       address2: '105호',
@@ -363,7 +368,7 @@ const handleSubmit = async () => {
     // const response = await fetch('/api/profile', {
     //   method: 'PUT',
     //   headers: {
-    //     'Authorization': `Bearer ${authStore.token}`,
+    //     'Authorization': `Bearer ${user.access_token}`,
     //     'Content-Type': 'application/json',
     //   },
     //   body: JSON.stringify(updateData)
@@ -393,11 +398,12 @@ const handleCancel = () => {
 // 컴포넌트 마운트 시 사용자 정보 로드
 onMounted(async () => {
   // 로그인 체크
-//   if (!authStore.isAuthenticated) {
-//     alert('로그인이 필요합니다.')
-//     router.push('/login')
-//     return
-//   }
+  const { data: { user } } = await authService.getCurrentUser()
+  if (!user) {
+    alert('로그인이 필요합니다.')
+    router.push('/login')
+    return
+  }
 
   // 사용자 정보 로드
   await loadUserProfile()

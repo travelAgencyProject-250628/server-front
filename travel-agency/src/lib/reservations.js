@@ -13,7 +13,6 @@ export async function getReservationDetail(reservationId) {
       .select(`
         id,
         created_at,
-        user_id,
         product_id,
         starting_point_id,
         adult_count,

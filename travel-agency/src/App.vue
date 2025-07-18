@@ -2,11 +2,10 @@
 import { RouterView } from 'vue-router'
 import { onMounted, computed } from 'vue'
 import { useRoute } from 'vue-router'
-import { useAuthStore } from './stores/auth.js'
+import { authService } from './lib/auth.js'
 import Header from './components/Header.vue'
 import Footer from './components/Footer.vue'
 
-const authStore = useAuthStore()
 const route = useRoute()
 
 // 어드민 페이지인지 확인
@@ -16,10 +15,10 @@ const isAdminPage = computed(() => {
 
 onMounted(async () => {
   // 앱 시작 시 현재 사용자 정보 로드
-  await authStore.getCurrentUser()
+  await authService.getCurrentUser()
   
-  // 인증 상태 변경 리스너 설정
-  authStore.setupAuthListener()
+  // 인증 상태 변경 리스너 설정 (Supabase는 자동으로 처리됨)
+  // authService.setupAuthListener()
 })
 </script>
 

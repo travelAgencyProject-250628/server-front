@@ -86,10 +86,10 @@
                                         </svg>
                                     </div>
                                     <input 
-                                        type="text" 
-                                        v-model="findPasswordData.userId" 
+                                        type="email" 
+                                        v-model="findPasswordData.email" 
                                         class="form-input"
-                                        placeholder="아이디"
+                                        placeholder="이메일"
                                         required
                                     >
                                 </div>
@@ -177,7 +177,7 @@ const findIdData = reactive({
 
 // 비밀번호 찾기 데이터
 const findPasswordData = reactive({
-    userId: '',
+    email: '',
     name: '',
     phone: ''
 })
@@ -201,7 +201,7 @@ const handleFindId = () => {
 }
 
 const handleFindPassword = () => {
-    if (!findPasswordData.userId || !findPasswordData.name || !findPasswordData.phone) {
+    if (!findPasswordData.email || !findPasswordData.name || !findPasswordData.phone) {
         alert('모든 항목을 입력해주세요.')
         return
     }
@@ -210,7 +210,7 @@ const handleFindPassword = () => {
     console.log('비밀번호 찾기:', findPasswordData)
     
     // 임시 로직
-    if (findPasswordData.userId === 'testuser' && 
+    if (findPasswordData.email === 'test@example.com' && 
         findPasswordData.name === '홍길동' && 
         findPasswordData.phone === '01012345678') {
         alert('임시 비밀번호가 문자로 발송되었습니다.')

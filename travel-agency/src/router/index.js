@@ -1,5 +1,5 @@
 import { createRouter, createWebHistory } from 'vue-router'
-import { useAuthStore } from '@/stores/auth.js'
+import { authService } from '@/lib/auth.js'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -138,39 +138,38 @@ const router = createRouter({
 })
 
 // 인증 가드
-router.beforeEach((to, from, next) => {
-  // Header 컴포넌트에서 사용하는 테스트용 로그인 상태 확인
-  // 실제 환경에서는 authStore.isAuthenticated를 사용
-  const isLoggedIn = () => {
+router.beforeEach(async (to, from, next) => {
+  // authService를 사용하여 현재 사용자 정보 조회
+  const getCurrentUser = async () => {
     try {
-      const authStore = useAuthStore()
-      return authStore.user !== null
+      const result = await authService.getCurrentUser()
+      return result.success ? result.user : null
     } catch {
-      return false
+      return null
     }
   }
-  
+   
+  const currentUser = await getCurrentUser()
+  const isLoggedIn = currentUser !== null
+   
   // 로그인된 상태에서 로그인/회원가입/계정찾기 페이지 접근 시 홈으로 리디렉션
-  if (isLoggedIn() && (to.path === '/login' || to.path === '/join' || to.path === '/find-account')) {
+  if (isLoggedIn && (to.path === '/login' || to.path === '/join' || to.path === '/find-account')) {
     alert('이미 로그인 되어있습니다.')
     next('/')
     return
   }
-  
+   
   // 인증이 필요한 페이지인지 확인
   const requiresAuth = to.matched.some(record => record.meta.requiresAuth)
   const requiresAdmin = to.matched.some(record => record.meta.requiresAdmin)
 
-  // Pinia의 authStore를 사용하여 어드민 권한 확인
-  const authStore = useAuthStore()
-
-  if (requiresAuth && !isLoggedIn()) {
+  if (requiresAuth && !isLoggedIn) {
     alert('로그인이 필요한 페이지입니다.')
     next({
       path: '/login',
       query: { redirect: to.fullPath }
     })
-  } else if (requiresAdmin && !(authStore.user && authStore.user.is_admin === true)) {
+  } else if (requiresAdmin && !(currentUser && currentUser.is_admin === true)) {
     alert('관리자 권한이 필요한 페이지입니다.')
     next('/')
   } else {

@@ -352,6 +352,7 @@
 
 <script setup>
 import { ref, computed, onMounted } from 'vue'
+import { getAllUsers } from '@/lib/users.js'
 
 // 반응형 데이터
 const customers = ref([])
@@ -398,73 +399,17 @@ const activeCustomers = computed(() => {
 const loadCustomers = async () => {
   loading.value = true
   try {
-    // 더미 데이터 (실제로는 API 호출)
-    await new Promise(resolve => setTimeout(resolve, 500))
+    const result = await getAllUsers()
     
-    customers.value = [
-      {
-        id: 1,
-        name: '김철수',
-        email: 'kim@example.com',
-        phone: '010-1234-5678',
-        address: '서울시 강남구 역삼동',
-        status: 'active',
-        bookingCount: 3,
-        lastBooking: '2024-01-15',
-        totalPayment: 750000,
-        createdAt: '2023-12-01'
-      },
-      {
-        id: 2,
-        name: '이영희',
-        email: 'lee@example.com',
-        phone: '010-9876-5432',
-        address: '부산시 해운대구 우동',
-        status: 'active',
-        bookingCount: 1,
-        lastBooking: '2024-01-10',
-        totalPayment: 285000,
-        createdAt: '2023-11-15'
-      },
-      {
-        id: 3,
-        name: '박민수',
-        email: 'park@example.com',
-        phone: '010-5555-1234',
-        address: '대구시 중구 동성로',
-        status: 'inactive',
-        bookingCount: 0,
-        lastBooking: null,
-        totalPayment: 0,
-        createdAt: '2023-10-20'
-      },
-      {
-        id: 4,
-        name: '최유진',
-        email: 'choi@example.com',
-        phone: '010-7777-8888',
-        address: '인천시 연수구 송도동',
-        status: 'active',
-        bookingCount: 5,
-        lastBooking: '2024-01-12',
-        totalPayment: 1250000,
-        createdAt: '2023-09-10'
-      },
-      {
-        id: 5,
-        name: '정현우',
-        email: 'jung@example.com',
-        phone: '010-3333-4444',
-        address: '',
-        status: 'active',
-        bookingCount: 2,
-        lastBooking: '2024-01-08',
-        totalPayment: 480000,
-        createdAt: '2023-12-20'
-      }
-    ]
+    if (result.success) {
+      customers.value = result.users
+    } else {
+      console.error('고객 정보 로드 실패:', result.error)
+      alert('고객 정보를 불러오는데 실패했습니다.')
+    }
   } catch (error) {
     console.error('고객 정보 로드 오류:', error)
+    alert('고객 정보를 불러오는 중 오류가 발생했습니다.')
   } finally {
     loading.value = false
   }

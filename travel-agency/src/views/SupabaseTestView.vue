@@ -33,11 +33,10 @@
               <strong>반환 예시:</strong>
             </p>
             <pre>{
-  userId: 'jbl6938',
+  email: 'jbl6938@gmail.com',
   name: '이정원',
   phone: '010-2237-6938',
   mobile: '010-2237-6938',
-  email: 'jbl6938@gmail.com',
   zipcode: '04759',
   address1: '서울 성동구 마조로15길 9 (마장동)',
   address2: '105호',

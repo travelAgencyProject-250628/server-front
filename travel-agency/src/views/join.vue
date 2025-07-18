@@ -36,14 +36,14 @@
                                 <div class="form-group">
                                     <label class="form-label required">
                                         <span class="required-icon">⦁</span>
-                                        아이디
+                                        이메일
                                     </label>
                                     <div class="input-with-button">
-                                        <input type="text" v-model="formData.userId" class="form-input"
-                                            placeholder="아이디를 입력하세요" :class="{ error: errors.userId }" required>
-                                        <button type="button" class="btn-check" @click="checkIdDuplicate">중복확인</button>
+                                        <input type="email" v-model="formData.email" class="form-input"
+                                            placeholder="이메일 주소를 입력하세요" :class="{ error: errors.email }" required>
+                                        <button type="button" class="btn-check" @click="checkEmailDuplicate">중복확인</button>
                                     </div>
-                                    <div v-if="errors.userId" class="error-message">{{ errors.userId }}</div>
+                                    <div v-if="errors.email" class="error-message">{{ errors.email }}</div>
                                 </div>
 
                                 <div class="form-group">
@@ -101,16 +101,6 @@
                                             placeholder="5678" maxlength="4">
                                     </div>
                                     <div v-if="errors.phone" class="error-message">{{ errors.phone }}</div>
-                                </div>
-
-                                <div class="form-group">
-                                    <label class="form-label required">
-                                        <span class="required-icon">⦁</span>
-                                        E-Mail주소
-                                    </label>
-                                    <input type="email" v-model="formData.email" class="form-input"
-                                        placeholder="이메일 주소를 입력하세요" :class="{ error: errors.email }" required>
-                                    <div v-if="errors.email" class="error-message">{{ errors.email }}</div>
                                 </div>
 
                                 <div class="form-group full-width">
@@ -236,21 +226,18 @@
 <script setup>
 import { ref, reactive, watch } from 'vue'
 import { useRouter } from 'vue-router'
-import { useAuthStore } from '../stores/auth.js'
-
-const authStore = useAuthStore()
+import { authService } from '../lib/auth.js'
 
 // 라우터 사용
 const router = useRouter()
 
 // 반응형 데이터
-const idDuplicateChecked = ref(false)
+const emailDuplicateChecked = ref(false)
 const errors = ref({})
 const agreeAll = ref(false)
 
 // 폼 데이터 (reactive로 객체 전체를 반응형으로 관리)
 const formData = reactive({
-    userId: '',
     password: '',
     passwordConfirm: '',
     name: '',
@@ -275,13 +262,13 @@ const formData = reactive({
 const validateForm = () => {
     errors.value = {}
 
-    // 아이디 검증
-    if (!formData.userId) {
-        errors.value.userId = '아이디를 입력해주세요.'
-    } else if (formData.userId.length < 4) {
-        errors.value.userId = '아이디는 4글자 이상 입력해주세요.'
-    } else if (!idDuplicateChecked.value) {
-        errors.value.userId = '아이디 중복확인을 해주세요.'
+    // 이메일 중복 확인 검증
+    if (!formData.email) {
+        errors.value.email = '이메일 주소를 입력해주세요.'
+    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
+        errors.value.email = '올바른 이메일 주소를 입력해주세요.'
+    } else if (!emailDuplicateChecked.value) {
+        errors.value.email = '이메일 중복확인을 해주세요.'
     }
 
     // 비밀번호 검증
@@ -315,13 +302,6 @@ const validateForm = () => {
         errors.value.mobile = '휴대전화번호를 모두 입력해주세요.'
     }
 
-    // 이메일 검증
-    if (!formData.email) {
-        errors.value.email = '이메일 주소를 입력해주세요.'
-    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
-        errors.value.email = '올바른 이메일 주소를 입력해주세요.'
-    }
-
     // 주소 검증
     if (!formData.zipcode || !formData.address1) {
         errors.value.address = '주소를 입력해주세요.'
@@ -330,32 +310,32 @@ const validateForm = () => {
     return Object.keys(errors.value).length === 0
 }
 
-const checkIdDuplicate = async () => {
-    if (!formData.userId) {
-        alert('아이디를 입력해주세요.')
+const checkEmailDuplicate = async () => {
+    if (!formData.email) {
+        alert('이메일을 입력해주세요.')
         return
     }
 
-    if (formData.userId.length < 4) {
-        alert('아이디는 4글자 이상 입력해주세요.')
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
+        alert('올바른 이메일 주소를 입력해주세요.')
         return
     }
 
     try {
-        const result = await authStore.checkUserIdExists(formData.userId)
+        const result = await authService.checkEmailExists(formData.email)
         
         if (result.exists) {
-            alert('이미 사용중인 아이디입니다.')
-            idDuplicateChecked.value = false
+            alert('이미 사용중인 이메일입니다.')
+            emailDuplicateChecked.value = false
         } else {
-            alert('사용 가능한 아이디입니다.')
-            idDuplicateChecked.value = true
-            errors.value.userId = ''
+            alert('사용 가능한 이메일입니다.')
+            emailDuplicateChecked.value = true
+            errors.value.email = ''
         }
     } catch (error) {
-        console.error('아이디 중복 확인 오류:', error)
-        alert('아이디 중복 확인 중 오류가 발생했습니다.')
-        idDuplicateChecked.value = false
+        console.error('이메일 중복 확인 오류:', error)
+        alert('이메일 중복 확인 중 오류가 발생했습니다.')
+        emailDuplicateChecked.value = false
     }
 }
 
@@ -430,7 +410,6 @@ const handleSubmit = async () => {
 
     // Supabase User 테이블 형식에 맞게 데이터 변환 (비밀번호 제외)
     const userData = {
-        user_id: formData.userId.trim(),
         name: formData.name.trim(),
         phone_number: (formData.phone1 && formData.phone2 && formData.phone3) 
             ? `${formData.phone1}-${formData.phone2}-${formData.phone3}` 
@@ -444,29 +423,17 @@ const handleSubmit = async () => {
         agree_terms: true
     }
 
-    // Auth용 데이터 (이메일, 비밀번호만)
-    const authData = {
-        email: formData.email.trim().toLowerCase(),
-        password: formData.password
-    }
+    const email = formData.email.trim().toLowerCase()
+    const password = formData.password
 
     console.log('전송할 데이터:', userData)
 
     try {
-        const result = await authStore.signUp(userData, authData)
+        const result = await authService.signUp(email, password, userData)
         
         if (result.success) {
-            if (result.autoLogin) {
-                alert('회원가입이 완료되었습니다! 자동으로 로그인되었습니다.')
-                router.push('/')
-            } else {
-                if (result.loginError) {
-                    alert(`회원가입이 완료되었습니다! 자동 로그인에 실패했습니다: ${result.loginError}\n로그인 페이지에서 직접 로그인해주세요.`)
-                } else {
-                    alert('회원가입이 완료되었습니다! 로그인 페이지로 이동합니다.')
-                }
-                router.push('/login')
-            }
+            alert('회원가입이 완료되었습니다! 이메일을 확인해주세요.')
+            router.push('/login')
         } else {
             alert(`회원가입 실패: ${result.message}`)
         }
@@ -475,9 +442,9 @@ const handleSubmit = async () => {
     }
 }
 
-// 아이디 변경 감시 (watch 사용)
-watch(() => formData.userId, () => {
-    idDuplicateChecked.value = false
+// 이메일 변경 감시 (watch 사용)
+watch(() => formData.email, () => {
+    emailDuplicateChecked.value = false
 })
 
 // 개별 약관 동의 상태 감시 (전체 동의 체크박스 자동 업데이트)
