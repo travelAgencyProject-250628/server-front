@@ -345,6 +345,60 @@ export class AuthService {
       }
     }
   }
+
+  // 아이디(이메일) 찾기
+  async findEmail(name, phone) {
+    try {
+      console.log('아이디 찾기 시도:', { name, phone })
+      
+      // Users 테이블에서 이름으로 먼저 조회
+      const { data, error } = await this.supabase
+        .from('Users')
+        .select('email, name, phone_number, mobile_number')
+        .eq('name', name)
+        .maybeSingle()
+
+      if (error) {
+        console.error('아이디 찾기 조회 실패:', error)
+        throw error
+      }
+
+      if (!data) {
+        console.log('일치하는 이름의 사용자 정보 없음')
+        return {
+          success: false,
+          error: '입력하신 정보로 등록된 아이디를 찾을 수 없습니다.',
+          message: '입력하신 정보로 등록된 아이디를 찾을 수 없습니다.'
+        }
+      }
+
+      // 전화번호가 일치하는지 확인
+      const phoneMatch = data.phone_number === phone || data.mobile_number === phone
+
+      if (!phoneMatch) {
+        console.log('전화번호 불일치')
+        return {
+          success: false,
+          error: '입력하신 정보로 등록된 아이디를 찾을 수 없습니다.',
+          message: '입력하신 정보로 등록된 아이디를 찾을 수 없습니다.'
+        }
+      }
+
+      console.log('아이디 찾기 성공:', data.email)
+      return {
+        success: true,
+        email: data.email,
+        message: `찾으시는 아이디는 "${data.email}" 입니다.`
+      }
+    } catch (error) {
+      console.error('아이디 찾기 오류:', error)
+      return {
+        success: false,
+        error: error.message,
+        message: '아이디 찾기에 실패했습니다.'
+      }
+    }
+  }
 }
 
 export const authService = new AuthService() 

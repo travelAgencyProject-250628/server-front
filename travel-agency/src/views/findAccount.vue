@@ -64,13 +64,13 @@
                                         type="text" 
                                         v-model="findIdData.phone" 
                                         class="form-input"
-                                        placeholder="핸드폰번호 ( - 입력제외)"
+                                        placeholder="핸드폰번호 (010-1234-5678)"
                                         required
                                     >
                                 </div>
                             </div>
 
-                            <button type="submit" class="btn-find">아이디 찾기</button>
+                            <button type="submit" class="btn-find">이메일 찾기</button>
                         </form>
                     </div>
 
@@ -127,7 +127,7 @@
                                         type="text" 
                                         v-model="findPasswordData.phone" 
                                         class="form-input"
-                                        placeholder="핸드폰번호 ( - 입력제외)"
+                                        placeholder="핸드폰번호 (010-1234-5678)"
                                         required
                                     >
                                 </div>
@@ -151,6 +151,7 @@
 <script setup>
 import { ref, reactive, onMounted } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
+import { authService } from '../lib/auth.js'
 
 // 라우터 사용
 const router = useRouter()
@@ -183,20 +184,28 @@ const findPasswordData = reactive({
 })
 
 // 메서드들
-const handleFindId = () => {
+const handleFindId = async () => {
     if (!findIdData.name || !findIdData.phone) {
         alert('이름과 핸드폰번호를 입력해주세요.')
         return
     }
 
-    // 실제로는 서버 API 호출
-    console.log('아이디 찾기:', findIdData)
-    
-    // 임시 로직
-    if (findIdData.name === '홍길동' && findIdData.phone === '01012345678') {
-        alert('찾으시는 아이디는 "testuser" 입니다.')
-    } else {
-        alert('입력하신 정보로 등록된 아이디를 찾을 수 없습니다.')
+    try {
+        console.log('아이디 찾기 시도:', findIdData)
+        
+        const result = await authService.findEmail(findIdData.name, findIdData.phone)
+        
+        if (result.success) {
+            alert(result.message)
+            // 성공 후 폼 초기화
+            findIdData.name = ''
+            findIdData.phone = ''
+        } else {
+            alert(result.message)
+        }
+    } catch (error) {
+        console.error('아이디 찾기 오류:', error)
+        alert('아이디 찾기에 실패했습니다. 다시 시도해주세요.')
     }
 }
 
