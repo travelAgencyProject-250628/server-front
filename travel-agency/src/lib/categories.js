@@ -74,11 +74,15 @@ export class CategoryService {
         .from('Categories')
         .insert([categoryData])
         .select()
-        .single()
+        .maybeSingle()
 
       if (error) {
         console.error('카테고리 생성 실패:', error)
         throw error
+      }
+
+      if (!data) {
+        throw new Error('카테고리 생성 후 데이터를 찾을 수 없습니다.')
       }
 
       return {
@@ -104,11 +108,15 @@ export class CategoryService {
         .update(categoryData)
         .eq('id', id)
         .select()
-        .single()
+        .maybeSingle()
 
       if (error) {
         console.error('카테고리 수정 실패:', error)
         throw error
+      }
+
+      if (!data) {
+        throw new Error('수정할 카테고리를 찾을 수 없습니다.')
       }
 
       return {
