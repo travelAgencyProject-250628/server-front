@@ -90,6 +90,8 @@ export async function getProductDetail(productId) {
         child_price,
         included_items,
         excluded_items,
+        likely_departure_threshold,
+        confirmed_departure_threshold,
         category:category_id(id, name)
       `)
       .eq('id', productId)
@@ -122,6 +124,8 @@ export async function getProductDetail(productId) {
       childPrice: data.child_price || 0,
       includedItems: data.included_items || '',
       excludedItems: data.excluded_items || '',
+      likelyDepartureThreshold: data.likely_departure_threshold || 30,
+      confirmedDepartureThreshold: data.confirmed_departure_threshold || 50,
       meetingPoint: '', // Products 테이블에 meeting_point 없음. 필요시 location 조인 등으로 확장 가능
       images
     }
@@ -248,7 +252,7 @@ export async function searchProducts(keyword) {
 
 /**
  * 상품 추가(등록) + 이미지 업로드 지원
- * @param {object} productData - 등록할 상품 정보 (images: File[] 포함 가능)
+ * @param {object} productData - 등록할 상품 정보 (images: File[] 포함 가능, likely_departure_threshold, confirmed_departure_threshold 지원)
  * @returns {Promise<{success: boolean, id?: number, error?: string}>}
  */
 export async function createProduct(productData) {

@@ -511,11 +511,6 @@ watch([() => formData.agreePrivacy, () => formData.agreePolicy, () => formData.a
     margin: 0;
 }
 
-/* 회원가입 폼 */
-.join-form-wrapper {
-    /* 배경 제거 - 개별 섹션들이 각자 배경을 가짐 */
-}
-
 .join-form {
     padding: 0;
 }

@@ -633,6 +633,10 @@
         <input v-model="addProductForm.included_items" />
         <label>불포함사항(선택)</label>
         <input v-model="addProductForm.excluded_items" />
+        <label>출발 유력 기준 인원(선택)</label>
+        <input v-model.number="addProductForm.likely_departure_threshold" type="number" min="1" placeholder="예: 15" />
+        <label>여행 확정 기준 인원(선택)</label>
+        <input v-model.number="addProductForm.confirmed_departure_threshold" type="number" min="1" placeholder="예: 25" />
         <button type="submit" :disabled="loadingAddProduct">등록</button>
       </form>
       <div v-if="loadingAddProduct">등록 중...</div>
@@ -885,7 +889,9 @@ const addProductForm = ref({
   product_code: '',
   event_content: '',
   included_items: '',
-  excluded_items: ''
+  excluded_items: '',
+  likely_departure_threshold: null,
+  confirmed_departure_threshold: null
 })
 const addProductResult = ref(null)
 const addProductError = ref(null)
