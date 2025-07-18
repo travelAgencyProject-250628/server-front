@@ -130,6 +130,8 @@
 import { ref, computed, onMounted, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import Sidebar from '@/components/Sidebar.vue'
+import { getProductsByCategory } from '@/lib/products.js'
+import { categoryService } from '@/lib/categories.js'
 
 const route = useRoute()
 const router = useRouter()
@@ -144,17 +146,25 @@ const menuData = ref(null)
 const loading = ref(true)
 const totalProducts = ref(0)
 
-// 계산된 속성
-const menuKey = computed(() => {
-  return route.params.category || 'product'
+// 전체 메뉴 데이터 (Header에서 사용하는 것과 동일)
+const allMenuData = ref({
+  primaryCategories: [],
+  secondaryCategories: {}
 })
 
+// 계산된 속성
 const categoryName = computed(() => {
-  return route.params.category || '여행상품'
+  const categoryId = parseInt(route.query.categoryId)
+  const category = allMenuData.value.primaryCategories.find(cat => cat.id === categoryId)
+  return category?.name || '여행상품'
 })
 
 const subCategoryName = computed(() => {
-  return route.params.subcategory || ''
+  const subCategoryId = parseInt(route.query.subCategoryId)
+  const categoryId = parseInt(route.query.categoryId)
+  const subCategories = allMenuData.value.secondaryCategories[categoryId] || []
+  const subCategory = subCategories.find(sub => sub.id === subCategoryId)
+  return subCategory?.name || ''
 })
 
 const pageTitle = computed(() => {
@@ -163,8 +173,6 @@ const pageTitle = computed(() => {
   }
   return categoryName.value
 })
-
-
 
 const totalPages = computed(() => {
   return Math.ceil(totalProducts.value / itemsPerPage)
@@ -181,119 +189,84 @@ const visiblePages = computed(() => {
   return pages
 })
 
-// 여행 관련 이미지 ID 배열 (제품 1~12용)
-const getTravelImageId = (id) => {
-  const travelImages = {
-    1: '1506905925346-21bda4d32df4',  // 제주도 해안
-    2: '1544551763-46a013bb70d5',    // 한라산
-    3: '1578662996442-48f60103fc96',  // 제주도 돌하르방
-    4: '1524492412937-b28074a5d7da',  // 제주도 오름
-    5: '1441974231-5f9b92e4df3e',    // 설악산
-    6: '1469474968-9eeefcd482b5',    // 부산 해운대
-    7: '1470071459-3aa88e2458dd',    // 경주 불국사
-    8: '1518837695-8b13bc4f7e78',    // 전주 한옥마을
-    9: '1551698618-1c6c2f7db9b6',    // 남이섬
-    10: '1559827260-3318565c6ad8',   // 강릉 바다
-    11: '1519904981063-65d7b4d0b4f4', // 속초 해변
-    12: '1539650116574-75c0c6d36dc7'  // 여수 밤바다
-  }
-  
-  // 1~12번은 특정 이미지, 그 외는 기본 공식 사용
-  return travelImages[id] || `${1500000000000 + (id * 1000)}`
-}
 
 // 메서드
 const loadMenuData = async () => {
   try {
-    loading.value = true
+    // 전체 메뉴 데이터 가져오기
+    const response = await categoryService.getMenuData()
     
-    // 실제로는 API 호출: const response = await fetch(`/api/menus/${menuKey.value}`)
-    // const data = await response.json()
-    
-    // 더미 데이터 (서버에서 받은 해당 1차 메뉴의 2차 메뉴들)
-    const dummyMenuData = {
-      title: '국내여행',
-      items: [
-        { name: '서울/경기', path: '/products/domestic/seoul' },
-        { name: '강원도', path: '/products/domestic/gangwon' },
-        { name: '경상도', path: '/products/domestic/gyeongsang' },
-        { name: '전라도', path: '/products/domestic/jeolla' },
-        { name: '충청도', path: '/products/domestic/chungcheong' },
-        { name: '제주도', path: '/products/domestic/jeju' }
-      ]
+    if (response.success) {
+      allMenuData.value = response.menuData
+      
+      // 현재 카테고리의 서브카테고리들로 사이드바 메뉴 생성
+      const categoryId = parseInt(route.query.categoryId)
+      const category = allMenuData.value.primaryCategories.find(cat => cat.id === categoryId)
+      const subCategories = allMenuData.value.secondaryCategories[categoryId] || []
+      
+      if (category) {
+        menuData.value = {
+          title: category.name,
+          items: subCategories.map(subCat => ({
+            name: subCat.name,
+            path: `/products?categoryId=${categoryId}&subCategoryId=${subCat.id}`
+          }))
+        }
+      } else {
+        // 카테고리 정보가 없는 경우 기본값
+        menuData.value = {
+          title: '여행상품',
+          items: []
+        }
+      }
+    } else {
+      console.error('메뉴 데이터 로드 실패:', response.error)
+      menuData.value = {
+        title: '여행상품',
+        items: []
+      }
     }
-    
-    // 시뮬레이션: 서버 응답 지연
-    await new Promise(resolve => setTimeout(resolve, 300))
-    
-    menuData.value = dummyMenuData
-    loading.value = false
   } catch (error) {
-    console.error('메뉴 데이터 로드 실패:', error)
-    loading.value = false
+    console.error('메뉴 데이터 로드 오류:', error)
+    menuData.value = {
+      title: '여행상품',
+      items: []
+    }
   }
 }
 
 const loadProducts = async () => {
   try {
-    // 실제로는 API 호출로 카테고리별 상품을 가져옴 (페이징 포함)
-    // const response = await fetch(`/api/products?category=${route.params.category}&subcategory=${route.params.subcategory}&page=${currentPage.value}&limit=${itemsPerPage}&sort=${sortBy.value}`)
-    // const data = await response.json()
+    const categoryId = parseInt(route.query.categoryId)
+    const subCategoryId = parseInt(route.query.subCategoryId)
     
-    // 더미 데이터 (서버에서 정렬된 상태로 받은 현재 라우트에 해당하는 상품들)
-    const generateDummyProducts = (page, limit) => {
-      const allProducts = []
-      const startId = (page - 1) * limit + 1
-      
-      for (let i = 0; i < limit; i++) {
-        const id = startId + i
-        const price = Math.floor(Math.random() * 200000) + 30000
-        const originalPrice = price + Math.floor(Math.random() * 50000) + 10000
-        
-        allProducts.push({
-          id: id,
-          title: `[${id % 3 === 0 ? '2박3일' : id % 2 === 0 ? '1박2일' : '당일'}] ${route.params.category || 'domestic'} 여행 상품 ${id} (${sortBy.value}정렬)`,
-          category: route.params.category || 'domestic',
-          subcategory: route.params.subcategory || 'seoul',
-          price: price,
-          originalPrice: originalPrice,
-          discount: Math.floor(((originalPrice - price) / originalPrice) * 100),
-          image: `https://images.unsplash.com/photo-${getTravelImageId(id)}?w=300&h=200&fit=crop`,
-          isNew: id % 4 === 0,
-          isHot: id % 5 === 0
-        })
-      }
-      
-      return allProducts
+    if (!categoryId) {
+      console.warn('카테고리 ID가 없습니다. 홈페이지로 리다이렉트합니다.')
+      router.push('/')
+      return
     }
     
-    // 시뮬레이션: 서버 응답 지연
-    await new Promise(resolve => setTimeout(resolve, 200))
+    // Supabase에서 카테고리별 상품 가져오기 (서브카테고리 필터링, 정렬 포함)
+    const response = await getProductsByCategory(categoryId, subCategoryId, sortBy.value)
     
-    const dummyProducts = generateDummyProducts(currentPage.value, itemsPerPage)
-    
-    // 서버에서 받은 데이터 (페이징 정보 포함)
-    const serverResponse = {
-      products: dummyProducts,
-      totalCount: 85, // 전체 상품 수 (예시)
-      currentPage: currentPage.value,
-      totalPages: Math.ceil(85 / itemsPerPage),
-      hasNextPage: currentPage.value < Math.ceil(85 / itemsPerPage),
-      hasPrevPage: currentPage.value > 1
+    if (response.success) {
+      // 서버에서 이미 매핑된 데이터를 그대로 사용
+      products.value = response.products || []
+      totalProducts.value = products.value.length
+    } else {
+      products.value = []
+      totalProducts.value = 0
     }
-    
-    products.value = serverResponse.products
-    totalProducts.value = serverResponse.totalCount
   } catch (error) {
-    console.error('상품 로드 실패:', error)
+    console.error('상품 로드 오류:', error)
+    products.value = []
+    totalProducts.value = 0
   }
 }
 
-
-
 const sortProducts = async () => {
   currentPage.value = 1 // 정렬 변경 시 첫 페이지로 리셋
-  await loadProducts()
+  await loadProducts() // 서버에서 정렬된 데이터 요청
 }
 
 const formatPrice = (price) => {
@@ -311,16 +284,34 @@ const changePage = async (page) => {
 }
 
 // 라우트 변경 감지
-watch(() => route.params, async () => {
+watch(() => route.query, async () => {
   currentPage.value = 1 // 라우트 변경 시 첫 페이지로 리셋
-  await loadMenuData()
-  loadProducts()
+  loading.value = true
+  
+  try {
+    // 병렬로 처리하여 로딩 시간 단축
+    await Promise.all([
+      loadMenuData(),
+      loadProducts()
+    ])
+  } finally {
+    loading.value = false
+  }
 })
 
 // 컴포넌트 마운트
 onMounted(async () => {
-  await loadMenuData()
-  loadProducts()
+  loading.value = true
+  
+  try {
+    // 병렬로 처리하여 로딩 시간 단축
+    await Promise.all([
+      loadMenuData(),
+      loadProducts()
+    ])
+  } finally {
+    loading.value = false
+  }
 })
 </script>
 

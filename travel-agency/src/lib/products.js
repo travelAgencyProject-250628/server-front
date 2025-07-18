@@ -135,15 +135,42 @@ export async function getProductDetail(productId) {
 /**
  * 특정 카테고리의 상품 전체 조회
  * @param {number} categoryId
+ * @param {number} tagId - 선택적 서브카테고리 ID
+ * @param {string} sortBy - 정렬 기준 ('latest', 'price-low', 'price-high', 'popular')
  * @returns {Promise<{success: boolean, products: Array, error?: string}>}
  */
-export async function getProductsByCategory(categoryId) {
+export async function getProductsByCategory(categoryId, tagId = null, sortBy = 'latest') {
   try {
-    const { data, error } = await supabase
+    let query = supabase
       .from('Products')
-      .select('id, title, subtitle, main_image_url, adult_price, child_price, duration, location:location_id(id, name), badge:badge_id(id, name)')
+      .select('id, title, subtitle, main_image_url, adult_price, child_price, duration, tag_id, location:location_id(id, name), badge:badge_id(id, name)')
       .eq('category_id', categoryId)
-      .order('created_at', { ascending: false })
+    
+    // 서브카테고리(태그) 필터링
+    if (tagId) {
+      query = query.eq('tag_id', tagId)
+    }
+    
+    // 정렬 처리
+    switch (sortBy) {
+      case 'latest':
+        query = query.order('created_at', { ascending: false })
+        break
+      case 'price-low':
+        query = query.order('adult_price', { ascending: true })
+        break
+      case 'price-high':
+        query = query.order('adult_price', { ascending: false })
+        break
+      case 'popular':
+        // 인기순은 조회수나 예약수 기준으로 정렬 (현재는 ID 기준)
+        query = query.order('id', { ascending: true })
+        break
+      default:
+        query = query.order('created_at', { ascending: false })
+    }
+    
+    const { data, error } = await query
     if (error) throw error
 
     const products = (data || []).map(item => ({
@@ -154,7 +181,8 @@ export async function getProductsByCategory(categoryId) {
       location: item.location?.name || '',
       price: item.adult_price || 0,
       badge: item.badge?.name || '',
-      image: item.main_image_url || ''
+      image: item.main_image_url || '',
+      tagId: item.tag_id
     }))
 
     return { success: true, products }

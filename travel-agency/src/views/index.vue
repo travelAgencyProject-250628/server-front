@@ -3,36 +3,33 @@
 
     <!-- 히어로 섹션 -->
     <section class="hero">  
-      <div class="hero-slider">
-        <div class="hero-slide" :class="{ active: currentSlide === 0 }">
+      <div v-if="isLoading" class="hero-loading">
+        <p>배너 로딩 중...</p>
+      </div>
+      <div v-else class="hero-slider">
+        <div 
+          v-for="(image, index) in bannerImages"
+          :key="index"
+          class="hero-slide" 
+          :class="{ active: currentSlide === index }"
+        >
           <div class="hero-content">
-            <h2>새로운 여행의 시작</h2>
-            <p>편안하고 안전한 버스여행으로 특별한 추억을 만들어보세요</p>
+            <h2 v-if="index === 0">새로운 여행의 시작</h2>
+            <h2 v-else-if="index === 1">국내 최고의 여행 서비스</h2>
+            <h2 v-else>합리적인 가격, 최상의 서비스</h2>
+            
+            <p v-if="index === 0">편안하고 안전한 버스여행으로 특별한 추억을 만들어보세요</p>
+            <p v-else-if="index === 1">30년 경험의 전문 가이드와 함께하는 프리미엄 여행</p>
+            <p v-else>가족, 친구, 연인과 함께 즐기는 행복한 여행</p>
           </div>
-          <div class="hero-bg" style="background-image: url('https://www.artinsight.co.kr/data/tmp/2104/20210412173933_yxcqzfun.jpg');"></div>
-        </div>
-        
-        <div class="hero-slide" :class="{ active: currentSlide === 1 }">
-          <div class="hero-content">
-            <h2>국내 최고의 여행 서비스</h2>
-            <p>30년 경험의 전문 가이드와 함께하는 프리미엄 여행</p>
-          </div>
-          <div class="hero-bg" style="background-image: url('https://img.hankyung.com/photo/202410/06.38500005.1.jpg');"></div>
-        </div>
-        
-        <div class="hero-slide" :class="{ active: currentSlide === 2 }">
-          <div class="hero-content">
-            <h2>합리적인 가격, 최상의 서비스</h2>
-            <p>가족, 친구, 연인과 함께 즐기는 행복한 여행</p>
-          </div>
-          <div class="hero-bg" style="background-image: url('https://www.artinsight.co.kr/data/tmp/2104/20210412173933_yxcqzfun.jpg');"></div>
+          <div class="hero-bg" :style="{ backgroundImage: `url(${image})` }"></div>
         </div>
       </div>
 
       <!-- 슬라이더 인디케이터 -->
-      <div class="hero-indicators">
+      <div v-if="!isLoading" class="hero-indicators">
         <button 
-          v-for="(slide, index) in 3" 
+          v-for="(image, index) in bannerImages" 
           :key="index"
           :class="{ active: currentSlide === index }"
           @click="setSlide(index)"
@@ -46,7 +43,14 @@
     <section class="popular-tours">
       <div class="container">
         <h2 class="section-title">인기 버스 여행 상품</h2>
-        <div class="tours-grid">
+        
+        <!-- 로딩 상태 -->
+        <div v-if="isLoading" class="tours-loading">
+          <p>인기 상품을 불러오는 중...</p>
+        </div>
+        
+        <!-- 투어 상품 그리드 -->
+        <div v-else-if="popularTours.length > 0" class="tours-grid">
           <div 
             v-for="tour in popularTours" 
             :key="tour.id"
@@ -75,7 +79,12 @@
           </div>
         </div>
         
-        <div class="more-tours">
+        <!-- 상품이 없을 때 -->
+        <div v-else class="no-tours">
+          <p>현재 등록된 인기 상품이 없습니다.</p>
+        </div>
+        
+        <div v-if="!isLoading" class="more-tours">
           <button class="btn-outline">더 많은 상품 보기</button>
         </div>
       </div>
@@ -86,10 +95,9 @@
 
 <script setup>
 import { ref, onMounted, onBeforeUnmount, computed} from 'vue'
-import { authService } from '../lib/auth.js'
 import { useRouter } from 'vue-router'
-import Header from '../components/Header.vue'
-import Footer from '../components/Footer.vue'
+import { getBannerImages } from '../lib/banners.js'
+import { getPopularTours } from '../lib/products.js'
 
 // 라우터 초기화
 const router = useRouter()
@@ -97,89 +105,69 @@ const router = useRouter()
 // 반응형 데이터
 const currentSlide = ref(0)
 const sliderInterval = ref(null)
-const isLoggedIn = ref(false)
-const currentUser = ref(null)
+const bannerImages = ref([])
+const isLoading = ref(true)
 
-// 로그인 상태 확인
-const checkAuthStatus = async () => {
-  const { data: { user } } = await authService.getCurrentUser()
-  isLoggedIn.value = !!user
-  currentUser.value = user
+// 인기 투어 데이터 (API에서 가져올 예정)
+const popularTours = ref([])
+
+// 배너 데이터 가져오기
+const fetchBannerData = async () => {
+  try {
+    isLoading.value = true
+    const response = await getBannerImages()
+    
+    if (response.success && response.images.length > 0) {
+      bannerImages.value = response.images
+    } else {
+      // 기본 배너 이미지 설정
+      bannerImages.value = [
+        'https://www.artinsight.co.kr/data/tmp/2104/20210412173933_yxcqzfun.jpg',
+        'https://img.hankyung.com/photo/202410/06.38500005.1.jpg',
+        'https://www.artinsight.co.kr/data/tmp/2104/20210412173933_yxcqzfun.jpg'
+      ]
+    }
+  } catch (error) {
+    console.error('배너 이미지 로드 실패:', error)
+    // 기본 배너 이미지 설정
+    bannerImages.value = [
+      'https://www.artinsight.co.kr/data/tmp/2104/20210412173933_yxcqzfun.jpg',
+      'https://img.hankyung.com/photo/202410/06.38500005.1.jpg',
+      'https://www.artinsight.co.kr/data/tmp/2104/20210412173933_yxcqzfun.jpg'
+    ]
+  } finally {
+    isLoading.value = false
+  }
 }
 
-// 인기 투어 데이터
-const popularTours = ref([
-  {
-    id: 1,
-    title: '제주도 3일 완전정복',
-    description: '한라산, 성산일출봉, 우도까지 제주의 모든 명소를 담은 완벽한 여행',
-    duration: '2박 3일',
-    location: '제주도',
-    price: 285000,
-    badge: '베스트',
-    image: 'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=400&h=250&fit=crop'
-  },
-  {
-    id: 2,
-    title: '부산 맛집 투어',
-    description: '광안리, 해운대와 함께 부산의 대표 맛집들을 순회하는 미식 여행',
-    duration: '1박 2일',
-    location: '부산',
-    price: 189000,
-    badge: '인기',
-    image: 'https://images.unsplash.com/photo-1578662996442-48f60103fc96?w=400&h=250&fit=crop'
-  },
-  {
-    id: 3,
-    title: '강원도 자연 힐링',
-    description: '설악산과 동해안의 아름다운 자연 속에서 힐링하는 여행',
-    duration: '2박 3일',
-    location: '강원도',
-    price: 235000,
-    badge: '추천',
-    image: 'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=400&h=250&fit=crop'
-  },
-  {
-    id: 4,
-    title: '경주 역사 문화 탐방',
-    description: '불국사, 석굴암 등 경주의 유네스코 세계문화유산 완전 정복',
-    duration: '1박 2일',
-    location: '경주',
-    price: 156000,
-    badge: '특가',
-    image: 'https://images.unsplash.com/photo-1578321272176-b7bbc0679853?w=400&h=250&fit=crop'
-  },
-  {
-    id: 5,
-    title: '전주 한옥마을 체험',
-    description: '전주 한옥마을에서의 전통 문화 체험과 맛있는 비빔밥 투어',
-    duration: '당일',
-    location: '전주',
-    price: 89000,
-    badge: '신규',
-    image: 'https://images.unsplash.com/photo-1578662996442-48f60103fc96?w=400&h=250&fit=crop'
-  },
-  {
-    id: 6,
-    title: '남해 독일마을 힐링',
-    description: '이국적인 독일마을과 아름다운 남해의 해안선을 만나는 여행',
-    duration: '1박 2일',
-    location: '남해',
-    price: 198000,
-    badge: '한정',
-    image: 'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=400&h=250&fit=crop'
+// 인기 투어 데이터 가져오기
+const fetchPopularTours = async () => {
+  try {
+    const response = await getPopularTours()
+    
+    if (response.success) {
+      popularTours.value = response.tours
+    } else {
+      console.error('인기 투어 데이터 로드 실패:', response.error)
+    }
+  } catch (error) {
+    console.error('인기 투어 데이터 로드 오류:', error)
   }
-])
+}
 
 // 메서드들
 const startSlider = () => {
-  sliderInterval.value = setInterval(() => {
-    currentSlide.value = (currentSlide.value + 1) % 3
-  }, 5000)
+  if (bannerImages.value.length > 0) {
+    sliderInterval.value = setInterval(() => {
+      currentSlide.value = (currentSlide.value + 1) % bannerImages.value.length
+    }, 5000)
+  }
 }
 
 const setSlide = (index) => {
-  currentSlide.value = index
+  if (index >= 0 && index < bannerImages.value.length) {
+    currentSlide.value = index
+  }
 }
 
 
@@ -191,7 +179,10 @@ const goToProductDetail = (productId) => {
 
 // 라이프사이클 훅
 onMounted(async () => {
-  await checkAuthStatus()
+  await Promise.all([
+    fetchBannerData(),
+    fetchPopularTours()
+  ])
   startSlider()
 })
 
@@ -434,17 +425,32 @@ onBeforeUnmount(() => {
 }
 
 .hero-indicators button {
-  width: 12px;
-  height: 12px;
+  width: 10px;
+  height: 10px;
   border-radius: 50%;
-  border: 2px solid white;
-  background: transparent;
+  border: none;
+  background: rgba(255, 255, 255, 0.4);
   cursor: pointer;
-  transition: var(--transition);
+  transition: all 0.3s ease;
+}
+
+.hero-indicators button:hover {
+  background: rgba(255, 255, 255, 0.6);
+  transform: scale(1.1);
 }
 
 .hero-indicators button.active {
   background: white;
+  transform: scale(1.2);
+}
+
+.hero-loading {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100%;
+  color: white;
+  font-size: 1.2rem;
 }
 
 
@@ -581,6 +587,17 @@ onBeforeUnmount(() => {
 
 .more-tours {
   text-align: center;
+}
+
+.tours-loading, .no-tours {
+  text-align: center;
+  padding: 3rem 0;
+  color: var(--text-secondary);
+}
+
+.tours-loading p, .no-tours p {
+  font-size: 1.1rem;
+  margin: 0;
 }
 
 /* 푸터 스타일 - Footer 컴포넌트로 이동 */

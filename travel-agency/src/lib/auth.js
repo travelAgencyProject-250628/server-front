@@ -191,7 +191,7 @@ export class AuthService {
         is_admin: userInfo.UserRoles?.is_admin || false
       }
 
-      console.log('현재 사용자 정보:', userWithRole)
+      console.log('현재 사용자 정보!!!:', userWithRole)
       return {
         success: true,
         user: userWithRole
