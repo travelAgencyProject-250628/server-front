@@ -256,7 +256,7 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, nextTick } from 'vue'
 import { useRouter } from 'vue-router'
 import { authService } from '../lib/auth.js'
 import { categoryService } from '../lib/categories.js'
@@ -286,11 +286,15 @@ const isAdmin = ref(false)
 // 현재 사용자 정보 가져오기
 const getCurrentUser = async () => {
   try {
+    console.log('사용자 정보 조회 시작...')
     const result = await authService.getCurrentUser()
-    if (result.success) {
+    
+    if (result.success && result.user) {
+      console.log('사용자 정보 조회 성공:', result.user.email)
       isLoggedIn.value = true
       isAdmin.value = result.user?.is_admin || false
     } else {
+      console.log('사용자 정보 없음 - 로그아웃 상태')
       isLoggedIn.value = false
       isAdmin.value = false
     }
@@ -330,21 +334,42 @@ const toggleMobileCategory = (categoryId) => {
 }
 
 const handleLogout = async () => {
-  if (confirm('로그아웃하시겠습니까?')) {
+  if (confirm('로그아웃 하시겠습니까?')) {
     try {
+      console.log('로그아웃 시작...')
+      
+      // 로그아웃 실행
       const result = await authService.signOut()
+      
       if (result.success) {
+        console.log('로그아웃 성공:', result.message)
+        
+        // 로컬 상태 즉시 업데이트 (강제로 반응형 상태 변경)
         isLoggedIn.value = false
         isAdmin.value = false
+        
+        // Vue의 반응형 시스템이 변경을 감지하도록 강제 업데이트
+        await nextTick()
+        
+        // 추가로 상태 변경을 확실히 하기 위해 한 번 더 업데이트
+        setTimeout(() => {
+          isLoggedIn.value = false
+          isAdmin.value = false
+        }, 0)
+        
+        // 모바일 메뉴 닫기
         closeMobileMenu()
-        // 로그아웃 후 홈으로 이동
+        
+        // 홈으로 이동
         router.push('/')
+        
       } else {
-        alert('로그아웃에 실패했습니다.')
+        console.error('로그아웃 실패:', result.error)
+        alert(`로그아웃에 실패했습니다: ${result.error}`)
       }
     } catch (error) {
       console.error('로그아웃 오류:', error)
-      alert('로그아웃 중 오류가 발생했습니다.')
+      alert(`로그아웃 중 오류가 발생했습니다: ${error.message}`)
     }
   }
 }
@@ -496,9 +521,20 @@ onMounted(async () => {
   ])
   
   // 인증 상태 변경 리스너 설정
-  authService.onAuthStateChange(async (event, session) => {
+  const { data: { subscription } } = authService.onAuthStateChange(async (event, session) => {
     console.log('Auth 상태 변경:', event, session)
-    await getCurrentUser()
+    
+    if (event === 'SIGNED_OUT') {
+      console.log('로그아웃 감지 - 상태 즉시 업데이트')
+      isLoggedIn.value = false
+      isAdmin.value = false
+    } else if (event === 'SIGNED_IN') {
+      console.log('로그인 감지 - 사용자 정보 업데이트')
+      await getCurrentUser()
+    } else {
+      console.log('기타 인증 상태 변경 - 사용자 정보 업데이트')
+      await getCurrentUser()
+    }
   })
 })
 </script>
