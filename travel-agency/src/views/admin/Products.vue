@@ -3,12 +3,6 @@
     <!-- 상단 액션 바 -->
     <div class="action-bar">
       <div class="search-filters">
-        <input 
-          type="text" 
-          v-model="searchTerm"
-          placeholder="상품명 검색..."
-          class="search-input"
-        >
         <select v-model="selectedCategory" class="filter-select">
           <option value="">전체 카테고리</option>
           <option v-for="category in categories" :key="category.id" :value="category.id">
@@ -510,7 +504,6 @@ const badges = ref([])
 const locations = ref([])
 const startingPoints = ref([])
 const loading = ref(false)
-const searchTerm = ref('')
 const selectedCategory = ref('')
 const showModal = ref(false)
 const modalMode = ref('create')
@@ -543,13 +536,6 @@ const formData = ref({
 // 계산된 속성
 const filteredProducts = computed(() => {
   let filtered = products.value
-  
-  if (searchTerm.value) {
-    filtered = filtered.filter(product =>
-      product.title.toLowerCase().includes(searchTerm.value.toLowerCase()) ||
-      product.product_code.toLowerCase().includes(searchTerm.value.toLowerCase())
-    )
-  }
   
   if (selectedCategory.value) {
     filtered = filtered.filter(product => product.category_id === selectedCategory.value)
@@ -895,26 +881,17 @@ onMounted(async () => {
   display: flex;
   gap: 1rem;
   flex: 1;
-  max-width: 500px;
+  max-width: 300px;
 }
 
-.search-input,
 .filter-select {
   padding: 0.75rem;
   border: 1px solid #e5e7eb;
   border-radius: 6px;
   font-size: 0.875rem;
-}
-
-.search-input {
-  flex: 1;
-}
-
-.filter-select {
   min-width: 150px;
 }
 
-.search-input:focus,
 .filter-select:focus {
   outline: none;
   border-color: #3b82f6;
