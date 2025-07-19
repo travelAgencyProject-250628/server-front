@@ -46,6 +46,7 @@
               placeholder="검색어를 입력해 주세요." 
               class="search-input"
               v-model="searchQuery"
+              @keyup.enter="handleSearch"
             >
             <button class="search-btn" @click="handleSearch">
                           <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
@@ -524,8 +525,8 @@ const handleReservation = () => {
 const handleSearch = () => {
   if (searchQuery.value.trim()) {
     console.log('검색어:', searchQuery.value)
-    // 실제 검색 로직 구현
-    alert(`"${searchQuery.value}" 검색 결과를 불러오는 중입니다.`)
+    // 검색 결과 페이지로 이동
+    router.push(`/search?q=${encodeURIComponent(searchQuery.value.trim())}`)
   }
 }
 

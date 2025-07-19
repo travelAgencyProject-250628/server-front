@@ -99,6 +99,11 @@ const router = createRouter({
       props: true
     },
     {
+      path: '/search',
+      name: 'searchResults',
+      component: () => import('@/views/SearchResults.vue')
+    },
+    {
       path: '/admin',
       component: () => import('@/components/AdminLayout.vue'),
       meta: { requiresAuth: true, requiresAdmin: true },
