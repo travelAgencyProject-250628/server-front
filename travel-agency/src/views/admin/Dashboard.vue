@@ -190,6 +190,7 @@
               <td>{{ reservation.customerName }}</td>
               <td class="product-name">{{ reservation.productName }}</td>
               <td>{{ formatDate(reservation.reservationDate) }}</td>
+              <td>{{ formatNumber(reservation.amount) }}원</td>
               <td>
                 <span :class="['status', `status-${reservation.status}`]">
                   {{ getStatusText(reservation.status) }}
@@ -206,6 +207,7 @@
 <script setup>
 import { ref, onMounted, nextTick } from 'vue'
 import { getDashboardStats, getWeeklyUserStats, getWeeklyBookingStats } from '@/lib/stats.js'
+import { getRecentReservations } from '@/lib/reservations.js'
 
 // 반응형 데이터
 const selectedWeek = ref('current')
@@ -222,48 +224,7 @@ const stats = ref({
 })
 
 // 최근 예약 데이터
-const recentReservations = ref([
-  {
-    id: 'R2024001',
-    customerName: '김민수',
-    productName: '제주도 3일 완전정복',
-    reservationDate: '2024-01-15',
-    amount: 285000,
-    status: 'confirmed'
-  },
-  {
-    id: 'R2024002',
-    customerName: '이영희',
-    productName: '부산 맛집 투어',
-    reservationDate: '2024-01-14',
-    amount: 189000,
-    status: 'pending'
-  },
-  {
-    id: 'R2024003',
-    customerName: '박진우',
-    productName: '강원도 자연 힐링',
-    reservationDate: '2024-01-14',
-    amount: 235000,
-    status: 'confirmed'
-  },
-  {
-    id: 'R2024004',
-    customerName: '정수빈',
-    productName: '경주 역사 문화 탐방',
-    reservationDate: '2024-01-13',
-    amount: 156000,
-    status: 'cancelled'
-  },
-  {
-    id: 'R2024005',
-    customerName: '최태호',
-    productName: '전주 한옥마을 체험',
-    reservationDate: '2024-01-13',
-    amount: 89000,
-    status: 'confirmed'
-  }
-])
+const recentReservations = ref([])
 
 // 차트 데이터
 const chartData = ref({
@@ -318,6 +279,22 @@ const loadStats = async () => {
   }
 }
 
+// 최근 예약 데이터 로드
+const loadRecentReservations = async () => {
+  try {
+    const result = await getRecentReservations(8)
+    
+    if (result.success) {
+      recentReservations.value = result.reservations
+      console.log('최근 예약 데이터 로드 완료:', recentReservations.value.length, '개')
+    } else {
+      console.error('최근 예약 데이터 로드 오류:', result.error)
+    }
+  } catch (error) {
+    console.error('최근 예약 데이터 로드 오류:', error)
+  }
+}
+
 const formatNumber = (num) => {
   return num.toLocaleString()
 }
@@ -332,7 +309,8 @@ const getStatusText = (status) => {
   const statusMap = {
     confirmed: '예약확정',
     pending: '예약대기',
-    cancelled: '예약취소'
+    cancelled: '예약취소',
+    completed: '여행완료'
   }
   return statusMap[status] || status
 }
@@ -418,6 +396,7 @@ const getBookingAreaPath = () => {
 // 라이프사이클
 onMounted(() => {
   loadStats()
+  loadRecentReservations()
   nextTick(() => {
     createCharts()
   })
@@ -713,6 +692,11 @@ onMounted(() => {
 .status-cancelled {
   background: #fee2e2;
   color: #dc2626;
+}
+
+.status-completed {
+  background: #dbeafe;
+  color: #2563eb;
 }
 
 /* 반응형 디자인 */

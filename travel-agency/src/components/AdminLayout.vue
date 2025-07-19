@@ -29,6 +29,13 @@
           </svg>
           <span>카테고리</span>
         </router-link>
+
+        <router-link to="/admin/tags" class="nav-item">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+            <path stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"/>
+          </svg>
+          <span>태그관리</span>
+        </router-link>
         
         <router-link to="/admin/products" class="nav-item">
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
@@ -56,6 +63,7 @@
           </svg>
           <span>예약관리</span>
         </router-link>
+        
       </nav>
     </div>
     
@@ -98,7 +106,8 @@ const pageTitle = computed(() => {
     '/admin/categories': '카테고리 관리',
     '/admin/products': '상품 관리',
     '/admin/customers': '고객정보 관리',
-    '/admin/reservations': '예약 관리'
+    '/admin/reservations': '예약 관리',
+    '/admin/tags': '태그 관리'
   }
   return routeMap[route.path] || '관리자 페이지'
 })

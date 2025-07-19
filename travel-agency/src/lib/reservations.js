@@ -268,4 +268,45 @@ export async function updateReservationStatus(reservationId, status) {
   } catch (error) {
     return { success: false, error: error.message }
   }
+}
+
+/**
+ * 최근 예약 조회 (대시보드용)
+ * @param {number} limit - 조회할 예약 수 (기본값: 8)
+ * @returns {Promise<{success: boolean, reservations: object[]|null, error?: string}>}
+ */
+export async function getRecentReservations(limit = 8) {
+  try {
+    const { data, error } = await supabase
+      .from('Bookings')
+      .select(`
+        id,
+        created_at,
+        booker_name,
+        departure_date,
+        status,
+        adult_count,
+        child_count,
+        product:product_id(id, title, adult_price, child_price)
+      `)
+      .order('created_at', { ascending: false })
+      .limit(limit)
+    
+    if (error) throw error
+
+    // 데이터 가공
+    const reservations = (data || []).map(reservation => ({
+      id: reservation.id,
+      customerName: reservation.booker_name || '',
+      productName: reservation.product?.title || '',
+      reservationDate: reservation.created_at ? reservation.created_at.split('T')[0] : '',
+      amount: (reservation.product?.adult_price || 0) * (reservation.adult_count || 0) + 
+              (reservation.product?.child_price || 0) * (reservation.child_count || 0),
+      status: reservation.status || ''
+    }))
+
+    return { success: true, reservations }
+  } catch (error) {
+    return { success: false, reservations: null, error: error.message }
+  }
 } 

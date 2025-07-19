@@ -12,18 +12,18 @@
             ⚙️ 어드민 페이지
           </button>
           
-          <!-- 로그인되지 않은 경우 -->
-          <template v-if="!isLoggedIn">
+        <!-- 로그인되지 않은 경우 -->
+        <template v-if="!isLoggedIn">
             <router-link to="/login" class="top-link">로그인</router-link>
             <router-link to="/join" class="top-link">회원가입</router-link>
-          </template>
-          
-          <!-- 로그인된 경우 -->
-          <template v-else>
+        </template>
+        
+        <!-- 로그인된 경우 -->
+        <template v-else>
             <router-link to="/mypage" class="top-link">마이페이지</router-link>
             <button @click="handleLogout" class="top-link">로그아웃</button>
-          </template>
-        </div>
+        </template>
+      </div>
       </div>
     </div>
 
@@ -56,8 +56,8 @@
           </div>
         </div>
 
-        <!-- 예약확인 버튼 (로그인된 경우에만 표시) -->
-        <div v-if="isLoggedIn" class="reservation-menu">
+        <!-- 예약확인 버튼 (항상 표시) -->
+        <div class="reservation-menu">
           <div class="menu-item" @click="handleReservation">
             <div class="menu-icon">
               <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -71,17 +71,14 @@
             <span class="menu-text">예약확인</span>
           </div>
         </div>
-        
-        <!-- 로그인되지 않은 경우 빈 공간 (검색창 가운데 정렬용) -->
-        <div v-else class="reservation-menu-spacer"></div>
 
-        <!-- 모바일 햄버거 메뉴 -->
-        <button class="mobile-menu-btn" @click="toggleMobileMenu">
-          <span></span>
-          <span></span>
-          <span></span>
-        </button>
-      </div>
+      <!-- 모바일 햄버거 메뉴 -->
+      <button class="mobile-menu-btn" @click="toggleMobileMenu">
+        <span></span>
+        <span></span>
+        <span></span>
+      </button>
+    </div>
     </div>
 
     <!-- 네비게이션 바 -->
@@ -191,7 +188,7 @@
       </div>
       
       <div class="mobile-content">
-        <ul class="mobile-nav-menu">
+      <ul class="mobile-nav-menu">
           <li v-if="menuLoading" class="mobile-nav-item">
             <div class="mobile-category-header">
               <span class="category-name">메뉴 로딩중...</span>
@@ -243,10 +240,10 @@
             <router-link to="/join" class="btn-secondary" @click="closeMobileMenu">회원가입</router-link>
           </template>
           
-          <!-- 로그인된 경우 -->
-          <template v-else>
-            <router-link to="/mypage" class="btn-secondary" @click="closeMobileMenu">마이페이지</router-link>
-            <button @click="handleLogout" class="btn-secondary">로그아웃</button>
+                  <!-- 로그인된 경우 -->
+        <template v-else>
+          <router-link to="/mypage" class="btn-secondary" @click="closeMobileMenu">마이페이지</router-link>
+          <button @click="handleLogout" class="btn-secondary">로그아웃</button>
             <button class="btn-primary" @click="() => { handleReservation(); closeMobileMenu(); }">
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                 <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
@@ -257,7 +254,7 @@
               </svg>
               예약확인
             </button>
-          </template>
+        </template>
         </div>
       </div>
     </nav>
@@ -375,7 +372,7 @@ const handleLogout = async () => {
         }, 0)
         
         // 모바일 메뉴 닫기
-        closeMobileMenu()
+    closeMobileMenu()
         
         // 홈으로 이동
         router.push('/')
@@ -512,12 +509,11 @@ const fetchMenuData = async () => {
 
 const handleReservation = () => {
   // 로그인 체크
-  // if (!isLoggedIn.value) {
-  //   if (confirm('예약 확인을 위해 로그인이 필요합니다. 로그인 페이지로 이동하시겠습니까?')) {
-  //     router.push('/login')
-  //   }
-  //   return
-  // }
+  if (!isLoggedIn.value) {
+    alert('예약 확인을 위해 로그인이 필요합니다.')
+    router.push('/login')
+    return
+  }
   
   router.push('/mypage/reservations')
 }
