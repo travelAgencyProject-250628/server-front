@@ -90,7 +90,7 @@ async function getReservationStats() {
     const { count: confirmed, error: confirmedError } = await supabase
       .from('Bookings')
       .select('*', { count: 'exact', head: true })
-      .eq('status', '예약확정')
+      .eq('status', 'confirmed')
     
     if (confirmedError) throw confirmedError
     
@@ -331,7 +331,7 @@ async function getBookingsByDateRange(startDate, endDate) {
     const { data, error } = await supabase
       .from('Bookings')
       .select('created_at')
-      .eq('status', '예약확정')
+      .eq('status', 'confirmed')
       .gte('created_at', startDate.toISOString())
       .lte('created_at', endDate.toISOString())
     

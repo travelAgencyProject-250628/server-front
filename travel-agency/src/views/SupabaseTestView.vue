@@ -110,7 +110,7 @@
     productTitle: '[당일]7월영주한정!(1만원상품권제공)천년고찰~영주부석사+힐링숲족욕겟길(족욕부~회방사페딩)+수수서원+인삼시장',
     departureDate: '2025/07/18',
     totalAmount: 32000,
-    status: '예약확정',
+    status: 'confirmed',
     adultCount: 1,
     childCount: 0
   },
@@ -437,7 +437,7 @@
   excludedItems: '개인경비...',
   adultPrice: 87000,
   totalAmount: 87000,
-  status: '예약확정',
+  status: 'confirmed',
   memberType: '회원예약',
   travelers: [
     { name: '홍길동', phone: '010-2237-6938', type: '성인' }
@@ -513,7 +513,7 @@
         <div class="agree-terms-row">
           <input v-model="postForm.agreeTerms" type="checkbox" id="agreeTerms" /> <label for="agreeTerms">약관동의 (필수)</label>
         </div>
-        <label>상태 <span class="example">예: 예약확정, 대기 등</span></label>
+        <label>상태 <span class="example">예: confirmed, pending, cancelled</span></label>
         <input v-model="postForm.status" placeholder="상태" />
         <label>여행자명 <span class="example">여러 명은 콤마로 구분, 예: 홍길동,김철수</span></label>
         <input v-model="travelerName" placeholder="여행자명" />
@@ -837,7 +837,7 @@ const postForm = ref({
   startingPointId: 1,
   departureDate: '2025-08-08',
   agreeTerms: true,
-  status: '예약확정'
+  status: 'confirmed'
 })
 const travelerName = ref('홍길동,김철수')
 const travelerPhone = ref('010-1234-5678,010-2222-3333')
