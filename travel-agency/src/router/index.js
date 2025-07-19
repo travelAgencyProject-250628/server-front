@@ -133,14 +133,13 @@ const router = createRouter({
           name: 'adminCustomers',
           component: () => import('@/views/admin/Customers.vue'),
           meta: { requiresAuth: true, requiresAdmin: true }
+        },
+        {
+          path: 'reservations',
+          name: 'adminReservations',
+          component: () => import('@/views/admin/Reservations.vue'),
+          meta: { requiresAuth: true, requiresAdmin: true }
         }
-        // ,
-        // {
-        //   path: 'reservations',
-        //   name: 'adminReservations',
-        //   component: () => import('@/views/admin/Reservations.vue'),
-        //   meta: { requiresAuth: true, requiresAdmin: true }
-        // }
       ]
     }
   ],

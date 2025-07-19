@@ -75,7 +75,7 @@ export async function getReservationDetail(reservationId) {
       totalAmount:
         (data.product?.adult_price || 0) * (data.adult_count || 0) +
         (data.product?.child_price || 0) * (data.child_count || 0),
-      status: data.status || (data.agree_terms ? '예약확정' : '대기'),
+      status: data.status || "",
       memberType: '회원예약',
       travelers
     }
@@ -177,12 +177,95 @@ export async function getMyReservations() {
       productTitle: item.product?.title || '',
       departureDate: item.departure_date ? item.departure_date.replace(/-/g, '/') : '',
       totalAmount: (item.product?.adult_price || 0) * (item.adult_count || 0) + (item.product?.child_price || 0) * (item.child_count || 0),
-      status: item.status || '예약확정',
+      status: item.status || '',
       adultCount: item.adult_count || 0,
       childCount: item.child_count || 0
     }))
     return { success: true, reservations }
   } catch (error) {
     return { success: false, reservations: null, error: error.message }
+  }
+}
+
+/**
+ * 모든 예약 조회 (관리자용)
+ * @param {object} options - 조회 옵션
+ * @param {string} options.status - 상태별 필터 (예: 'confirmed', 'pending', 'cancelled')
+ * @param {string} options.search - 검색어 (예약자명, 상품명)
+ * @param {number} options.page - 페이지 번호 (기본값: 1)
+ * @param {number} options.limit - 페이지당 항목 수 (기본값: 20)
+ * @returns {Promise<{success: boolean, reservations: object[]|null, total: number, error?: string}>}
+ */
+export async function getAllReservations(options = {}) {
+  try {
+    const { status, search, page = 1, limit = 20 } = options
+    const offset = (page - 1) * limit
+
+    let query = supabase
+      .from('Bookings')
+      .select(`
+        id,
+        created_at,
+        booker_name,
+        booker_phone,
+        booker_email,
+        adult_count,
+        child_count,
+        departure_date,
+        status,
+        product:product_id(id, title, adult_price, child_price),
+        starting_point:starting_point_id(id, name)
+      `, { count: 'exact' })
+
+    // 상태별 필터링
+    if (status) {
+      query = query.eq('status', status)
+    }
+
+    // 검색 필터링
+    if (search) {
+      query = query.or(`booker_name.ilike.%${search}%,product.title.ilike.%${search}%`)
+    }
+
+    // 페이지네이션 및 정렬
+    const { data, error, count } = await query
+      .order('created_at', { ascending: false })
+      .range(offset, offset + limit - 1)
+
+    if (error) throw error
+
+    // 데이터 그대로 반환
+    const reservations = data || []
+
+    return { 
+      success: true, 
+      reservations, 
+      total: count || 0,
+      page,
+      limit,
+      totalPages: Math.ceil((count || 0) / limit)
+    }
+  } catch (error) {
+    return { success: false, reservations: null, total: 0, error: error.message }
+  }
+}
+
+/**
+ * 예약 상태 업데이트 (관리자용)
+ * @param {number} reservationId - 예약 ID
+ * @param {string} status - 새로운 상태
+ * @returns {Promise<{success: boolean, error?: string}>}
+ */
+export async function updateReservationStatus(reservationId, status) {
+  try {
+    const { error } = await supabase
+      .from('Bookings')
+      .update({ status })
+      .eq('id', reservationId)
+    
+    if (error) throw error
+    return { success: true }
+  } catch (error) {
+    return { success: false, error: error.message }
   }
 } 
