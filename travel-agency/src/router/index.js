@@ -189,19 +189,34 @@ router.beforeEach(async (to, from, next) => {
     return
   }
    
-   
   // 일반 인증이 필요한 페이지인지 확인 (admin 제외)
   const requiresAuth = to.matched.some(record => record.meta.requiresAuth && !to.path.startsWith('/admin'))
 
-  if (requiresAuth && !isLoggedIn) {
-    alert('로그인이 필요한 페이지입니다.')
-    next({
-      path: '/login',
-      query: { redirect: to.fullPath }
-    })
-  } else {
-    next()
+  if (requiresAuth) {
+    // authService를 사용하여 현재 사용자 정보 조회
+    const getCurrentUser = async () => {
+      try {
+        const result = await authService.getCurrentUser()
+        return result.success ? result.user : null
+      } catch {
+        return null
+      }
+    }
+     
+    const currentUser = await getCurrentUser()
+    const isLoggedIn = currentUser !== null
+
+    if (!isLoggedIn) {
+      alert('로그인이 필요한 페이지입니다.')
+      next({
+        path: '/login',
+        query: { redirect: to.fullPath }
+      })
+      return
+    }
   }
+  
+  next()
 })
 
 export default router
