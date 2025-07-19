@@ -86,9 +86,9 @@
                 <div class="chart-bars">
                   <div 
                     v-for="(value, index) in chartData.users.data" 
-                    :key="index"
+                    :key="`${selectedWeek}-${index}`"
                     class="chart-bar"
-                    :style="{ height: `${(value / Math.max(...chartData.users.data)) * 100}%` }"
+                    :style="{ height: `${(value / Math.max(...chartData.users.data, 1)) * 100}%` }"
                   >
                     <span class="bar-value">{{ value }}</span>
                   </div>
@@ -350,10 +350,11 @@ const updateChartData = async () => {
     const result = await getWeeklyUserStats()
     if (result.success) {
       if (selectedWeek.value === 'current') {
-        chartData.value.users.data = result.weeklyData.currentWeek.daily
+        chartData.value.users.data = [...result.weeklyData.currentWeek.daily]
       } else {
-        chartData.value.users.data = result.weeklyData.lastWeek.daily
+        chartData.value.users.data = [...result.weeklyData.lastWeek.daily]
       }
+      console.log('유저 차트 데이터 업데이트:', chartData.value.users.data)
     }
   } catch (error) {
     console.error('주간 데이터 업데이트 오류:', error)
@@ -366,10 +367,11 @@ const updateBookingChartData = async () => {
     const result = await getWeeklyBookingStats()
     if (result.success) {
       if (selectedBookingWeek.value === 'current') {
-        chartData.value.bookings.data = result.weeklyData.currentWeek.daily
+        chartData.value.bookings.data = [...result.weeklyData.currentWeek.daily]
       } else {
-        chartData.value.bookings.data = result.weeklyData.lastWeek.daily
+        chartData.value.bookings.data = [...result.weeklyData.lastWeek.daily]
       }
+      console.log('예약 차트 데이터 업데이트:', chartData.value.bookings.data)
     }
   } catch (error) {
     console.error('주간 예약 데이터 업데이트 오류:', error)
