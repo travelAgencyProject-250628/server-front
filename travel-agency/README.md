@@ -20,6 +20,7 @@ npm install
 
 ```sh
 npm install v-calendar@next
+npm install vuedraggable@next
 ```
 
 ### Compile and Minify for Production

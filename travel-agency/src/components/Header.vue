@@ -33,7 +33,8 @@
         <!-- 로고 -->
         <div class="logo">
           <router-link to="/">
-            <h1>굿모닝투어</h1>
+            <img src="/logo.png" alt="나라투어 로고" class="logo-image">
+            <h1>나라투어</h1>
           </router-link>
         </div>
 
@@ -69,6 +70,9 @@
             <span class="menu-text">예약확인</span>
           </div>
         </div>
+        
+        <!-- 로그인되지 않은 경우 빈 공간 (검색창 가운데 정렬용) -->
+        <div v-else class="reservation-menu-spacer"></div>
 
         <!-- 모바일 햄버거 메뉴 -->
         <button class="mobile-menu-btn" @click="toggleMobileMenu">
@@ -96,17 +100,20 @@
           <li v-if="menuLoading" class="nav-item">
             <span class="nav-link">메뉴 로딩중...</span>
           </li>
-          <li 
-            v-for="category in menuData.primaryCategories" 
-            :key="category.id"
-            class="nav-item"
-            @mouseenter="showSubMenu(category.id)"
-            @mouseleave="hideSubMenu"
-          >
-            <a href="#" class="nav-link" @click="handleCategoryClick(category)">
-              {{ category.name }}
-            </a>
-          </li>
+          <template v-else>
+            <li 
+              v-for="(category, index) in menuData.primaryCategories" 
+              :key="category.id"
+              class="nav-item"
+              @mouseenter="showSubMenu(category.id)"
+              @mouseleave="hideSubMenu"
+            >
+              <a href="#" class="nav-link" @click="handleCategoryClick(category)">
+                {{ category.name }}
+              </a>
+              <span v-if="index < menuData.primaryCategories.length - 1" class="nav-separator">|</span>
+            </li>
+          </template>
         </ul>
       </div>
 
@@ -171,7 +178,8 @@
     <nav class="nav-mobile" :class="{ active: mobileMenuOpen }">
       <div class="mobile-header">
         <div class="mobile-logo">
-          <h1>굿모닝투어</h1>
+          <img src="/logo.png" alt="나라투어 로고" class="logo-image">
+          <h1>나라투어</h1>
         </div>
         <button class="mobile-close-btn" @click="closeMobileMenu">
           <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -256,7 +264,7 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, nextTick } from 'vue'
 import { useRouter } from 'vue-router'
 import { authService } from '../lib/auth.js'
 import { categoryService } from '../lib/categories.js'
@@ -283,19 +291,31 @@ const menuData = ref({
 const isLoggedIn = ref(false)
 const isAdmin = ref(false)
 
-// 현재 사용자 정보 가져오기
-const getCurrentUser = async () => {
+// 현재 세션 정보 가져오기
+const getCurrentSession = async () => {
   try {
-    const result = await authService.getCurrentUser()
-    if (result.success) {
+    console.log('세션 정보 조회 시작...')
+    const { data: { session }, error } = await authService.supabase.auth.getSession()
+    
+    if (error) {
+      console.error('세션 조회 에러:', error)
+      isLoggedIn.value = false
+      isAdmin.value = false
+      return
+    }
+    
+    if (session && session.user) {
+      console.log('세션 정보 조회 성공:', session.user.email)
       isLoggedIn.value = true
-      isAdmin.value = result.user?.is_admin || false
+      // 세션에서는 is_admin 정보를 직접 확인할 수 없으므로 기본값 false
+      isAdmin.value = false
     } else {
+      console.log('세션 없음 - 로그아웃 상태')
       isLoggedIn.value = false
       isAdmin.value = false
     }
   } catch (error) {
-    console.error('사용자 정보 조회 실패:', error)
+    console.error('세션 정보 조회 실패:', error)
     isLoggedIn.value = false
     isAdmin.value = false
   }
@@ -330,21 +350,42 @@ const toggleMobileCategory = (categoryId) => {
 }
 
 const handleLogout = async () => {
-  if (confirm('로그아웃하시겠습니까?')) {
+  if (confirm('로그아웃 하시겠습니까?')) {
     try {
+      console.log('로그아웃 시작...')
+      
+      // 로그아웃 실행
       const result = await authService.signOut()
+      
       if (result.success) {
+        console.log('로그아웃 성공:', result.message)
+        
+        // 로컬 상태 즉시 업데이트 (강제로 반응형 상태 변경)
         isLoggedIn.value = false
         isAdmin.value = false
+        
+        // Vue의 반응형 시스템이 변경을 감지하도록 강제 업데이트
+        await nextTick()
+        
+        // 추가로 상태 변경을 확실히 하기 위해 한 번 더 업데이트
+        setTimeout(() => {
+          isLoggedIn.value = false
+          isAdmin.value = false
+        }, 0)
+        
+        // 모바일 메뉴 닫기
         closeMobileMenu()
-        // 로그아웃 후 홈으로 이동
+        
+        // 홈으로 이동
         router.push('/')
+        
       } else {
-        alert('로그아웃에 실패했습니다.')
+        console.error('로그아웃 실패:', result.error)
+        alert(`로그아웃에 실패했습니다: ${result.error}`)
       }
     } catch (error) {
       console.error('로그아웃 오류:', error)
-      alert('로그아웃 중 오류가 발생했습니다.')
+      alert(`로그아웃 중 오류가 발생했습니다: ${error.message}`)
     }
   }
 }
@@ -492,18 +533,36 @@ const handleSearch = () => {
 onMounted(async () => {
   await Promise.all([
     fetchMenuData(),
-    getCurrentUser()
+    getCurrentSession()
   ])
   
   // 인증 상태 변경 리스너 설정
-  authService.onAuthStateChange(async (event, session) => {
+  const { data: { subscription } } = authService.onAuthStateChange(async (event, session) => {
     console.log('Auth 상태 변경:', event, session)
-    await getCurrentUser()
+    
+    if (event === 'SIGNED_OUT') {
+      console.log('로그아웃 감지 - 상태 즉시 업데이트')
+      isLoggedIn.value = false
+      isAdmin.value = false
+    
+    } else if (event === 'SIGNED_IN') {
+      console.log('로그인 감지 - 세션 정보 업데이트')
+      await getCurrentSession()
+    // } else if (event === 'USER_UPDATED') {
+    //   console.log('사용자 정보 업데이트 감지 - 세션 정보 업데이트')
+    // } else {
+    //   console.log('기타 인증 상태 변경 - 세션 정보 업데이트')
+    //   await getCurrentSession()
+    // }
+    }
   })
 })
 </script>
 
 <style scoped>
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700&display=swap');
+
 /* CSS 변수 정의 */
 :root {
   --primary-color: #2563eb;
@@ -530,7 +589,7 @@ onMounted(async () => {
 /* 상단 유틸리티 바 */
 .top-bar {
   background: white;
-  padding: 0.4rem 0;
+  padding-top: 0.5rem;
   font-size: 0.8rem;
 }
 
@@ -582,7 +641,7 @@ onMounted(async () => {
 
 /* 메인 헤더 */
 .main-header {
-  padding: 0.5rem 0;
+  padding: 0.2rem 0;
 }
 
 .main-header-container {
@@ -598,6 +657,17 @@ onMounted(async () => {
 /* 로고 */
 .logo {
   flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  justify-content: center;
+  height: 100%;
+}
+
+.logo-image {
+  width: 80px;
+  height: 80px;
+  object-fit: contain;
 }
 
 .logo h1 {
@@ -605,10 +675,20 @@ onMounted(async () => {
   font-size: 1.8rem;
   font-weight: 700;
   margin: 0;
+  display: flex;
+  align-items: center;
+  line-height: 1;
+  font-family: 'Inter', 'Noto Sans KR', -apple-system, BlinkMacSystemFont, system-ui, Roboto, 'Helvetica Neue', 'Segoe UI', sans-serif;
+  letter-spacing: -0.02em;
 }
 
 .logo a {
   text-decoration: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  height: 100%;
 }
 
 /* 검색 영역 */
@@ -674,6 +754,13 @@ onMounted(async () => {
 .reservation-menu {
   display: flex;
   flex-shrink: 0;
+}
+
+/* 로그인되지 않은 경우 빈 공간 */
+.reservation-menu-spacer {
+  display: flex;
+  flex-shrink: 0;
+  width: 80px; /* 예약확인 버튼과 동일한 너비 */
 }
 
 .menu-item {
@@ -751,11 +838,12 @@ onMounted(async () => {
   list-style: none;
   margin: 0;
   padding: 0;
-  gap: 2rem;
 }
 
 .nav-item {
   position: relative;
+  display: flex;
+  align-items: center;
 }
 
 .nav-link {
@@ -769,6 +857,17 @@ onMounted(async () => {
 
 .nav-link:hover {
   color: var(--primary-color);
+}
+
+.nav-separator {
+  color: var(--text-secondary);
+  font-weight: 300;
+  margin: 0 1.2rem;
+  opacity: 0.6;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
 }
 
 /* 서브메뉴 컨테이너 */
@@ -1187,6 +1286,12 @@ onMounted(async () => {
   
   .logo h1 {
     font-size: 1.5rem;
+  }
+  
+  .mobile-logo {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
   }
   
   .search-area {

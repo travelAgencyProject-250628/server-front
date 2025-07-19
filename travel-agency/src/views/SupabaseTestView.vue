@@ -95,7 +95,7 @@
           <div class="api-title">GET /lib/reservations.js</div>
           <div class="api-method">
             <span class="method">getMyReservations()</span>
-          </div>
+        </div>
           <div class="api-desc">
             <p>
               <strong>설명:</strong> <br>
@@ -123,7 +123,7 @@
                 const result = await getMyReservations()
               </code>
             </p>
-          </div>
+        </div>
         </div>
       </div>
       <h2>내 예약 목록 데이터 테스트</h2>
@@ -133,8 +133,8 @@
       <div v-if="loadingMyBookings">로딩 중...</div>
       <div v-else-if="errorMyBookings" style="color:red">에러: {{ errorMyBookings }}</div>
       <pre v-else-if="myBookingsData">{{ myBookingsData }}</pre>
-    </div>
-
+        </div>
+        
     <div v-if="activeTab === 'category'">
       <div class="swagger-doc">
         <h2>📚 API 문서: 카테고리 메뉴 데이터</h2>
@@ -177,7 +177,7 @@
       <div v-if="loading">로딩 중...</div>
       <div v-else-if="error" style="color:red">에러: {{ error }}</div>
       <pre v-else>{{ menuData }}</pre>
-    </div>
+      </div>
 
     <div v-else-if="activeTab === 'popular'">
       <div class="swagger-doc">
@@ -186,7 +186,7 @@
           <div class="api-title">GET /lib/products.js</div>
           <div class="api-method">
             <span class="method">getPopularTours()</span>
-          </div>
+        </div>
           <div class="api-desc">
             <p>
               <strong>설명:</strong> <br>
@@ -221,7 +221,7 @@
       <div v-if="loadingTours">로딩 중...</div>
       <div v-else-if="errorTours" style="color:red">에러: {{ errorTours }}</div>
       <pre v-else>{{ toursData }}</pre>
-    </div>
+      </div>
 
     <div v-else-if="activeTab === 'product'">
       <div class="swagger-doc">
@@ -230,7 +230,7 @@
           <div class="api-title">GET /lib/products.js</div>
           <div class="api-method">
             <span class="method">getProductDetail(productId)</span>
-          </div>
+      </div>
           <div class="api-desc">
             <p>
               <strong>설명:</strong> <br>
@@ -633,6 +633,10 @@
         <input v-model="addProductForm.included_items" />
         <label>불포함사항(선택)</label>
         <input v-model="addProductForm.excluded_items" />
+        <label>출발 유력 기준 인원(선택)</label>
+        <input v-model.number="addProductForm.likely_departure_threshold" type="number" min="1" placeholder="예: 15" />
+        <label>여행 확정 기준 인원(선택)</label>
+        <input v-model.number="addProductForm.confirmed_departure_threshold" type="number" min="1" placeholder="예: 25" />
         <button type="submit" :disabled="loadingAddProduct">등록</button>
       </form>
       <div v-if="loadingAddProduct">등록 중...</div>
@@ -645,10 +649,10 @@
       <div class="swagger-doc">
         <h2>📚 API 문서: 태그 데이터</h2>
         <div class="api-section">
-          <div class="api-title">GET /lib/tag.js</div>
-          <div class="api-method">
-            <span class="method">getAllTags()</span>
-          </div>
+                  <div class="api-title">GET /lib/tags.js</div>
+        <div class="api-method">
+          <span class="method">tagService.getAllTags()</span>
+        </div>
           <div class="api-desc">
             <p>
               <strong>설명:</strong> <br>
@@ -664,8 +668,8 @@
             <p>
               <strong>사용 예시:</strong><br>
               <code>
-                import &#123; getAllTags &#125; from '@/lib/tag.js'<br>
-                const result = await getAllTags()
+                import &#123; tagService &#125; from '@/lib/tags.js'<br>
+                const result = await tagService.getAllTags()
               </code>
             </p>
           </div>
@@ -737,7 +741,7 @@ import { getBannerImages } from '@/lib/banners.js'
 import { getReservationDetail, createReservation, getMyReservations } from '@/lib/reservations.js'
 import { getCurrentUserInfo, updateUserInfo } from '@/lib/users.js'
 import { getStartingPoints } from '@/lib/startingpoints.js'
-import { getAllTags, createTag } from '@/lib/tag.js'
+import { tagService } from '@/lib/tags.js'
 
 const menuData = ref(null)
 const error = ref(null)
@@ -885,7 +889,9 @@ const addProductForm = ref({
   product_code: '',
   event_content: '',
   included_items: '',
-  excluded_items: ''
+  excluded_items: '',
+  likely_departure_threshold: null,
+  confirmed_departure_threshold: null
 })
 const addProductResult = ref(null)
 const addProductError = ref(null)
@@ -947,7 +953,7 @@ async function fetchTags() {
   loadingTags.value = true
   errorTags.value = null
   tagsData.value = null
-  const result = await getAllTags()
+  const result = await tagService.getAllTags()
   if (result.success) {
     tagsData.value = JSON.stringify(result.tags, null, 2)
   } else {
@@ -961,9 +967,9 @@ async function submitAddTag() {
   addTagError.value = null
   addTagResult.value = null
   try {
-    const result = await createTag(addTagName.value)
+    const result = await tagService.createTag({ name: addTagName.value })
     if (result.success) {
-      addTagResult.value = result.id
+      addTagResult.value = result.tag.id
       addTagName.value = ''
       // 태그 목록 새로고침
       await fetchTags()

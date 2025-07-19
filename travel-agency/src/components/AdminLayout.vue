@@ -76,7 +76,6 @@
         <div class="header-right">
           <div class="admin-user">
             <span class="admin-name">관리자</span>
-            <button class="logout-btn" @click="logout">로그아웃</button>
           </div>
         </div>
       </header>
@@ -115,14 +114,6 @@ const pageTitle = computed(() => {
 // 사이드바 토글
 const toggleSidebar = () => {
   sidebarCollapsed.value = !sidebarCollapsed.value
-}
-
-// 로그아웃
-const logout = () => {
-  if (confirm('로그아웃 하시겠습니까?')) {
-    localStorage.removeItem('test_auth')
-    router.push('/login')
-  }
 }
 </script>
 

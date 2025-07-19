@@ -13,15 +13,6 @@
           class="hero-slide" 
           :class="{ active: currentSlide === index }"
         >
-          <div class="hero-content">
-            <h2 v-if="index === 0">새로운 여행의 시작</h2>
-            <h2 v-else-if="index === 1">국내 최고의 여행 서비스</h2>
-            <h2 v-else>합리적인 가격, 최상의 서비스</h2>
-            
-            <p v-if="index === 0">편안하고 안전한 버스여행으로 특별한 추억을 만들어보세요</p>
-            <p v-else-if="index === 1">30년 경험의 전문 가이드와 함께하는 프리미엄 여행</p>
-            <p v-else>가족, 친구, 연인과 함께 즐기는 행복한 여행</p>
-          </div>
           <div class="hero-bg" :style="{ backgroundImage: `url(${image})` }"></div>
         </div>
       </div>
@@ -62,8 +53,10 @@
               <div class="tour-badge">{{ tour.badge }}</div>
             </div>
             <div class="tour-content">
-              <h3 class="tour-title">{{ tour.title }}</h3>
-              <p class="tour-description">{{ tour.description }}</p>
+              <div class="tour-info">
+                <h3 class="tour-title">{{ tour.title }}</h3>
+                <p class="tour-description">{{ tour.description }}</p>
+              </div>
               <div class="tour-details">
                 <span class="tour-duration">{{ tour.duration }}</span>
                 <span class="tour-location">{{ tour.location }}</span>
@@ -482,6 +475,9 @@ onBeforeUnmount(() => {
   border: 1px solid var(--border-color);
   transition: var(--transition);
   cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
 }
 
 .tour-card:hover {
@@ -520,6 +516,16 @@ onBeforeUnmount(() => {
 
 .tour-content {
   padding: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
+}
+
+.tour-info {
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
 }
 
 .tour-title {
@@ -534,12 +540,18 @@ onBeforeUnmount(() => {
   margin-bottom: 1rem;
   line-height: 1.5;
   font-size: 0.95rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
 }
 
 .tour-details {
   display: flex;
   gap: 1rem;
   margin-bottom: 1.5rem;
+  flex: 0 0 auto;
 }
 
 .tour-duration, .tour-location {
@@ -555,6 +567,8 @@ onBeforeUnmount(() => {
   display: flex;
   justify-content: space-between;
   align-items: center;
+  flex: 0 0 auto;
+  margin-top: auto;
 }
 
 .tour-price {

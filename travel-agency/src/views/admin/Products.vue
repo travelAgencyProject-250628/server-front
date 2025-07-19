@@ -47,7 +47,11 @@
               <th>상품 이미지</th>
               <th>상품명</th>
               <th>카테고리</th>
+              <th>태그</th>
+              <th>배지</th>
+              <th>지역</th>
               <th>가격</th>
+              <th>출발장소</th>
               <th>상태</th>
               <th>등록일</th>
               <th>액션</th>
@@ -63,17 +67,41 @@
               <td>
                 <div class="product-info">
                   <h4>{{ product.title }}</h4>
-                  <p>{{ product.productCode }}</p>
+                  <p v-if="product.subtitle" class="product-subtitle">{{ product.subtitle }}</p>
+                  <p>{{ product.product_code }}</p>
                 </div>
               </td>
-              <td>{{ product.category }}</td>
-              <td>{{ formatPrice(product.adultPrice) }}원</td>
+              <td>{{ product.category?.name || '기타' }}</td>
+              <td>{{ product.tag?.name || '-' }}</td>
+              <td>{{ product.badge?.name || '-' }}</td>
+              <td>{{ product.location?.name || '-' }}</td>
+              <td>{{ formatPrice(product.adult_price) }}원</td>
               <td>
-                <span :class="['status', product.status === 'active' ? 'status-active' : 'status-inactive']">
-                  {{ product.status === 'active' ? '활성' : '비활성' }}
+                <div class="starting-points-display">
+                  <div v-if="product.startingPoints && product.startingPoints.length > 0">
+                    <div 
+                      v-for="(point, index) in product.startingPoints.slice(0, 2)" 
+                      :key="index"
+                      class="starting-point-display-item"
+                    >
+                      <span class="point-name">{{ point.name }}</span>
+                      <span class="point-time">{{ formatDateTime(point.time) }}</span>
+                    </div>
+                    <div v-if="product.startingPoints.length > 2" class="more-points">
+                      +{{ product.startingPoints.length - 2 }}개 더
+                    </div>
+                  </div>
+                  <div v-else class="no-starting-points">
+                    출발장소 없음
+                  </div>
+                </div>
+              </td>
+              <td>
+                <span :class="['status', product.status ? 'status-active' : 'status-inactive']">
+                  {{ product.status ? '활성' : '비활성' }}
                 </span>
               </td>
-              <td>{{ formatDate(product.createdAt) }}</td>
+              <td>{{ formatDate(product.created_at) }}</td>
               <td>
                 <div class="action-buttons">
                   <button 
@@ -88,7 +116,7 @@
                   </button>
                   <button 
                     class="btn-delete"
-                    @click="deleteProduct(product)"
+                    @click="handleDeleteProduct(product)"
                     title="삭제"
                   >
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
@@ -135,11 +163,22 @@
               </div>
               
               <div class="form-group">
+                <label for="productSubtitle">상품 부제목</label>
+                <input 
+                  type="text" 
+                  id="productSubtitle"
+                  v-model="formData.subtitle"
+                  placeholder="상품 부제목을 입력하세요"
+                  class="form-input"
+                >
+              </div>
+              
+              <div class="form-group">
                 <label for="productCode">상품코드 *</label>
                 <input 
                   type="text" 
                   id="productCode"
-                  v-model="formData.productCode"
+                  v-model="formData.product_code"
                   placeholder="상품코드를 입력하세요"
                   required
                   class="form-input"
@@ -147,10 +186,10 @@
               </div>
               
               <div class="form-group">
-                <label for="productCategory">카테고리 *</label>
+                <label for="productCategory">카테고리 * ({{ categories.length }}개)</label>
                 <select 
                   id="productCategory"
-                  v-model="formData.categoryId"
+                  v-model="formData.category_id"
                   required
                   class="form-input"
                 >
@@ -159,6 +198,60 @@
                     {{ category.name }}
                   </option>
                 </select>
+                <div v-if="categories.length === 0" class="error-message">
+                  카테고리를 불러오는 중입니다...
+                </div>
+              </div>
+              
+              <div class="form-group">
+                <label for="productTag">태그 ({{ tags.length }}개)</label>
+                <select 
+                  id="productTag"
+                  v-model="formData.tag_id"
+                  class="form-input"
+                >
+                  <option value="">태그를 선택하세요</option>
+                  <option v-for="tag in tags" :key="tag.id" :value="tag.id">
+                    {{ tag.name }}
+                  </option>
+                </select>
+                <div v-if="tags.length === 0" class="error-message">
+                  태그를 불러오는 중입니다...
+                </div>
+              </div>
+              
+              <div class="form-group">
+                <label for="productBadge">배지 ({{ badges.length }}개)</label>
+                <select 
+                  id="productBadge"
+                  v-model="formData.badge_id"
+                  class="form-input"
+                >
+                  <option value="">배지를 선택하세요</option>
+                  <option v-for="badge in badges" :key="badge.id" :value="badge.id">
+                    {{ badge.name }}
+                  </option>
+                </select>
+                <div v-if="badges.length === 0" class="error-message">
+                  배지를 불러오는 중입니다...
+                </div>
+              </div>
+              
+              <div class="form-group">
+                <label for="productLocation">지역 ({{ locations.length }}개)</label>
+                <select 
+                  id="productLocation"
+                  v-model="formData.location_id"
+                  class="form-input"
+                >
+                  <option value="">지역을 선택하세요</option>
+                  <option v-for="location in locations" :key="location.id" :value="location.id">
+                    {{ location.name }}
+                  </option>
+                </select>
+                <div v-if="locations.length === 0" class="error-message">
+                  지역을 불러오는 중입니다...
+                </div>
               </div>
               
               <div class="form-group">
@@ -166,7 +259,7 @@
                 <input 
                   type="text" 
                   id="travelDuration"
-                  v-model="formData.travelDuration"
+                  v-model="formData.duration"
                   placeholder="예: 2박 3일, 당일"
                   required
                   class="form-input"
@@ -179,9 +272,35 @@
                   v-model="formData.status"
                   class="form-input"
                 >
-                  <option value="active">활성</option>
-                  <option value="inactive">비활성</option>
+                  <option :value="true">활성</option>
+                  <option :value="false">비활성</option>
                 </select>
+              </div>
+              
+              <div class="form-group">
+                <label for="likelyDepartureThreshold">출발 유력 인원수</label>
+                <input 
+                  type="number" 
+                  id="likelyDepartureThreshold"
+                  v-model="formData.likely_departure_threshold"
+                  placeholder="30"
+                  min="1"
+                  max="100"
+                  class="form-input"
+                >
+              </div>
+              
+              <div class="form-group">
+                <label for="confirmedDepartureThreshold">확정 출발 인원수</label>
+                <input 
+                  type="number" 
+                  id="confirmedDepartureThreshold"
+                  v-model="formData.confirmed_departure_threshold"
+                  placeholder="50"
+                  min="1"
+                  max="100"
+                  class="form-input"
+                >
               </div>
             </div>
             
@@ -193,7 +312,7 @@
                 <input 
                   type="number" 
                   id="adultPrice"
-                  v-model="formData.adultPrice"
+                  v-model="formData.adult_price"
                   placeholder="성인 가격"
                   required
                   class="form-input"
@@ -205,7 +324,7 @@
                 <input 
                   type="number" 
                   id="childPrice"
-                  v-model="formData.childPrice"
+                  v-model="formData.child_price"
                   placeholder="소인 가격"
                   required
                   class="form-input"
@@ -220,7 +339,7 @@
                 <label for="eventContent">행사 내용</label>
                 <textarea 
                   id="eventContent"
-                  v-model="formData.eventContent"
+                  v-model="formData.event_content"
                   placeholder="행사 내용을 입력하세요"
                   rows="3"
                   class="form-input"
@@ -231,18 +350,18 @@
                 <label for="includedItems">포함 사항</label>
                 <textarea 
                   id="includedItems"
-                  v-model="formData.includedItems"
+                  v-model="formData.included_items"
                   placeholder="포함 사항을 입력하세요"
                   rows="3"
                   class="form-input"
                 ></textarea>
               </div>
               
-              <div class="form-group">
+                            <div class="form-group">
                 <label for="excludedItems">불포함 사항</label>
                 <textarea 
                   id="excludedItems"
-                  v-model="formData.excludedItems"
+                  v-model="formData.excluded_items"
                   placeholder="불포함 사항을 입력하세요"
                   rows="3"
                   class="form-input"
@@ -250,43 +369,59 @@
               </div>
               
               <div class="form-group">
-                <label for="meetingPoint">모이는 장소</label>
-                <div class="meeting-point-container">
-                  <div class="meeting-point-input">
-                    <input 
-                      type="text"
-                      v-model="newMeetingPoint"
-                      placeholder="모이는 장소를 입력하세요"
-                      class="form-input"
-                      @keyup.enter="addMeetingPoint"
-                    >
+                <label for="startingPoints">출발장소 및 시간</label>
+                <div class="starting-points-container">
+                  <div class="starting-points-header">
                     <button 
                       type="button"
-                      @click="addMeetingPoint"
-                      class="btn-add-meeting-point"
-                      :disabled="!newMeetingPoint.trim()"
+                      @click="addStartingPoint"
+                      class="btn-add-starting-point"
                     >
                       <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
                         <path d="M12 5v14M5 12h14" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
                       </svg>
+                      출발장소 추가
                     </button>
                   </div>
-                  <div v-if="formData.meetingPoint.length > 0" class="meeting-point-list">
+                  <div v-if="formData.startingPoints.length > 0" class="starting-points-list">
                     <div 
-                      v-for="(point, index) in formData.meetingPoint" 
+                      v-for="(point, index) in formData.startingPoints" 
                       :key="index"
-                      class="meeting-point-item"
+                      class="starting-point-item"
                     >
-                      <span>{{ point }}</span>
-                      <button 
-                        type="button"
-                        @click="removeMeetingPoint(index)"
-                        class="btn-remove-meeting-point"
-                      >
-                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
-                          <path d="M18 6L6 18M6 6l12 12" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-                        </svg>
-                      </button>
+                      <div class="starting-point-inputs">
+                        <select 
+                          :value="point.starting_point_id"
+                          @change="updateStartingPoint(index, 'starting_point_id', $event.target.value)"
+                          class="form-input starting-point-select"
+                          required
+                        >
+                          <option value="">출발장소 선택</option>
+                          <option 
+                            v-for="sp in startingPoints" 
+                            :key="sp.id" 
+                            :value="sp.id"
+                          >
+                            {{ sp.name }}
+                          </option>
+                        </select>
+                        <input 
+                          type="datetime-local"
+                          :value="point.time"
+                          @change="updateStartingPoint(index, 'time', $event.target.value)"
+                          class="form-input starting-point-time"
+                          required
+                        >
+                        <button 
+                          type="button"
+                          @click="removeStartingPoint(index)"
+                          class="btn-remove-starting-point"
+                        >
+                          <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
+                            <path d="M18 6L6 18M6 6l12 12" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                          </svg>
+                        </button>
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -362,10 +497,18 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue'
 import { categoryService } from '@/lib/categories.js'
+import { tagService } from '@/lib/tags.js'
+import { badgeService } from '@/lib/badges.js'
+import { locationService } from '@/lib/locations.js'
+import { createProduct, updateProduct, deleteProduct, getAllProducts, getAllStartingPoints } from '@/lib/products.js'
 
 // 반응형 데이터
 const products = ref([])
 const categories = ref([])
+const tags = ref([])
+const badges = ref([])
+const locations = ref([])
+const startingPoints = ref([])
 const loading = ref(false)
 const searchTerm = ref('')
 const selectedCategory = ref('')
@@ -373,23 +516,28 @@ const showModal = ref(false)
 const modalMode = ref('create')
 const submitting = ref(false)
 const selectedProduct = ref(null)
-const newMeetingPoint = ref('')
 const imageFileInput = ref(null)
 
-// 폼 데이터
+// 폼 데이터 - Supabase 컬럼명에 맞게 수정
 const formData = ref({
   title: '',
-  productCode: '',
-  categoryId: '',
-  travelDuration: '',
-  adultPrice: '',
-  childPrice: '',
-  eventContent: '',
-  includedItems: '',
-  excludedItems: '',
-  meetingPoint: [],
+  subtitle: '',
+  product_code: '',
+  category_id: '',
+  tag_id: '',
+  badge_id: '',
+  location_id: '',
+  duration: '',
+  adult_price: '',
+  child_price: '',
+  event_content: '',
+  included_items: '',
+  excluded_items: '',
+  likely_departure_threshold: 30,
+  confirmed_departure_threshold: 50,
+  status: true,
   images: [],
-  status: 'active'
+  startingPoints: []
 })
 
 // 계산된 속성
@@ -399,12 +547,12 @@ const filteredProducts = computed(() => {
   if (searchTerm.value) {
     filtered = filtered.filter(product =>
       product.title.toLowerCase().includes(searchTerm.value.toLowerCase()) ||
-      product.productCode.toLowerCase().includes(searchTerm.value.toLowerCase())
+      product.product_code.toLowerCase().includes(searchTerm.value.toLowerCase())
     )
   }
   
   if (selectedCategory.value) {
-    filtered = filtered.filter(product => product.categoryId === selectedCategory.value)
+    filtered = filtered.filter(product => product.category_id === selectedCategory.value)
   }
   
   return filtered
@@ -414,59 +562,16 @@ const filteredProducts = computed(() => {
 const loadProducts = async () => {
   loading.value = true
   try {
-    // 더미 데이터 (실제로는 API 호출)
-    await new Promise(resolve => setTimeout(resolve, 500))
-    
-    products.value = [
-      {
-        id: 1,
-        title: '제주도 3일 완전정복',
-        productCode: 'JEJU001',
-        categoryId: 1,
-        category: '국내여행',
-        travelDuration: '2박 3일',
-        adultPrice: 285000,
-        childPrice: 220000,
-        eventContent: '제주의 모든 명소를 담은 완벽한 여행',
-        includedItems: '숙박, 식사, 교통비',
-        excludedItems: '개인경비, 여행자보험',
-        meetingPoint: ['김포공항', '인천공항'],
-        images: [
-          {
-            name: 'jeju-main.jpg',
-            url: 'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=400&h=250&fit=crop',
-            size: 250000
-          }
-        ],
-        status: 'active',
-        createdAt: '2024-01-15'
-      },
-      {
-        id: 2,
-        title: '부산 맛집 투어',
-        productCode: 'BUSAN001',
-        categoryId: 1,
-        category: '국내여행',
-        travelDuration: '1박 2일',
-        adultPrice: 189000,
-        childPrice: 145000,
-        eventContent: '부산의 대표 맛집들을 순회하는 미식 여행',
-        includedItems: '숙박, 식사, 교통비',
-        excludedItems: '개인경비, 여행자보험',
-        meetingPoint: ['서울역', '부산역'],
-        images: [
-          {
-            name: 'busan-main.jpg',
-            url: 'https://images.unsplash.com/photo-1578662996442-48f60103fc96?w=400&h=250&fit=crop',
-            size: 280000
-          }
-        ],
-        status: 'active',
-        createdAt: '2024-01-10'
-      }
-    ]
+    const result = await getAllProducts()
+    if (result.success) {
+      products.value = result.products
+    } else {
+      console.error('상품 로드 실패:', result.error)
+      products.value = []
+    }
   } catch (error) {
     console.error('상품 로드 오류:', error)
+    products.value = []
   } finally {
     loading.value = false
   }
@@ -474,12 +579,61 @@ const loadProducts = async () => {
 
 const loadCategories = async () => {
   try {
+    console.log('카테고리 로드 시작...')
     const result = await categoryService.getAllCategories()
+    console.log('카테고리 로드 결과:', result)
     if (result.success) {
       categories.value = result.categories
+      console.log('카테고리 설정 완료:', categories.value)
+    } else {
+      console.error('카테고리 로드 실패:', result.error)
     }
   } catch (error) {
     console.error('카테고리 로드 오류:', error)
+  }
+}
+
+const loadStartingPoints = async () => {
+  try {
+    const result = await getAllStartingPoints()
+    if (result.success) {
+      startingPoints.value = result.startingPoints
+    }
+  } catch (error) {
+    console.error('출발장소 로드 오류:', error)
+  }
+}
+
+const loadTags = async () => {
+  try {
+    const result = await tagService.getAllTags()
+    if (result.success) {
+      tags.value = result.tags
+    }
+  } catch (error) {
+    console.error('태그 로드 오류:', error)
+  }
+}
+
+const loadBadges = async () => {
+  try {
+    const result = await badgeService.getAllBadges()
+    if (result.success) {
+      badges.value = result.badges
+    }
+  } catch (error) {
+    console.error('배지 로드 오류:', error)
+  }
+}
+
+const loadLocations = async () => {
+  try {
+    const result = await locationService.getAllLocations()
+    if (result.success) {
+      locations.value = result.locations
+    }
+  } catch (error) {
+    console.error('지역 로드 오류:', error)
   }
 }
 
@@ -487,19 +641,24 @@ const openCreateModal = () => {
   modalMode.value = 'create'
   formData.value = {
     title: '',
-    productCode: '',
-    categoryId: '',
-    travelDuration: '',
-    adultPrice: '',
-    childPrice: '',
-    eventContent: '',
-    includedItems: '',
-    excludedItems: '',
-    meetingPoint: [],
+    subtitle: '',
+    product_code: '',
+    category_id: '',
+    tag_id: '',
+    badge_id: '',
+    location_id: '',
+    duration: '',
+    adult_price: '',
+    child_price: '',
+    event_content: '',
+    included_items: '',
+    excluded_items: '',
+    likely_departure_threshold: 30,
+    confirmed_departure_threshold: 50,
+    status: true,
     images: [],
-    status: 'active'
+    startingPoints: []
   }
-  newMeetingPoint.value = ''
   showModal.value = true
 }
 
@@ -508,38 +667,33 @@ const openEditModal = (product) => {
   selectedProduct.value = product
   formData.value = {
     title: product.title,
-    productCode: product.productCode,
-    categoryId: product.categoryId,
-    travelDuration: product.travelDuration,
-    adultPrice: product.adultPrice,
-    childPrice: product.childPrice,
-    eventContent: product.eventContent,
-    includedItems: product.includedItems,
-    excludedItems: product.excludedItems,
-    meetingPoint: [...product.meetingPoint],
+    subtitle: product.subtitle || '',
+    product_code: product.product_code,
+    category_id: product.category_id,
+    tag_id: product.tag_id || '',
+    badge_id: product.badge_id || '',
+    location_id: product.location_id || '',
+    duration: product.duration,
+    adult_price: product.adult_price,
+    child_price: product.child_price,
+    event_content: product.event_content,
+    included_items: product.included_items,
+    excluded_items: product.excluded_items,
+    likely_departure_threshold: product.likely_departure_threshold || 30,
+    confirmed_departure_threshold: product.confirmed_departure_threshold || 50,
+    status: product.status,
     images: [...product.images],
-    status: product.status
+    startingPoints: [...(product.startingPoints || [])]
   }
-  newMeetingPoint.value = ''
   showModal.value = true
 }
 
 const closeModal = () => {
   showModal.value = false
   selectedProduct.value = null
-  newMeetingPoint.value = ''
 }
 
-const addMeetingPoint = () => {
-  if (newMeetingPoint.value.trim()) {
-    formData.value.meetingPoint.push(newMeetingPoint.value.trim())
-    newMeetingPoint.value = ''
-  }
-}
 
-const removeMeetingPoint = (index) => {
-  formData.value.meetingPoint.splice(index, 1)
-}
 
 const triggerImageUpload = () => {
   if (imageFileInput.value) {
@@ -592,6 +746,21 @@ const removeImage = (index) => {
   formData.value.images.splice(index, 1)
 }
 
+const addStartingPoint = () => {
+  formData.value.startingPoints.push({
+    starting_point_id: '',
+    time: ''
+  })
+}
+
+const removeStartingPoint = (index) => {
+  formData.value.startingPoints.splice(index, 1)
+}
+
+const updateStartingPoint = (index, field, value) => {
+  formData.value.startingPoints[index][field] = value
+}
+
 const formatFileSize = (bytes) => {
   if (bytes === 0) return '0 Bytes'
   const k = 1024
@@ -603,17 +772,52 @@ const formatFileSize = (bytes) => {
 const handleSubmit = async () => {
   submitting.value = true
   try {
-    // 실제로는 API 호출
-    await new Promise(resolve => setTimeout(resolve, 1000))
-    
-    if (modalMode.value === 'create') {
-      alert('상품이 성공적으로 추가되었습니다.')
-    } else {
-      alert('상품이 성공적으로 수정되었습니다.')
+    // 빈 문자열을 null로 변환하는 함수
+    const cleanData = (data) => {
+      const cleaned = { ...data }
+      Object.keys(cleaned).forEach(key => {
+        if (cleaned[key] === '') {
+          cleaned[key] = null
+        }
+      })
+      return cleaned
     }
-    
-    closeModal()
-    await loadProducts()
+
+    if (modalMode.value === 'create') {
+      // createProduct API 호출
+      const productData = {
+        ...cleanData(formData.value),
+        adult_price: parseInt(formData.value.adult_price),
+        child_price: parseInt(formData.value.child_price),
+        images: formData.value.images.filter(img => img.file).map(img => img.file)
+      }
+      
+      const result = await createProduct(productData)
+      if (result.success) {
+        alert('상품이 성공적으로 추가되었습니다.')
+        closeModal()
+        await loadProducts()
+      } else {
+        alert(`상품 추가 실패: ${result.error}`)
+      }
+    } else {
+      // updateProduct API 호출
+      const productData = {
+        ...cleanData(formData.value),
+        adult_price: parseInt(formData.value.adult_price),
+        child_price: parseInt(formData.value.child_price),
+        images: formData.value.images.filter(img => img.file).map(img => img.file)
+      }
+      
+      const result = await updateProduct(selectedProduct.value.id, productData)
+      if (result.success) {
+        alert('상품이 성공적으로 수정되었습니다.')
+        closeModal()
+        await loadProducts()
+      } else {
+        alert(`상품 수정 실패: ${result.error}`)
+      }
+    }
   } catch (error) {
     alert('처리 중 오류가 발생했습니다.')
     console.error('상품 처리 오류:', error)
@@ -622,16 +826,19 @@ const handleSubmit = async () => {
   }
 }
 
-const deleteProduct = async (product) => {
+const handleDeleteProduct = async (product) => {
   if (!confirm(`'${product.title}' 상품을 삭제하시겠습니까?`)) {
     return
   }
 
   try {
-    // 실제로는 API 호출
-    await new Promise(resolve => setTimeout(resolve, 500))
-    alert('상품이 성공적으로 삭제되었습니다.')
-    await loadProducts()
+    const result = await deleteProduct(product.id)
+    if (result.success) {
+      alert('상품이 성공적으로 삭제되었습니다.')
+      await loadProducts()
+    } else {
+      alert(`상품 삭제 실패: ${result.error}`)
+    }
   } catch (error) {
     alert('상품 삭제 중 오류가 발생했습니다.')
     console.error('상품 삭제 오류:', error)
@@ -647,9 +854,24 @@ const formatDate = (dateString) => {
   return new Date(dateString).toLocaleDateString('ko-KR')
 }
 
+const formatDateTime = (dateTimeString) => {
+  if (!dateTimeString) return '-'
+  const date = new Date(dateTimeString)
+  return date.toLocaleString('ko-KR', {
+    month: 'short',
+    day: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit'
+  })
+}
+
 // 라이프사이클
 onMounted(async () => {
   await loadCategories()
+  await loadTags()
+  await loadBadges()
+  await loadLocations()
+  await loadStartingPoints()
   await loadProducts()
 })
 </script>
@@ -784,7 +1006,7 @@ onMounted(async () => {
 .products-table table {
   width: 100%;
   border-collapse: collapse;
-  min-width: 800px;
+  min-width: 1200px;
 }
 
 .products-table th,
@@ -792,6 +1014,17 @@ onMounted(async () => {
   padding: 1rem;
   text-align: left;
   border-bottom: 1px solid #e5e7eb;
+  min-width: 100px;
+}
+
+.products-table th:first-child,
+.products-table td:first-child {
+  min-width: 80px;
+}
+
+.products-table th:last-child,
+.products-table td:last-child {
+  min-width: 120px;
 }
 
 .products-table th {
@@ -829,6 +1062,12 @@ onMounted(async () => {
   margin: 0;
   font-size: 0.75rem;
   color: #6b7280;
+}
+
+.product-subtitle {
+  font-size: 0.7rem !important;
+  color: #9ca3af !important;
+  font-style: italic;
 }
 
 /* 상태 표시 */
@@ -1074,6 +1313,129 @@ textarea.form-input {
 
 .btn-remove-meeting-point:hover {
   background: #fecaca;
+}
+
+/* 출발장소 스타일 */
+.starting-points-container {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.starting-points-header {
+  display: flex;
+  justify-content: flex-start;
+}
+
+.btn-add-starting-point {
+  background: #3b82f6;
+  color: white;
+  border: none;
+  padding: 0.75rem 1rem;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+}
+
+.btn-add-starting-point:hover {
+  background: #2563eb;
+}
+
+.starting-points-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  max-height: 300px;
+  overflow-y: auto;
+  padding: 0.5rem;
+  border: 1px solid #e5e7eb;
+  border-radius: 6px;
+  background: #f9fafb;
+}
+
+.starting-point-item {
+  background: white;
+  border-radius: 6px;
+  border: 1px solid #e5e7eb;
+  padding: 0.75rem;
+}
+
+.starting-point-inputs {
+  display: flex;
+  gap: 0.75rem;
+  align-items: center;
+}
+
+.starting-point-select {
+  flex: 2;
+  min-width: 0;
+}
+
+.starting-point-time {
+  flex: 1;
+  min-width: 0;
+}
+
+.btn-remove-starting-point {
+  background: #fee2e2;
+  color: #dc2626;
+  border: none;
+  padding: 0.5rem;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.btn-remove-starting-point:hover {
+  background: #fecaca;
+}
+
+/* 출발장소 표시 스타일 */
+.starting-points-display {
+  font-size: 0.75rem;
+}
+
+.starting-point-display-item {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  margin-bottom: 0.5rem;
+}
+
+.point-name {
+  font-weight: 500;
+  color: #374151;
+}
+
+.point-time {
+  color: #6b7280;
+  font-size: 0.7rem;
+}
+
+.more-points {
+  color: #6b7280;
+  font-style: italic;
+  font-size: 0.7rem;
+}
+
+.no-starting-points {
+  color: #9ca3af;
+  font-style: italic;
+}
+
+.error-message {
+  color: #dc2626;
+  font-size: 0.75rem;
+  margin-top: 0.25rem;
 }
 
 /* 이미지 업로드 스타일 */

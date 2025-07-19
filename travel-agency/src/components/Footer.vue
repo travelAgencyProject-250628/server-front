@@ -4,16 +4,16 @@
       <div class="footer-content">
         <div class="footer-section">
           <h4>회사정보</h4>
-          <p>굿모닝투어</p>
-          <p>서울특별시 마포구 양화로 121, 404호</p>
-          <p>사업자등록번호: 280-87-00970</p>
+          <p>나라투어</p>
+          <p>경기도 오산시 궐리사로 38, 201-h35호(궐동, 하나)</p>
+          <p>사업자등록번호: 348-32-01197</p>
         </div>
         
         <div class="footer-section">
           <h4>고객센터</h4>
-          <p>전화: 02-6745-0110</p>
-          <p>팩스: 02-3016-7987</p>
-          <p>이메일: as71751@naver.com</p>
+          <p>전화: 031-376-0597</p>
+          <p>팩스: 0504-228-9300</p>
+          <p>이메일: casei@naver.com</p>
           <p>운영시간: 09:00~18:00 (주말/공휴일 휴무)</p>
         </div>
         
@@ -38,7 +38,7 @@
       </div>
       
       <div class="footer-bottom">
-        <p>&copy; 2024 굿모닝투어. All Rights Reserved.</p>
+        <p>&copy; 2024 나라투어. All Rights Reserved.</p>
       </div>
     </div>
   </footer>

@@ -41,7 +41,6 @@
             <tr>
               <th>ID</th>
               <th>카테고리명</th>
-              <th>생성일</th>
               <th>액션</th>
             </tr>
           </thead>
@@ -49,7 +48,6 @@
             <tr v-for="category in filteredCategories" :key="category.id">
               <td>{{ category.id }}</td>
               <td>{{ category.name }}</td>
-              <td>{{ formatDate(category.created_at) }}</td>
               <td>
                 <div class="action-buttons">
                   <button 
@@ -238,10 +236,7 @@ const deleteCategory = async (category) => {
   }
 }
 
-const formatDate = (dateString) => {
-  if (!dateString) return '-'
-  return new Date(dateString).toLocaleDateString('ko-KR')
-}
+
 
 // 라이프사이클
 onMounted(() => {

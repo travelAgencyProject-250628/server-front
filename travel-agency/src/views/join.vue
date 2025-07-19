@@ -6,7 +6,7 @@
                 <!-- 페이지 제목 -->
                 <div class="page-header">
                     <h1 class="page-title">회원가입</h1>
-                    <p class="page-subtitle">굿모닝투어와 함께 특별한 여행을 시작하세요</p>
+                    <p class="page-subtitle">나라투어와 함께 특별한 여행을 시작하세요</p>
                 </div>
 
                 <!-- 회원가입 폼 -->
@@ -509,11 +509,6 @@ watch([() => formData.agreePrivacy, () => formData.agreePolicy, () => formData.a
     font-size: 1rem;
     color: var(--text-secondary);
     margin: 0;
-}
-
-/* 회원가입 폼 */
-.join-form-wrapper {
-    /* 배경 제거 - 개별 섹션들이 각자 배경을 가짐 */
 }
 
 .join-form {

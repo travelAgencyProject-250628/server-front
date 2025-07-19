@@ -332,34 +332,48 @@ const handleSubmit = async () => {
   }
 
   try {
-    isSubmitting.value = true
-    
+
+    // 비밀번호 변경이 있는 경우 먼저 처리
+    if (formData.value.password) {
+      const passwordResult = await authService.changePassword('', formData.value.password)
+      if (!passwordResult.success) {
+        alert(passwordResult.message)
+        return
+      }
+    }
+
     // 수정할 데이터 준비
     const updateData = {
       name: formData.value.name,
-      phone: formData.value.phone1 && formData.value.phone2 && formData.value.phone3 
+      phone_number: formData.value.phone1 && formData.value.phone2 && formData.value.phone3 
         ? `${formData.value.phone1}-${formData.value.phone2}-${formData.value.phone3}` 
-        : '',
-      mobile: `${formData.value.mobile1}-${formData.value.mobile2}-${formData.value.mobile3}`,
+        : null,
+      mobile_number: `${formData.value.mobile1}-${formData.value.mobile2}-${formData.value.mobile3}`,
+      email: formData.value.email,
+
       zipcode: formData.value.zipcode,
       address1: formData.value.address1,
       address2: formData.value.address2,
-      smsReceive: formData.value.smsReceive
+      sms_receive: formData.value.smsReceive
     }
 
-    // 비밀번호가 입력된 경우에만 포함
-    if (formData.value.password) {
-      updateData.password = formData.value.password
+    // Users 테이블 업데이트
+    const { data: { user } } = await authService.getCurrentUser()
+    if (user && user.auth_id) {
+      const { error: updateError } = await authService.supabase
+        .from('Users')
+        .update(updateData)
+        .eq('auth_id', user.auth_id)
+
+      if (updateError) {
+        console.error('Users 테이블 업데이트 실패:', updateError)
+        throw new Error('회원정보 수정에 실패했습니다.')
+      }
     }
 
-    // users.js API를 사용하여 회원정보 수정
-    const result = await updateUserInfo(updateData)
-    
-    if (!result.success) {
-      throw new Error(result.error || '회원정보 수정에 실패했습니다.')
-    }
+    console.log('수정할 데이터:', updateData)
+    alert('회원정보가 수정되었습니다.')
 
-    alert('회원정보가 성공적으로 수정되었습니다.')
     router.push('/mypage')
   } catch (error) {
     console.error('회원정보 수정 실패:', error)

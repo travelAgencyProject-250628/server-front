@@ -153,7 +153,7 @@
                         </div>
                         <div class="payment-row">
                             <span class="payment-label">입금 계좌</span>
-                            <span class="payment-value">국민은행 123456-78-901234 (예금주: 굿모닝투어)</span>
+                            <span class="payment-value">국민은행 123456-78-901234 (예금주: 나라투어)</span>
                         </div>
                     </div>
                     <div class="form-grid">

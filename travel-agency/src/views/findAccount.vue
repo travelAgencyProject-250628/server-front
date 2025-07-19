@@ -64,13 +64,13 @@
                                         type="text" 
                                         v-model="findIdData.phone" 
                                         class="form-input"
-                                        placeholder="핸드폰번호 ( - 입력제외)"
+                                        placeholder="핸드폰번호 (010-1234-5678)"
                                         required
                                     >
                                 </div>
                             </div>
 
-                            <button type="submit" class="btn-find">아이디 찾기</button>
+                            <button type="submit" class="btn-find">이메일 찾기</button>
                         </form>
                     </div>
 
@@ -127,7 +127,7 @@
                                         type="text" 
                                         v-model="findPasswordData.phone" 
                                         class="form-input"
-                                        placeholder="핸드폰번호 ( - 입력제외)"
+                                        placeholder="핸드폰번호 (010-1234-5678)"
                                         required
                                     >
                                 </div>
@@ -138,7 +138,7 @@
 
                         <!-- 안내 문구 -->
                         <div class="notice">
-                            <p class="notice-text">※임시 비밀번호를 문자로 발급합니다.</p>
+                            <p class="notice-text">※임시 비밀번호를 이메일로 전송합니다.</p>
                         </div>
                     </div>
                 </div>
@@ -151,6 +151,7 @@
 <script setup>
 import { ref, reactive, onMounted } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
+import { authService } from '../lib/auth.js'
 
 // 라우터 사용
 const router = useRouter()
@@ -183,39 +184,67 @@ const findPasswordData = reactive({
 })
 
 // 메서드들
-const handleFindId = () => {
+const handleFindId = async () => {
     if (!findIdData.name || !findIdData.phone) {
         alert('이름과 핸드폰번호를 입력해주세요.')
         return
     }
 
-    // 실제로는 서버 API 호출
-    console.log('아이디 찾기:', findIdData)
-    
-    // 임시 로직
-    if (findIdData.name === '홍길동' && findIdData.phone === '01012345678') {
-        alert('찾으시는 아이디는 "testuser" 입니다.')
-    } else {
-        alert('입력하신 정보로 등록된 아이디를 찾을 수 없습니다.')
+    try {
+        console.log('아이디 찾기 시도:', findIdData)
+        
+        const result = await authService.findEmail(findIdData.name, findIdData.phone)
+        
+        if (result.success) {
+            alert(result.message)
+            // 성공 후 폼 초기화
+            findIdData.name = ''
+            findIdData.phone = ''
+        } else {
+            alert(result.message)
+        }
+    } catch (error) {
+        console.error('아이디 찾기 오류:', error)
+        alert('아이디 찾기에 실패했습니다. 다시 시도해주세요.')
     }
 }
 
-const handleFindPassword = () => {
+const handleFindPassword = async () => {
     if (!findPasswordData.email || !findPasswordData.name || !findPasswordData.phone) {
         alert('모든 항목을 입력해주세요.')
         return
     }
 
-    // 실제로는 서버 API 호출
-    console.log('비밀번호 찾기:', findPasswordData)
-    
-    // 임시 로직
-    if (findPasswordData.email === 'test@example.com' && 
-        findPasswordData.name === '홍길동' && 
-        findPasswordData.phone === '01012345678') {
-        alert('임시 비밀번호가 문자로 발송되었습니다.')
-    } else {
-        alert('입력하신 정보가 일치하지 않습니다.')
+    try {
+        console.log('비밀번호 찾기 시도:', findPasswordData)
+        
+        // 1단계: 사용자 정보 확인
+        const verifyResult = await authService.verifyUserForPasswordReset(
+            findPasswordData.email, 
+            findPasswordData.name, 
+            findPasswordData.phone
+        )
+        
+        if (!verifyResult.success) {
+            alert(verifyResult.message)
+            return
+        }
+
+        // 2단계: 비밀번호 재설정 이메일 발송
+        const resetResult = await authService.resetPassword(findPasswordData.email)
+        
+        if (resetResult.success) {
+            alert('비밀번호 재설정 이메일이 발송되었습니다. 이메일을 확인하여 비밀번호를 변경해주세요.')
+            // 성공 후 폼 초기화
+            findPasswordData.email = ''
+            findPasswordData.name = ''
+            findPasswordData.phone = ''
+        } else {
+            alert(resetResult.message)
+        }
+    } catch (error) {
+        console.error('비밀번호 찾기 오류:', error)
+        alert('비밀번호 찾기에 실패했습니다. 다시 시도해주세요.')
     }
 }
 </script>
