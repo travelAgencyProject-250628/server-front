@@ -356,12 +356,12 @@ const handleSubmit = async () => {
     }
 
     // Users 테이블 업데이트
-    const { data: { user } } = await authService.getCurrentUser()
-    if (user && user.auth_id) {
+    const currentUserResult = await authService.getCurrentUser()
+    if (currentUserResult.success && currentUserResult.user && currentUserResult.user.auth_id) {
       const { error: updateError } = await authService.supabase
         .from('Users')
         .update(updateData)
-        .eq('auth_id', user.auth_id)
+        .eq('auth_id', currentUserResult.user.auth_id)
 
       if (updateError) {
         console.error('Users 테이블 업데이트 실패:', updateError)
@@ -396,8 +396,8 @@ const handleCancel = () => {
 // 컴포넌트 마운트 시 사용자 정보 로드
 onMounted(async () => {
   // 로그인 체크
-  const { data: { user } } = await authService.getCurrentUser()
-  if (!user) {
+  const result = await authService.getCurrentUser()
+  if (!result.success || !result.user) {
     alert('로그인이 필요합니다.')
     router.push('/login')
     return
