@@ -146,7 +146,8 @@ const disabledDates = computed(() => {
 const bookingMap = computed(() => {
   const map = new Map()
   props.bookingData.forEach(item => {
-    const dateKey = formatDateKey(new Date(item.date))
+    // 시간대 문제 방지를 위해 로컬 시간대로 날짜 생성
+    const dateKey = item.date // 이미 'YYYY-MM-DD' 형식이므로 그대로 사용
     map.set(dateKey, item)
   })
   return map
@@ -237,12 +238,19 @@ const calendarAttributes = computed(() => {
   return attributes
 })
 
-// 날짜 키 포맷팅 함수
+// 날짜 키 포맷팅 함수 (로컬 시간대 유지)
 const formatDateKey = (date) => {
   const year = date.getFullYear()
   const month = String(date.getMonth() + 1).padStart(2, '0')
   const day = String(date.getDate()).padStart(2, '0')
   return `${year}-${month}-${day}`
+}
+
+// 안전한 날짜 생성 함수 (시간대 문제 방지)
+const createSafeDate = (dateString) => {
+  if (!dateString) return null
+  const [year, month, day] = dateString.split('-')
+  return new Date(parseInt(year), parseInt(month) - 1, parseInt(day))
 }
 
 // 선택된 날짜 포맷팅
