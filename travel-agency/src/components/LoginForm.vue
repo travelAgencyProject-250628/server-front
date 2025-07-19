@@ -98,14 +98,14 @@ const handleLogin = async () => {
     loading.value = true
     
     const { data, error } = await authService.signIn(form.value.email, form.value.password)
-    
+  
     if (error) {
       showMessage(error.message, 'error')
     } else {
       showMessage('로그인이 완료되었습니다.', 'success')
       await checkAuthStatus()
-      // 로그인 성공 시 메인 페이지로 이동
-      // router.push('/')
+    // 로그인 성공 시 메인 페이지로 이동
+    // router.push('/')
     }
   } catch (error) {
     showMessage('로그인 중 오류가 발생했습니다.', 'error')
@@ -120,14 +120,14 @@ const handleLogout = async () => {
     loading.value = true
     
     const { error } = await authService.signOut()
-    
+  
     if (error) {
       showMessage(error.message, 'error')
     } else {
       showMessage('로그아웃이 완료되었습니다.', 'success')
       user.value = null
-      // 로그아웃 후 로그인 페이지로 이동
-      // router.push('/login')
+    // 로그아웃 후 로그인 페이지로 이동
+    // router.push('/login')
     }
   } catch (error) {
     showMessage('로그아웃 중 오류가 발생했습니다.', 'error')

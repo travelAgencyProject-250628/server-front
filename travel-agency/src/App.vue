@@ -16,6 +16,7 @@ const isAdminPage = computed(() => {
 onMounted(async () => {
   // 앱 시작 시 현재 사용자 정보 로드
   await authService.getCurrentUser()
+  console.log('App.vue 시작')
   
   // 인증 상태 변경 리스너 설정 (Supabase는 자동으로 처리됨)
   // authService.setupAuthListener()

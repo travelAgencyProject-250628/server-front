@@ -351,7 +351,7 @@
                 ></textarea>
               </div>
               
-                            <div class="form-group">
+              <div class="form-group">
                 <label for="excludedItems">불포함 사항</label>
                 <textarea 
                   id="excludedItems"
@@ -406,15 +406,15 @@
                           class="form-input starting-point-time"
                           required
                         >
-                        <button 
-                          type="button"
+                      <button 
+                        type="button"
                           @click="removeStartingPoint(index)"
                           class="btn-remove-starting-point"
-                        >
-                          <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
-                            <path d="M18 6L6 18M6 6l12 12" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-                          </svg>
-                        </button>
+                      >
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
+                          <path d="M18 6L6 18M6 6l12 12" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                        </svg>
+                      </button>
                       </div>
                     </div>
                   </div>
@@ -768,7 +768,7 @@ const handleSubmit = async () => {
       })
       return cleaned
     }
-
+    
     if (modalMode.value === 'create') {
       // createProduct API 호출
       const productData = {
@@ -780,10 +780,10 @@ const handleSubmit = async () => {
       
       const result = await createProduct(productData)
       if (result.success) {
-        alert('상품이 성공적으로 추가되었습니다.')
+      alert('상품이 성공적으로 추가되었습니다.')
         closeModal()
         await loadProducts()
-      } else {
+    } else {
         alert(`상품 추가 실패: ${result.error}`)
       }
     } else {
@@ -797,9 +797,9 @@ const handleSubmit = async () => {
       
       const result = await updateProduct(selectedProduct.value.id, productData)
       if (result.success) {
-        alert('상품이 성공적으로 수정되었습니다.')
-        closeModal()
-        await loadProducts()
+      alert('상품이 성공적으로 수정되었습니다.')
+    closeModal()
+    await loadProducts()
       } else {
         alert(`상품 수정 실패: ${result.error}`)
       }
@@ -820,8 +820,8 @@ const handleDeleteProduct = async (product) => {
   try {
     const result = await deleteProduct(product.id)
     if (result.success) {
-      alert('상품이 성공적으로 삭제되었습니다.')
-      await loadProducts()
+    alert('상품이 성공적으로 삭제되었습니다.')
+    await loadProducts()
     } else {
       alert(`상품 삭제 실패: ${result.error}`)
     }

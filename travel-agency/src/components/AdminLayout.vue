@@ -116,6 +116,8 @@ const pageTitle = computed(() => {
 const toggleSidebar = () => {
   sidebarCollapsed.value = !sidebarCollapsed.value
 }
+
+// 라우터에서 이미 권한 체크를 하므로 여기서는 제거
 </script>
 
 <style scoped>

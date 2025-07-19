@@ -483,3 +483,38 @@ export class AuthService {
 }
 
 export const authService = new AuthService() 
+
+/**
+ * 현재 사용자의 관리자 권한 확인
+ * @returns {Promise<{success: boolean, isAdmin: boolean, error?: string}>}
+ */
+export async function checkAdminRole() {
+  try {
+    // 현재 로그인된 사용자 정보 가져오기
+    const { data: userData, error: authError } = await supabase.auth.getUser()
+    
+    if (authError || !userData?.user?.id) {
+      return { success: false, isAdmin: false, error: '로그인이 필요합니다.' }
+    }
+
+    const auth_id = userData.user.id
+
+    // UserRoles 테이블에서 관리자 권한 확인
+    const { data, error } = await supabase
+      .from('UserRoles')
+      .select('is_admin')
+      .eq('auth_id', auth_id)
+      .single()
+
+    if (error) {
+      console.error('관리자 권한 확인 오류:', error)
+      return { success: false, isAdmin: false, error: '권한 확인에 실패했습니다.' }
+    }
+
+    const isAdmin = data?.is_admin || false
+    return { success: true, isAdmin }
+  } catch (error) {
+    console.error('관리자 권한 확인 오류:', error)
+    return { success: false, isAdmin: false, error: error.message }
+  }
+} 

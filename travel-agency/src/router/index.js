@@ -1,5 +1,5 @@
 import { createRouter, createWebHistory } from 'vue-router'
-import { authService } from '@/lib/auth.js'
+import { authService, checkAdminRole } from '@/lib/auth.js'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -150,44 +150,58 @@ const router = createRouter({
   ],
 })
 
-// // 인증 가드
-// router.beforeEach(async (to, from, next) => {
-//   // authService를 사용하여 현재 사용자 정보 조회
-//   const getCurrentUser = async () => {
-//     try {
-//       const result = await authService.getCurrentUser()
-//       return result.success ? result.user : null
-//     } catch {
-//       return null
-//     }
-//   }
-   
-//   const currentUser = await getCurrentUser()
-//   const isLoggedIn = currentUser !== null
-   
-//   // 로그인된 상태에서 로그인/회원가입/계정찾기 페이지 접근 시 홈으로 리디렉션
-//   if (isLoggedIn && (to.path === '/login' || to.path === '/join' || to.path === '/find-account')) {
-//     alert('이미 로그인 되어있습니다.')
-//     next('/')
-//     return
-//   }
-   
-//   // 인증이 필요한 페이지인지 확인
-//   const requiresAuth = to.matched.some(record => record.meta.requiresAuth)
-//   const requiresAdmin = to.matched.some(record => record.meta.requiresAdmin)
+// 인증 가드
+router.beforeEach(async (to, from, next) => {
+  // admin 페이지에만 권한 체크 적용
+  if (to.path.startsWith('/admin')) {
+    // authService를 사용하여 현재 사용자 정보 조회
+    const getCurrentUser = async () => {
+      try {
+        console.log('router.beforeEach 시작')
+        const result = await authService.getCurrentUser()
+        return result.success ? result.user : null
+      } catch {
+        return null
+      }
+    }
+     
+    const currentUser = await getCurrentUser()
+    const isLoggedIn = currentUser !== null
 
-//   if (requiresAuth && !isLoggedIn) {
-//     alert('로그인이 필요한 페이지입니다.')
-//     next({
-//       path: '/login',
-//       query: { redirect: to.fullPath }
-//     })
-//   } else if (requiresAdmin && !(currentUser && currentUser.is_admin === true)) {
-//     alert('관리자 권한이 필요한 페이지입니다.')
-//     next('/')
-//   } else {
-//     next()
-//   }
-// })
+    if (!isLoggedIn) {
+      alert('로그인이 필요한 페이지입니다.')
+      next({
+        path: '/login',
+        query: { redirect: to.fullPath }
+      })
+      return
+    }
+
+    // 관리자 권한 체크
+    const adminCheck = await checkAdminRole()
+    if (!adminCheck.success || !adminCheck.isAdmin) {
+      alert('관리자 권한이 필요한 페이지입니다.')
+      next('/')
+      return
+    }
+    
+    next()
+    return
+  }
+   
+   
+  // 일반 인증이 필요한 페이지인지 확인 (admin 제외)
+  const requiresAuth = to.matched.some(record => record.meta.requiresAuth && !to.path.startsWith('/admin'))
+
+  if (requiresAuth && !isLoggedIn) {
+    alert('로그인이 필요한 페이지입니다.')
+    next({
+      path: '/login',
+      query: { redirect: to.fullPath }
+    })
+  } else {
+    next()
+  }
+})
 
 export default router
