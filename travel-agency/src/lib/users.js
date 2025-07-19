@@ -101,8 +101,6 @@ export async function getCurrentUserInfo() {
       .eq('auth_id', user.id)
       .maybeSingle()
 
-    console.log('Users 테이블 조회 결과:', { data, error })
-
     if (error) {
       console.error('Users 테이블 조회 오류:', error)
       return { success: false, error: '유저 정보를 조회하는 중 오류가 발생했습니다.' }
