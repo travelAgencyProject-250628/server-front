@@ -334,7 +334,7 @@ const handleSubmit = async () => {
   try {
     // 비밀번호 변경이 있는 경우 먼저 처리
     if (formData.value.password) {
-      const passwordResult = await authService.changePassword('', formData.value.password)
+      const passwordResult = await authService.updatePassword(formData.value.password)
       if (!passwordResult.success) {
         alert(passwordResult.message)
         return
@@ -349,10 +349,10 @@ const handleSubmit = async () => {
         : null,
       mobile_number: `${formData.value.mobile1}-${formData.value.mobile2}-${formData.value.mobile3}`,
       email: formData.value.email,
-      zipcode: formData.value.zipcode,
-      address1: formData.value.address1,
-      address2: formData.value.address2,
-      sms_receive: formData.value.smsReceive
+      postal_code: formData.value.zipcode,
+      address: formData.value.address1,
+      address_detail: formData.value.address2,
+      receive_sms: formData.value.smsReceive === 'Y'
     }
 
     // Users 테이블 업데이트
