@@ -6,7 +6,20 @@
             <!-- <p class="page-subtitle">거꾸로는 합리적인비용으로 즐기는 고품격여행 - 굿모닝여행사</p> -->
         </div>
 
-        <div class="reservation-table">
+        <!-- 로딩 상태 -->
+        <div v-if="isLoading" class="loading-container">
+            <div class="loading-spinner"></div>
+            <p>예약 목록을 불러오는 중...</p>
+        </div>
+
+        <!-- 에러 상태 -->
+        <div v-else-if="error" class="error-container">
+            <p>{{ error }}</p>
+            <button @click="loadReservations" class="retry-button">다시 시도</button>
+        </div>
+
+        <!-- 예약 리스트 -->
+        <div v-else-if="reservations.length > 0" class="reservation-table">
             <!-- 테이블 헤더 -->
             <div class="table-header">
                 <div class="header-item">상품명</div>
@@ -40,7 +53,7 @@
         </div>
 
         <!-- 예약이 없을 때 -->
-        <div v-if="reservations.length === 0" class="no-reservations">
+        <div v-else class="no-reservations">
             <p>예약된 여행이 없습니다.</p>
         </div>
     </div>
@@ -49,52 +62,36 @@
 <script setup>
 import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
+import { getMyReservations } from '../lib/reservations.js'
 
 const router = useRouter()
 
-// 예약 데이터 (실제로는 API에서 받아올 데이터)
-const reservations = ref([
-    {
-        id: 1,
-        reservationDate: '2025/07/06',
-        productTitle: '[당일]7월영주한정!(1만원상품권제공)천년고찰~영주부석사+힐링숲족욕겟길(족욕부~회방사페딩)+수수서원+인삼시장',
-        departureDate: '2025/07/18',
-        totalAmount: 32000,
-        status: '예약확정',
-        adultCount: 1,
-        childCount: 0
-    },
-    {
-        id: 2,
-        reservationDate: '2025/07/06',
-        productTitle: '[당일]★리무진버스①속초*회*모듬한상차림①속초별미맛기행!1탄*속초*외옹치항*바다항기길+중앙어시장+속초영랑호수원길+속초주익의박물관',
-        departureDate: '2025/08/08',
-        totalAmount: 87000,
-        status: '예약확정',
-        adultCount: 1,
-        childCount: 0
-    },
-    {
-        id: 3,
-        reservationDate: '2025/07/06',
-        productTitle: '[당일]★리무ㅁㄴㅇㄹㄴㅇㄹㅁ진버스①속초*회*모듬한상차림①속초별미맛기행!1탄*속초*외옹치항*바다항기길+중앙어시장+속초영랑호수원길+속초주익의박물관',
-        departureDate: '2025/08/08',
-        totalAmount: 87000,
-        status: '예약대기',
-        adultCount: 1,
-        childCount: 0
-    },
-    {
-        id: 4,
-        reservationDate: '2025/07/06',
-        productTitle: '[당일]★리무진버스①속초*회*모듬한상차림①속초별미맛기행!1탄*속초*외옹치항*바다항기길+중앙어시장+속초영랑호수원길+속초주익의박물관',
-        departureDate: '2025/08/08',
-        totalAmount: 87000,
-        status: '예약확정',
-        adultCount: 1,
-        childCount: 0
+// 상태 관리
+const reservations = ref([])
+const isLoading = ref(true)
+const error = ref(null)
+
+// 예약 목록 로드
+const loadReservations = async () => {
+    try {
+        isLoading.value = true
+        error.value = null
+        
+        const result = await getMyReservations()
+        
+        if (result.success) {
+            reservations.value = result.reservations || []
+        } else {
+            error.value = result.error || '예약 목록을 불러오는데 실패했습니다.'
+            console.error('예약 목록 로드 실패:', result.error)
+        }
+    } catch (err) {
+        error.value = '예약 목록을 불러오는데 실패했습니다.'
+        console.error('예약 목록 로드 오류:', err)
+    } finally {
+        isLoading.value = false
     }
-])
+}
 
 // 가격 포맷팅
 const formatPrice = (price) => {
@@ -122,8 +119,7 @@ const goToDetail = (reservationId) => {
 
 // 컴포넌트 마운트 시 데이터 로드
 onMounted(() => {
-    // 실제로는 API 호출
-    // loadReservations()
+    loadReservations()
 })
 </script>
 
@@ -323,6 +319,66 @@ onMounted(() => {
     background: white;
     border-radius: var(--border-radius);
     box-shadow: var(--shadow-sm);
+}
+
+/* 로딩 상태 */
+.loading-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 4rem 2rem;
+    background: white;
+    border-radius: var(--border-radius);
+    box-shadow: var(--shadow-sm);
+}
+
+.loading-spinner {
+    width: 40px;
+    height: 40px;
+    border: 4px solid var(--border-color);
+    border-top: 4px solid var(--primary-color);
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+    margin-bottom: 1rem;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+.loading-container p {
+    color: var(--text-secondary);
+    margin: 0;
+}
+
+/* 에러 상태 */
+.error-container {
+    text-align: center;
+    padding: 4rem 2rem;
+    background: white;
+    border-radius: var(--border-radius);
+    box-shadow: var(--shadow-sm);
+}
+
+.error-container p {
+    color: var(--error-color);
+    margin-bottom: 1rem;
+}
+
+.retry-button {
+    background: var(--primary-color);
+    color: white;
+    border: none;
+    padding: 0.5rem 1rem;
+    border-radius: var(--border-radius);
+    cursor: pointer;
+    transition: var(--transition);
+}
+
+.retry-button:hover {
+    background: var(--primary-dark);
 }
 
 /* 반응형 디자인 */

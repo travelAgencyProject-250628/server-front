@@ -3,6 +3,15 @@
     <div class="booking-page">
         <h1 class="page-title">여행 예약하기</h1>
         
+        <!-- 로딩 인디케이터 -->
+        <div v-if="isLoading" class="loading-container">
+            <div class="loading-spinner"></div>
+            <p>상품 정보를 불러오는 중...</p>
+        </div>
+        
+        <!-- 메인 컨텐츠 -->
+        <div v-else>
+        
         <!-- 상품 정보 요약 -->
         <div class="product-summary-box">
             <div class="summary-item">
@@ -229,41 +238,30 @@
                 <p class="submit-notice">
                     위 내용을 확인하였으며, 예약 신청에 동의합니다.
                 </p>
-                <button type="submit" class="submit-btn" :disabled="!isFormValid">
-                    예약 신청하기
+                <button type="submit" class="submit-btn" :disabled="!isFormValid || isSubmitting">
+                    {{ isSubmitting ? '예약 처리 중...' : '예약 신청하기' }}
                 </button>
             </div>
         </form>
+        </div>
     </div>
 </template>
 
 <script setup>
-import { ref, computed } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
+import { getProductDetail } from '../lib/products.js'
+import { getStartingPoints } from '../lib/startingpoints.js'
+import { createReservation } from '../lib/reservations.js'
 
 const route = useRoute()
 const router = useRouter()
 
-// 상품 정보 (실제로는 API에서 받아올 데이터)
-const product = ref({
-    id: route.query.productId,
-    title: '설악산 당일치기 여행',
-    duration: '1박2일',
-    travelDate: '2025/08/01',
-    productCode: 'GM240320001',
-    adultPrice: 87000,
-    childPrice: 67000,
-})
-
-// 출발 지역 데이터
-const departureLocations = [
-    { id: 1, name: '영등포' },
-    { id: 2, name: '서울역' },
-    { id: 3, name: '잠실' },
-    { id: 4, name: '동천' },
-    { id: 5, name: '죽전' },
-    { id: 6, name: '신갈' },
-]
+// === 상태 관리 ===
+const isLoading = ref(true)
+const isSubmitting = ref(false)
+const product = ref({})
+const departureLocations = ref([])
 
 // 약관 데이터
 const terms = [
@@ -292,32 +290,88 @@ const formData = ref({
     agreements: new Array(terms.length).fill(false),
 })
 
-// 총 결제금액 계산
+// === 계산된 값들 ===
 const totalPrice = computed(() => {
     return (formData.value.adultCount * product.value.adultPrice) +
            (formData.value.childCount * product.value.childPrice)
 })
 
-// 폼 유효성 검사
 const isFormValid = computed(() => {
-    const requiredAgreements = terms
-        .map((term, index) => term.required ? formData.value.agreements[index] : true)
-        .every(agreed => agreed)
+    const requiredFields = [
+        formData.value.bookerName,
+        formData.value.bookerPhone,
+        formData.value.bookerEmail,
+        formData.value.departureLocation,
+        formData.value.payerName,
+        (formData.value.adultCount > 0 || formData.value.childCount > 0)
+    ]
     
     const travelerInfoValid = formData.value.sameAsBooker || 
         (formData.value.travelerName && formData.value.travelerPhone)
     
-    return formData.value.bookerName &&
-           formData.value.bookerPhone &&
-           formData.value.bookerEmail &&
-           travelerInfoValid &&
-           formData.value.departureLocation &&
-           (formData.value.adultCount > 0 || formData.value.childCount > 0) &&
-           formData.value.payerName &&
-           requiredAgreements
+    const requiredAgreements = terms
+        .filter(term => term.required)
+        .every((term, index) => formData.value.agreements[index])
+    
+    return requiredFields.every(field => field) && travelerInfoValid && requiredAgreements
 })
 
-// 예약자와 여행자 동일 처리
+// === 초기 데이터 로드 ===
+const loadInitialData = async () => {
+    try {
+        const productId = route.query.productId
+        if (!productId) {
+            throw new Error('상품 ID가 필요합니다.')
+        }
+
+        const [productResult, startingPointsResult] = await Promise.all([
+            getProductDetail(productId),
+            getStartingPoints()
+        ])
+
+        if (!productResult.success || !productResult.product) {
+            throw new Error('상품 정보를 찾을 수 없습니다.')
+        }
+
+        // 상품 정보 설정
+        const selectedDate = route.query.selectedDate
+        const travelDate = selectedDate ? formatDateForDisplay(selectedDate) : '2025/08/01'
+        
+        product.value = {
+            id: productResult.product.id,
+            title: productResult.product.title,
+            duration: productResult.product.travelDuration,
+            travelDate: travelDate,
+            productCode: productResult.product.productCode,
+            adultPrice: productResult.product.adultPrice,
+            childPrice: productResult.product.childPrice,
+        }
+
+        // 출발지역 설정
+        departureLocations.value = startingPointsResult.success 
+            ? startingPointsResult.startingPoints
+            : getDefaultDepartureLocations()
+
+    } catch (error) {
+        console.error('데이터 로드 오류:', error)
+        alert(error.message || '페이지 로드 중 오류가 발생했습니다.')
+        router.push('/')
+    } finally {
+        isLoading.value = false
+    }
+}
+
+// 기본 출발지역 데이터
+const getDefaultDepartureLocations = () => [
+    { id: 1, name: '영등포' },
+    { id: 2, name: '서울역' },
+    { id: 3, name: '잠실' },
+    { id: 4, name: '동천' },
+    { id: 5, name: '죽전' },
+    { id: 6, name: '신갈' },
+]
+
+// === 폼 핸들러들 ===
 const handleSameAsBooker = () => {
     if (formData.value.sameAsBooker) {
         formData.value.travelerName = ''
@@ -325,7 +379,6 @@ const handleSameAsBooker = () => {
     }
 }
 
-// 인원 수 증감 메서드
 const increaseCount = (type) => {
     if (type === 'adult') {
         formData.value.adultCount++
@@ -342,7 +395,6 @@ const decreaseCount = (type) => {
     }
 }
 
-// 약관 동의 처리 메서드
 const handleAgreeAll = () => {
     formData.value.agreements = formData.value.agreements.map(() => formData.value.agreeAll)
 }
@@ -351,50 +403,78 @@ const handleIndividualAgree = () => {
     formData.value.agreeAll = formData.value.agreements.every(agreed => agreed)
 }
 
-// 약관 보기
 const viewTerms = (termId) => {
     alert(`약관 ${termId} 내용을 표시합니다. (실제로는 모달이나 새 창으로 표시)`)
 }
 
-
-
-// 선택된 출발지역 가져오기
+// === 유틸리티 함수들 ===
 const getSelectedDepartureLocation = () => {
     if (!formData.value.departureLocation) return '-'
-    const location = departureLocations.find(loc => loc.id === formData.value.departureLocation)
+    const location = departureLocations.value.find(loc => loc.id === formData.value.departureLocation)
     return location ? location.name : '-'
 }
 
-// 가격 포맷팅
 const formatPrice = (price) => {
     return price.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',')
 }
 
-// 폼 제출 처리
-const handleSubmit = async () => {
-    try {
-        // API 호출 (실제 구현 필요)
-        const response = await fetch('/api/bookings', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-                productId: product.value.id,
-                ...formData.value,
-            }),
-        })
+const formatDateForDisplay = (dateString) => {
+    if (!dateString) return '2025/08/01'
+    // 'YYYY-MM-DD' 형식을 'YYYY/MM/DD' 형식으로 변환
+    return dateString.replace(/-/g, '/')
+}
 
-        if (response.ok) {
-            alert('예약 신청이 완료되었습니다. 담당자가 확인 후 연락드리겠습니다.')
-            router.push('/') // 메인 페이지로 이동
-        } else {
-            throw new Error('예약 처리 중 오류가 발생했습니다.')
-        }
-    } catch (error) {
-        alert(error.message)
+// === 예약 신청 처리 ===
+const buildReservationData = () => {
+    const travelersName = formData.value.sameAsBooker 
+        ? formData.value.bookerName
+        : formData.value.travelerName
+    const travelersPhone = formData.value.sameAsBooker
+        ? formData.value.bookerPhone
+        : formData.value.travelerPhone
+    
+    return {
+        productId: product.value.id,
+        bookerName: formData.value.bookerName,
+        bookerPhone: formData.value.bookerPhone,
+        bookerEmail: formData.value.bookerEmail,
+        emergencyContact: formData.value.emergencyContact,
+        depositorName: formData.value.payerName,
+        adultCount: formData.value.adultCount,
+        childCount: formData.value.childCount,
+        startingPointId: formData.value.departureLocation,
+        departureDate: product.value.travelDate.replace(/\//g, '-'),
+        agreeTerms: formData.value.agreements.every(agreed => agreed),
+        travelersName,
+        travelersPhone,
+        status: '대기'
     }
 }
+
+const handleSubmit = async () => {
+    if (isSubmitting.value) return
+    
+    try {
+        isSubmitting.value = true
+        const reservationData = buildReservationData()
+        const result = await createReservation(reservationData)
+
+        if (result.success) {
+            alert('예약 신청이 완료되었습니다. 담당자가 확인 후 연락드리겠습니다.')
+            router.push('/')
+        } else {
+            throw new Error(result.error || '예약 처리 중 오류가 발생했습니다.')
+        }
+    } catch (error) {
+        console.error('예약 신청 오류:', error)
+        alert(error.message)
+    } finally {
+        isSubmitting.value = false
+    }
+}
+
+// === 생명주기 ===
+onMounted(loadInitialData)
 </script>
 
 <style scoped>
@@ -858,6 +938,37 @@ textarea {
 .submit-btn:disabled {
     background: var(--border-color);
     cursor: not-allowed;
+}
+
+/* 로딩 인디케이터 */
+.loading-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 3rem;
+    text-align: center;
+}
+
+.loading-spinner {
+    width: 40px;
+    height: 40px;
+    border: 4px solid var(--border-color);
+    border-top: 4px solid var(--primary-color);
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+    margin-bottom: 1rem;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+.loading-container p {
+    color: var(--text-secondary);
+    font-size: 1rem;
+    margin: 0;
 }
 
 @media (max-width: 768px) {

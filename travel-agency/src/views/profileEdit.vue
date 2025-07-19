@@ -17,6 +17,12 @@
                         <p>사용자 정보를 불러오는 중...</p>
                     </div>
 
+                    <!-- 에러 상태 -->
+                    <div v-else-if="error" class="error-container">
+                        <p>{{ error }}</p>
+                        <button @click="loadUserProfile" class="retry-button">다시 시도</button>
+                    </div>
+
                     <form v-else @submit.prevent="handleSubmit" class="join-form">
                         <!-- 기본 회원정보 -->
                         <div class="form-section">
@@ -105,7 +111,7 @@
                                         E-Mail주소
                                     </label>
                                     <input type="email" v-model="formData.email" class="form-input"
-                                        placeholder="이메일 주소를 입력하세요" :class="{ error: errors.email }" required>
+                                        placeholder="이메일 주소를 입력하세요" :class="{ error: errors.email }" readonly>
                                     <div v-if="errors.email" class="error-message">{{ errors.email }}</div>
                                 </div>
 
@@ -156,8 +162,10 @@
 
                 <!-- 제출 버튼 -->
                 <div class="form-actions">
-                    <button type="submit" class="btn-submit" @click="handleSubmit">수정완료</button>
-                    <button type="button" class="btn-cancel" @click="handleCancel">취소하기</button>
+                    <button type="submit" class="btn-submit" @click="handleSubmit" :disabled="isSubmitting">
+                        {{ isSubmitting ? '수정 중...' : '수정완료' }}
+                    </button>
+                    <button type="button" class="btn-cancel" @click="handleCancel" :disabled="isSubmitting">취소하기</button>
                 </div>
             </div>
         </main>
@@ -167,12 +175,15 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
+import { getCurrentUserInfo, updateUserInfo } from '../lib/users.js'
 import { authService } from '../lib/auth.js'
 
 const router = useRouter()
 
 // 로딩 상태
 const isLoading = ref(true)
+const isSubmitting = ref(false)
+const error = ref(null)
 
 // 폼 데이터 (초기값은 빈 상태)
 const formData = ref({
@@ -199,7 +210,6 @@ const errors = ref({})
 // 폼 유효성 검사
 const isFormValid = computed(() => {
   return formData.value.name && 
-         formData.value.email &&
          formData.value.mobile1 && formData.value.mobile2 && formData.value.mobile3 &&
          (!formData.value.password || (formData.value.password === formData.value.passwordConfirm))
 })
@@ -208,35 +218,16 @@ const isFormValid = computed(() => {
 const loadUserProfile = async () => {
   try {
     isLoading.value = true
+    error.value = null
     
-    // 현재 로그인한 사용자 정보 가져오기
-    const { data: { user } } = await authService.getCurrentUser()
-    if (!user) {
-      throw new Error('로그인이 필요합니다.')
+    // users.js API를 사용하여 현재 사용자 정보 가져오기
+    const result = await getCurrentUserInfo()
+    
+    if (!result.success) {
+      throw new Error(result.error || '사용자 정보를 불러오는데 실패했습니다.')
     }
 
-    // 실제 API 호출 (예시)
-    // const response = await fetch('/api/profile', {
-    //   method: 'GET',
-    //   headers: {
-    //     'Authorization': `Bearer ${user.access_token}`,
-    //     'Content-Type': 'application/json',
-    //   }
-    // })
-    // const userData = await response.json()
-
-    // 임시 데이터 (실제로는 위의 API 응답 데이터를 사용)
-    const userData = {
-      userId: user.email,
-      name: '이정원',
-      phone: '010-2237-6938',
-      mobile: '010-2237-6938',
-      email: user.email,
-      zipcode: '04759',
-      address1: '서울 성동구 마조로15길 9 (마장동)',
-      address2: '105호',
-      smsReceive: 'Y'
-    }
+    const userData = result.user
 
     // 전화번호 분리
     const phoneParts = userData.phone ? userData.phone.split('-') : ['', '', '']
@@ -244,10 +235,10 @@ const loadUserProfile = async () => {
 
     // 폼 데이터 설정
     formData.value = {
-      userId: userData.userId,
+      userId: userData.email,
       password: '',
       passwordConfirm: '',
-      name: userData.name,
+      name: userData.name || '',
       phone1: phoneParts[0] || '',
       phone2: phoneParts[1] || '',
       phone3: phoneParts[2] || '',
@@ -255,15 +246,15 @@ const loadUserProfile = async () => {
       mobile2: mobileParts[1] || '',
       mobile3: mobileParts[2] || '',
       email: userData.email,
-      zipcode: userData.zipcode,
-      address1: userData.address1,
-      address2: userData.address2,
-      smsReceive: userData.smsReceive
+      zipcode: userData.zipcode || '',
+      address1: userData.address1 || '',
+      address2: userData.address2 || '',
+      smsReceive: userData.smsReceive || 'Y'
     }
 
-  } catch (error) {
-    console.error('사용자 정보 로드 실패:', error)
-    alert('사용자 정보를 불러오는 중 오류가 발생했습니다.')
+  } catch (err) {
+    console.error('사용자 정보 로드 실패:', err)
+    error.value = err.message || '사용자 정보를 불러오는 중 오류가 발생했습니다.'
   } finally {
     isLoading.value = false
   }
@@ -301,17 +292,13 @@ const findAddress = () => {
 
 // 폼 제출 처리
 const handleSubmit = async () => {
+  if (isSubmitting.value) return
+
   errors.value = {}
   
   // 유효성 검사
   if (!formData.value.name) {
     errors.value.name = '성명을 입력해주세요.'
-  }
-  
-  if (!formData.value.email) {
-    errors.value.email = '이메일을 입력해주세요.'
-  } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.value.email)) {
-    errors.value.email = '올바른 이메일 주소를 입력해주세요.'
   }
   
   // 휴대폰번호 검증
@@ -345,6 +332,8 @@ const handleSubmit = async () => {
   }
 
   try {
+    isSubmitting.value = true
+    
     // 수정할 데이터 준비
     const updateData = {
       name: formData.value.name,
@@ -352,7 +341,6 @@ const handleSubmit = async () => {
         ? `${formData.value.phone1}-${formData.value.phone2}-${formData.value.phone3}` 
         : '',
       mobile: `${formData.value.mobile1}-${formData.value.mobile2}-${formData.value.mobile3}`,
-      email: formData.value.email,
       zipcode: formData.value.zipcode,
       address1: formData.value.address1,
       address2: formData.value.address2,
@@ -364,27 +352,20 @@ const handleSubmit = async () => {
       updateData.password = formData.value.password
     }
 
-    // 실제 회원정보 수정 API 호출
-    // const response = await fetch('/api/profile', {
-    //   method: 'PUT',
-    //   headers: {
-    //     'Authorization': `Bearer ${user.access_token}`,
-    //     'Content-Type': 'application/json',
-    //   },
-    //   body: JSON.stringify(updateData)
-    // })
+    // users.js API를 사용하여 회원정보 수정
+    const result = await updateUserInfo(updateData)
+    
+    if (!result.success) {
+      throw new Error(result.error || '회원정보 수정에 실패했습니다.')
+    }
 
-    // if (!response.ok) {
-    //   throw new Error('회원정보 수정 실패')
-    // }
-
-    // 임시 처리
-    console.log('수정할 데이터:', updateData)
-    alert('회원정보가 수정되었습니다.')
-    router.push('/')
+    alert('회원정보가 성공적으로 수정되었습니다.')
+    router.push('/mypage')
   } catch (error) {
     console.error('회원정보 수정 실패:', error)
-    alert('회원정보 수정 중 오류가 발생했습니다. 다시 시도해주세요.')
+    alert(error.message || '회원정보 수정 중 오류가 발생했습니다. 다시 시도해주세요.')
+  } finally {
+    isSubmitting.value = false
   }
 }
 
@@ -503,6 +484,40 @@ onMounted(async () => {
   color: var(--text-secondary);
   font-size: 1rem;
   margin: 0;
+}
+
+/* 에러 상태 */
+.error-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 4rem 2rem;
+  background: white;
+  border-radius: var(--border-radius);
+  box-shadow: var(--shadow-sm);
+  border: 1px solid var(--border-color);
+  text-align: center;
+}
+
+.error-container p {
+  color: var(--error-color);
+  font-size: 1rem;
+  margin: 0 0 1rem 0;
+}
+
+.retry-button {
+  background: var(--primary-color);
+  color: white;
+  border: none;
+  padding: 0.5rem 1rem;
+  border-radius: var(--border-radius);
+  cursor: pointer;
+  transition: var(--transition);
+}
+
+.retry-button:hover {
+  background: var(--primary-dark);
 }
 
 .join-form {
@@ -718,8 +733,13 @@ onMounted(async () => {
   min-width: 120px;
 }
 
-.btn-submit:hover {
+.btn-submit:hover:not(:disabled) {
   background: var(--primary-dark);
+}
+
+.btn-submit:disabled {
+  background: var(--border-color);
+  cursor: not-allowed;
 }
 
 .btn-cancel {
@@ -735,8 +755,13 @@ onMounted(async () => {
   min-width: 120px;
 }
 
-.btn-cancel:hover {
+.btn-cancel:hover:not(:disabled) {
   background: #475569;
+}
+
+.btn-cancel:disabled {
+  background: var(--border-color);
+  cursor: not-allowed;
 }
 
 /* 반응형 디자인 */
