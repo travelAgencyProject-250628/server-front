@@ -350,13 +350,22 @@ const scrollToSection = (sectionName) => {
     }
 }
 
+// 로컬 시간대를 유지하여 날짜 형식 변환
+const formatLocalDate = (date) => {
+    if (!date) return null
+    const year = date.getFullYear()
+    const month = String(date.getMonth() + 1).padStart(2, '0')
+    const day = String(date.getDate()).padStart(2, '0')
+    return `${year}-${month}-${day}`
+}
+
 // 예약하기
 const handleBooking = () => {
     router.push({
         name: 'booking',
         query: {
             productId: parseInt(route.params.id),
-            selectedDate: selectedDate.value ? selectedDate.value.toISOString().split('T')[0] : null
+            selectedDate: selectedDate.value ? formatLocalDate(selectedDate.value) : null
         }
     })
 }

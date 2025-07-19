@@ -3,8 +3,22 @@
     <div class="reservation-detail-page">
         <h1 class="page-title">예약/결제현황</h1>
         
-        <!-- 예약자 정보 -->
-        <section class="info-section">
+        <!-- 로딩 상태 -->
+        <div v-if="isLoading" class="loading-container">
+            <div class="loading-spinner"></div>
+            <p>예약 정보를 불러오는 중...</p>
+        </div>
+
+        <!-- 에러 상태 -->
+        <div v-else-if="error" class="error-container">
+            <p>{{ error }}</p>
+            <button @click="loadReservationDetail(route.params.id)" class="retry-button">다시 시도</button>
+        </div>
+
+        <!-- 예약 상세 정보 -->
+        <div v-else-if="reservationDetail.id">
+            <!-- 예약자 정보 -->
+            <section class="info-section">
             <h2>예약자정보</h2>
             <div class="info-table">
                 <div class="info-row">
@@ -121,43 +135,44 @@
         <div class="action-buttons">
             <button @click="goBack" class="btn-back">목록으로</button>
         </div>
+        </div>
     </div>
 </template>
 
 <script setup>
 import { ref, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
+import { getReservationDetail } from '../lib/reservations.js'
 
 const route = useRoute()
 const router = useRouter()
 
-// 예약 상세 정보 (실제로는 API에서 받아올 데이터)
-const reservationDetail = ref({
-    id: null,
-    bookerName: '홍길동',
-    bookerPhone: '010-2237-6938',
-    emergencyContact: '010-2237-6938',
-    bookerEmail: 'jbl6938@gmail.com',
-    productTitle: '[당일]★리무진버스①속초*회*모듬한상차림①속초별미맛기행!1탄*속초*외옹치항*바다항기길+중앙어시장+속초영랑호수원길+속초주익의박물관',
-    adultCount: 1,
-    childCount: 0,
-    duration: '당일',
-    departureDate: '2025/08/08',
-    departureLocation: '잠실',
-    includedItems: '2식[중식+석식(회정식포함)], 전용차량',
-    excludedItems: '개인경비(음료수 구입비용), 여행자 개인 사정, 기타 불가항목, 여행자보험가입비용, 선택관광 및 자유시간 중 개인경비 발생시,당일날씨 상황에따라 일정변경시 가이드안내에 따라 진행됩니다.',
-    adultPrice: 87000,
-    totalAmount: 87000,
-    status: '예약확정',
-    memberType: '회원예약',
-    travelers: [
-        {
-            name: '홍길동',
-            phone: '010-2237-6938',
-            type: '성인'
+// 상태 관리
+const reservationDetail = ref({})
+const isLoading = ref(true)
+const error = ref(null)
+
+// 예약 상세 정보 로드
+const loadReservationDetail = async (reservationId) => {
+    try {
+        isLoading.value = true
+        error.value = null
+        
+        const result = await getReservationDetail(reservationId)
+        
+        if (result.success) {
+            reservationDetail.value = result.reservation
+        } else {
+            error.value = result.error || '예약 정보를 불러오는데 실패했습니다.'
+            console.error('예약 상세 정보 로드 실패:', result.error)
         }
-    ]
-})
+    } catch (err) {
+        error.value = '예약 정보를 불러오는데 실패했습니다.'
+        console.error('예약 상세 정보 로드 오류:', err)
+    } finally {
+        isLoading.value = false
+    }
+}
 
 // 가격 포맷팅
 const formatPrice = (price) => {
@@ -172,10 +187,12 @@ const goBack = () => {
 // 컴포넌트 마운트 시 데이터 로드
 onMounted(() => {
     const reservationId = route.params.id
-    reservationDetail.value.id = reservationId
-    
-    // 실제로는 API 호출하여 예약 상세 정보 로드
-    // loadReservationDetail(reservationId)
+    if (reservationId) {
+        loadReservationDetail(reservationId)
+    } else {
+        error.value = '예약 ID가 필요합니다.'
+        isLoading.value = false
+    }
 })
 </script>
 
@@ -427,6 +444,66 @@ onMounted(() => {
 }
 
 .btn-back:hover {
+    background: var(--primary-dark);
+}
+
+/* 로딩 상태 */
+.loading-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 4rem 2rem;
+    background: white;
+    border-radius: var(--border-radius);
+    box-shadow: var(--shadow-sm);
+}
+
+.loading-spinner {
+    width: 40px;
+    height: 40px;
+    border: 4px solid var(--border-color);
+    border-top: 4px solid var(--primary-color);
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+    margin-bottom: 1rem;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+.loading-container p {
+    color: var(--text-secondary);
+    margin: 0;
+}
+
+/* 에러 상태 */
+.error-container {
+    text-align: center;
+    padding: 4rem 2rem;
+    background: white;
+    border-radius: var(--border-radius);
+    box-shadow: var(--shadow-sm);
+}
+
+.error-container p {
+    color: var(--error-color);
+    margin-bottom: 1rem;
+}
+
+.retry-button {
+    background: var(--primary-color);
+    color: white;
+    border: none;
+    padding: 0.5rem 1rem;
+    border-radius: var(--border-radius);
+    cursor: pointer;
+    transition: var(--transition);
+}
+
+.retry-button:hover {
     background: var(--primary-dark);
 }
 
