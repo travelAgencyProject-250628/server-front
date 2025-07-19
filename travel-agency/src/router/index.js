@@ -123,12 +123,6 @@ const router = createRouter({
           meta: { requiresAuth: true, requiresAdmin: true }
         },
         {
-          path: 'navigation',
-          name: 'adminNavigation',
-          component: () => import('@/views/admin/Navigation.vue'),
-          meta: { requiresAuth: true, requiresAdmin: true }
-        },
-        {
           path: 'customers',
           name: 'adminCustomers',
           component: () => import('@/views/admin/Customers.vue'),

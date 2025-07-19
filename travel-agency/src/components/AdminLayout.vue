@@ -39,13 +39,6 @@
           <span>상품관리</span>
         </router-link>
         
-        <router-link to="/admin/navigation" class="nav-item">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
-            <path stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/>
-          </svg>
-          <span>네비게이션</span>
-        </router-link>
-        
         <router-link to="/admin/customers" class="nav-item">
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
             <path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2" stroke="currentColor" stroke-width="2"/>
@@ -104,7 +97,6 @@ const pageTitle = computed(() => {
     '/admin/dashboard': '대시보드',
     '/admin/categories': '카테고리 관리',
     '/admin/products': '상품 관리',
-    '/admin/navigation': '네비게이션 관리',
     '/admin/customers': '고객정보 관리',
     '/admin/reservations': '예약 관리'
   }
@@ -195,7 +187,7 @@ const toggleSidebar = () => {
   align-items: center;
   gap: 0.75rem;
   padding: 0.875rem 1rem;
-  color: #d1d5db;
+  color: #989898;
   text-decoration: none;
   transition: var(--admin-transition);
   border-left: 3px solid transparent;
@@ -203,12 +195,12 @@ const toggleSidebar = () => {
 
 .nav-item:hover {
   background: var(--admin-secondary);
-  color: white;
+  color: black;
 }
 
 .nav-item.router-link-active {
   background: var(--admin-secondary);
-  color: white;
+  color: black;
   border-left-color: var(--admin-accent);
 }
 

@@ -1,10 +1,10 @@
 <template>
-  <div class="reservations">
+  <div class="reservations" @click="handlePageClick">
     <!-- 필터 및 검색 -->
     <div class="filters-section">
       <div class="filter-group">
         <label for="status-filter">상태별 필터:</label>
-        <select id="status-filter" v-model="filters.status" @change="loadReservations">
+        <select id="status-filter" v-model="filters.status">
           <option value="">전체</option>
           <option value="confirmed">예약확정</option>
           <option value="pending">예약대기</option>
@@ -13,14 +13,45 @@
       </div>
 
       <div class="search-group">
-        <input 
-          type="text" 
-          v-model="filters.search" 
-          placeholder="예약자명 또는 상품명으로 검색"
-          @keyup.enter="loadReservations"
-          class="search-input"
-        >
-        <button @click="loadReservations" class="search-btn">검색</button>
+        <div class="search-input-wrapper">
+          <input 
+            ref="searchInputRef"
+            type="text" 
+            v-model="searchQuery" 
+            placeholder="예약자명 또는 상품명으로 검색"
+            @keyup.enter="performSearch"
+            @input="handleSearchInput"
+            @focus="showSearchHistory = true"
+            @blur="setTimeout(() => showSearchHistory = false, 200)"
+            class="search-input"
+          >
+          <button @click="performSearch" class="search-btn">검색</button>
+          <button 
+            v-if="searchQuery" 
+            @click="clearSearch" 
+            class="clear-btn" 
+            title="검색어 지우기"
+          >
+            ✕
+          </button>
+        </div>
+        
+        <!-- 검색 히스토리 -->
+        <div v-if="showSearchHistory && searchHistory.length > 0" class="search-history" @click.stop>
+          <div class="history-header">
+            <span>최근 검색어</span>
+            <button @click="searchHistory = []" class="clear-history-btn">전체 삭제</button>
+          </div>
+          <div 
+            v-for="query in searchHistory" 
+            :key="query"
+            @click="selectFromHistory(query)"
+            class="history-item"
+          >
+            <span class="history-icon">🔍</span>
+            <span class="history-text">{{ query }}</span>
+          </div>
+        </div>
       </div>
     </div>
 
@@ -80,7 +111,7 @@
       <div class="section-header">
         <h3>예약 목록</h3>
         <div class="pagination-info">
-          총 {{ pagination.total }}건 중 {{ paginationInfo.startIndex + 1 }}-{{ paginationInfo.endIndex }}건
+          총 {{ paginationInfo.total }}건 중 {{ paginationInfo.startIndex + 1 }}-{{ paginationInfo.endIndex }}건
         </div>
       </div>
 
@@ -91,7 +122,7 @@
       </div>
 
       <!-- 예약 테이블 -->
-      <div v-else-if="reservations.length > 0" class="reservations-table">
+      <div v-else-if="filteredReservations.length > 0" class="reservations-table">
         <table>
           <thead>
             <tr>
@@ -108,13 +139,13 @@
               <th>관리</th>
             </tr>
           </thead>
-          <tbody>
-            <tr v-for="reservation in reservations" :key="reservation.id">
+                      <tbody>
+              <tr v-for="reservation in paginatedReservations" :key="reservation.id">
               <td>{{ reservation.id }}</td>
               <td>{{ formatDate(reservation.created_at) }}</td>
-              <td>{{ reservation.booker_name }}</td>
+              <td v-html="highlightText(reservation.booker_name, searchQuery)"></td>
               <td>{{ reservation.booker_phone }}</td>
-              <td class="product-name">{{ reservation.product?.title }}</td>
+              <td class="product-name" v-html="highlightText(reservation.product?.title, searchQuery)"></td>
               <td>{{ formatDate(reservation.departure_date) }}</td>
               <td>{{ reservation.starting_point?.name }}</td>
               <td>
@@ -158,7 +189,7 @@
       </div>
 
       <!-- 페이지네이션 -->
-      <div v-if="pagination.totalPages > 1" class="pagination">
+      <div v-if="Math.ceil(paginationInfo.total / pagination.limit) > 1" class="pagination">
         <button 
           @click="changePage(pagination.page - 1)" 
           :disabled="pagination.page <= 1"
@@ -167,15 +198,15 @@
           이전
         </button>
         
-        <span class="page-info">
-          {{ pagination.page }} / {{ pagination.totalPages }}
-        </span>
+                  <span class="page-info">
+            {{ pagination.page }} / {{ Math.ceil(paginationInfo.total / pagination.limit) }}
+          </span>
         
-        <button 
-          @click="changePage(pagination.page + 1)" 
-          :disabled="pagination.page >= pagination.totalPages"
-          class="page-btn"
-        >
+                  <button 
+            @click="changePage(pagination.page + 1)" 
+            :disabled="pagination.page >= Math.ceil(paginationInfo.total / pagination.limit)"
+            class="page-btn"
+          >
           다음
         </button>
       </div>
@@ -204,6 +235,13 @@ const pagination = ref({
   totalPages: 0
 })
 
+// 검색 관련 데이터
+const searchQuery = ref('')
+const searchTimeout = ref(null)
+const searchHistory = ref([])
+const showSearchHistory = ref(false)
+const searchInputRef = ref(null)
+
 // 통계 데이터
 const stats = ref({
   total: 0,
@@ -213,10 +251,38 @@ const stats = ref({
 })
 
 // 계산된 속성
-const paginationInfo = computed(() => {
+const filteredReservations = computed(() => {
+  let filtered = reservations.value
+
+  // 검색어 필터링
+  if (searchQuery.value.trim()) {
+    const query = searchQuery.value.toLowerCase().trim()
+    filtered = filtered.filter(reservation => {
+      const bookerName = (reservation.booker_name || '').toLowerCase()
+      const productTitle = (reservation.product?.title || '').toLowerCase()
+      return bookerName.includes(query) || productTitle.includes(query)
+    })
+  }
+
+  // 상태 필터링
+  if (filters.value.status) {
+    filtered = filtered.filter(reservation => reservation.status === filters.value.status)
+  }
+
+  return filtered
+})
+
+const paginatedReservations = computed(() => {
   const startIndex = (pagination.value.page - 1) * pagination.value.limit
-  const endIndex = Math.min(startIndex + pagination.value.limit, pagination.value.total)
-  return { startIndex, endIndex }
+  const endIndex = startIndex + pagination.value.limit
+  return filteredReservations.value.slice(startIndex, endIndex)
+})
+
+const paginationInfo = computed(() => {
+  const total = filteredReservations.value.length
+  const startIndex = (pagination.value.page - 1) * pagination.value.limit
+  const endIndex = Math.min(startIndex + pagination.value.limit, total)
+  return { startIndex, endIndex, total }
 })
 
 // 메서드
@@ -253,24 +319,15 @@ const loadReservations = async () => {
   }
 }
 
-const updateStats = async () => {
-  try {
-    // 전체 통계 조회
-    const [totalResult, confirmedResult, pendingResult, cancelledResult] = await Promise.all([
-      getAllReservations({ limit: 1 }),
-      getAllReservations({ status: 'confirmed', limit: 1 }),
-      getAllReservations({ status: 'pending', limit: 1 }),
-      getAllReservations({ status: 'cancelled', limit: 1 })
-    ])
-
-    stats.value = {
-      total: totalResult.total || 0,
-      confirmed: confirmedResult.total || 0,
-      pending: pendingResult.total || 0,
-      cancelled: cancelledResult.total || 0
-    }
-  } catch (error) {
-    console.error('통계 업데이트 오류:', error)
+const updateStats = () => {
+  // 필터링된 데이터 기반으로 통계 계산
+  const allReservations = reservations.value
+  
+  stats.value = {
+    total: allReservations.length,
+    confirmed: allReservations.filter(r => r.status === 'confirmed').length,
+    pending: allReservations.filter(r => r.status === 'pending').length,
+    cancelled: allReservations.filter(r => r.status === 'cancelled').length
   }
 }
 
@@ -294,9 +351,9 @@ const viewDetail = (reservationId) => {
 }
 
 const changePage = (newPage) => {
-  if (newPage >= 1 && newPage <= pagination.value.totalPages) {
+  const totalPages = Math.ceil(paginationInfo.value.total / pagination.value.limit)
+  if (newPage >= 1 && newPage <= totalPages) {
     pagination.value.page = newPage
-    loadReservations()
   }
 }
 
@@ -321,6 +378,60 @@ const getStatusText = (status) => {
     'cancelled': '예약취소'
   }
   return statusMap[status] || status
+}
+
+// 검색 관련 메서드
+const handleSearchInput = () => {
+  // 실시간 필터링만 수행, API 호출 안함
+  if (searchQuery.value.trim()) {
+    // 검색 히스토리에 추가
+    const query = searchQuery.value.trim()
+    if (!searchHistory.value.includes(query)) {
+      searchHistory.value.unshift(query)
+      if (searchHistory.value.length > 5) {
+        searchHistory.value.pop()
+      }
+    }
+  }
+}
+
+const performSearch = () => {
+  // 검색 버튼 클릭 시에도 API 호출 안함
+  const query = searchQuery.value.trim()
+  if (query) {
+    // 검색 히스토리에 추가
+    if (!searchHistory.value.includes(query)) {
+      searchHistory.value.unshift(query)
+      if (searchHistory.value.length > 5) {
+        searchHistory.value.pop()
+      }
+    }
+  }
+}
+
+const clearSearch = () => {
+  searchQuery.value = ''
+  showSearchHistory.value = false
+}
+
+const selectFromHistory = (query) => {
+  searchQuery.value = query
+  showSearchHistory.value = false
+}
+
+const handlePageClick = (event) => {
+  // 검색 입력창이나 검색 히스토리 영역을 클릭한 경우는 제외
+  const searchGroup = event.target.closest('.search-group')
+  if (!searchGroup) {
+    showSearchHistory.value = false
+  }
+}
+
+const highlightText = (text, searchTerm) => {
+  if (!searchTerm || !text) return text
+  
+  const regex = new RegExp(`(${searchTerm})`, 'gi')
+  return text.replace(regex, '<mark>$1</mark>')
 }
 
 // 라이프사이클
@@ -366,14 +477,48 @@ onMounted(() => {
   display: flex;
   gap: 0.5rem;
   flex: 1;
+  position: relative;
+}
+
+.search-input-wrapper {
+  display: flex;
+  flex: 1;
+  position: relative;
 }
 
 .search-input {
   flex: 1;
   padding: 0.5rem;
+  padding-right: 4.5rem;
   border: 1px solid #e5e7eb;
   border-radius: 4px;
   font-size: 0.875rem;
+  transition: border-color 0.2s;
+}
+
+.search-input:focus {
+  outline: none;
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+.clear-btn {
+  position: absolute;
+  right: 4.2rem;
+  top: 50%;
+  transform: translateY(-50%);
+  background: none;
+  border: none;
+  color: #9ca3af;
+  cursor: pointer;
+  padding: 0.25rem;
+  border-radius: 50%;
+  transition: all 0.2s;
+}
+
+.clear-btn:hover {
+  background: #f3f4f6;
+  color: #6b7280;
 }
 
 .search-btn {
@@ -389,6 +534,77 @@ onMounted(() => {
 
 .search-btn:hover {
   background: #2563eb;
+}
+
+/* 검색 히스토리 */
+.search-history {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  background: white;
+  border: 1px solid #e5e7eb;
+  border-radius: 4px;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+  z-index: 1000;
+  margin-top: 0.25rem;
+}
+
+.history-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.75rem;
+  border-bottom: 1px solid #f3f4f6;
+  font-size: 0.875rem;
+  color: #6b7280;
+}
+
+.clear-history-btn {
+  background: none;
+  border: none;
+  color: #ef4444;
+  cursor: pointer;
+  font-size: 0.75rem;
+  padding: 0.25rem 0.5rem;
+  border-radius: 4px;
+  transition: background-color 0.2s;
+}
+
+.clear-history-btn:hover {
+  background: #fef2f2;
+}
+
+.history-item {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.history-item:hover {
+  background: #f9fafb;
+}
+
+.history-icon {
+  font-size: 0.875rem;
+  color: #9ca3af;
+}
+
+.history-text {
+  font-size: 0.875rem;
+  color: #374151;
+}
+
+/* 검색어 하이라이트 */
+mark {
+  background: #fef3c7;
+  color: #92400e;
+  padding: 0.125rem 0.25rem;
+  border-radius: 2px;
+  font-weight: 500;
 }
 
 /* 통계 카드 */
