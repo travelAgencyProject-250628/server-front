@@ -139,6 +139,19 @@
                         </div>
                     </div>
 
+                    <!-- 상세 이미지 섹션 -->
+                    <section v-if="productDetail.detailImage" class="content-section detail-image-section">
+                        <h2 class="section-title">상세정보</h2>
+                        <div class="detail-image-container">
+                            <img 
+                                :src="productDetail.detailImage" 
+                                :alt="productDetail.title + ' 상세 이미지'"
+                                class="detail-image"
+                                @error="handleImageError"
+                            />
+                        </div>
+                    </section>
+
                     <!-- 기본정보 섹션 -->
                     <section id="basic" class="content-section" ref="basicSection">
                         <h2 class="section-title">기본정보</h2>
@@ -284,6 +297,7 @@ const fetchProductDetail = async (productId) => {
                 title: product.title,
                 subtitle: product.subtitle,
                 mainImage: product.mainImage,
+                detailImage: product.detailImage,
                 productCode: product.productCode,
                 productNumber: product.productNumber,
                 travelDuration: product.travelDuration,
@@ -463,6 +477,12 @@ const nextImage = () => {
 
 const setImage = (index) => {
     currentImageIndex.value = index
+}
+
+// 이미지 에러 핸들러
+const handleImageError = (event) => {
+    event.target.style.display = 'none'
+    console.warn('상세 이미지를 불러올 수 없습니다:', event.target.src)
 }
 </script>
 
@@ -663,6 +683,30 @@ const setImage = (index) => {
     padding: 1.5rem;
     border-radius: var(--border-radius);
     border: 1px solid var(--border-color);
+}
+
+/* 상세 이미지 섹션 */
+.detail-image-section {
+    background: white;
+    padding: 1.5rem;
+    border-radius: var(--border-radius);
+    border: 1px solid var(--border-color);
+    margin-bottom: 1.5rem;
+}
+
+.detail-image-container {
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin-top: 1rem;
+}
+
+.detail-image {
+    max-width: 100%;
+    height: auto;
+    border-radius: var(--border-radius);
+    box-shadow: var(--shadow-sm);
 }
 
 /* 기본 가격표 추가 */
