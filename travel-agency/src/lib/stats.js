@@ -82,7 +82,7 @@ async function getReservationStats() {
     const { count: pending, error: pendingError } = await supabase
       .from('Bookings')
       .select('*', { count: 'exact', head: true })
-      .eq('status', '대기')
+      .eq('status', 'pending')
     
     if (pendingError) throw pendingError
     

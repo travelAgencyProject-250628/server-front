@@ -62,7 +62,12 @@
                 </div>
                 <div class="info-row">
                     <span class="info-label">출발지역</span>
-                    <span class="info-value">{{ reservationDetail.departureLocation }}</span>
+                    <span class="info-value">
+                        {{ reservationDetail.departureLocation }}
+                        <span v-if="reservationDetail.departureTime" class="departure-time">
+                            ({{ formatTime(reservationDetail.departureTime) }})
+                        </span>
+                    </span>
                 </div>
                 <div class="info-row">
                     <span class="info-label">포함사항</span>
@@ -115,7 +120,7 @@
                 </div>
                 <div class="payment-row">
                     <span class="payment-label">상태</span>
-                    <span class="payment-value">{{ reservationDetail.status }}</span>
+                    <span class="payment-value" :class="`status-${reservationDetail.status}`">{{ formatStatus(reservationDetail.status) }}</span>
                 </div>
                 <div class="payment-row">
                     <span class="payment-label">구분</span>
@@ -177,6 +182,27 @@ const loadReservationDetail = async (reservationId) => {
 // 가격 포맷팅
 const formatPrice = (price) => {
     return price.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',')
+}
+
+// 시간 포맷팅
+const formatTime = (timeString) => {
+    if (!timeString) return ''
+    // 'HH:MM:SS' 형식을 'HH:MM' 형식으로 변환
+    return timeString.substring(0, 5)
+}
+
+// 상태 한글 변환
+const formatStatus = (status) => {
+    switch (status) {
+        case 'pending':
+            return '예약대기'
+        case 'confirmed':
+            return '예약확정'
+        case 'canceled':
+            return '예약취소'
+        default:
+            return status || '대기중'
+    }
 }
 
 // 뒤로가기
@@ -282,6 +308,28 @@ onMounted(() => {
     color: var(--text-primary);
     font-weight: 500;
     flex: 1;
+}
+
+.departure-time {
+    color: var(--text-secondary);
+    font-size: 0.85rem;
+    font-weight: 400;
+    margin-left: 0.5rem;
+}
+
+.status-pending {
+    color: var(--warning-color);
+    font-weight: 600;
+}
+
+.status-confirmed {
+    color: var(--success-color);
+    font-weight: 600;
+}
+
+.status-canceled {
+    color: var(--error-color);
+    font-weight: 600;
 }
 
 .departureDate-highlight {

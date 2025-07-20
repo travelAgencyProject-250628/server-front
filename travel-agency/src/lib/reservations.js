@@ -35,6 +35,21 @@ export async function getReservationDetail(reservationId) {
     if (error) throw error
     if (!data) return { success: false, reservation: null, error: '예약 정보를 찾을 수 없습니다.' }
 
+    // 출발장소 시간 정보 조회
+    let departureTime = ''
+    if (data.product_id && data.starting_point_id) {
+      const { data: timeData, error: timeError } = await supabase
+        .from('ProductStartingPoints')
+        .select('time')
+        .eq('product_id', data.product_id)
+        .eq('starting_point_id', data.starting_point_id)
+        .single()
+      
+      if (!timeError && timeData) {
+        departureTime = timeData.time
+      }
+    }
+
     // travelers_name, travelers_phone: 콤마로 구분된 문자열일 경우 배열로 변환
     let travelers = []
     if (data.travelers_name || data.travelers_phone) {
@@ -68,6 +83,7 @@ export async function getReservationDetail(reservationId) {
       duration: data.product?.duration || '',
       departureDate: data.departure_date || (data.created_at ? data.created_at.split('T')[0] : ''),
       departureLocation: data.starting_point?.name || '',
+      departureTime: departureTime,
       includedItems: data.product?.included_items || '',
       excludedItems: data.product?.excluded_items || '',
       adultPrice: data.product?.adult_price || 0,
@@ -126,7 +142,7 @@ export async function createReservation(reservationData) {
           starting_point_id: reservationData.startingPointId,
           departure_date: reservationData.departureDate,
           agree_terms: reservationData.agreeTerms,
-          status: reservationData.status || '대기',
+          status: reservationData.status || 'pending',
           travelers_name,
           travelers_phone,
           auth_id // 로그인된 유저의 auth_id 추가

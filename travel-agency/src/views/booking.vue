@@ -90,7 +90,10 @@
                                name="departureLocation"
                                :value="location.id"
                                v-model="formData.departureLocation">
-                        <span class="radio-text">{{ location.name }}</span>
+                        <span class="radio-text">
+                            {{ location.name }}
+                            <span class="departure-time">{{ formatTime(location.time) }}</span>
+                        </span>
                     </label>
                 </div>
             </section>
@@ -251,7 +254,7 @@
 import { ref, computed, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { getProductDetail } from '../lib/products.js'
-import { getStartingPoints } from '../lib/startingpoints.js'
+import { getProductStartingPoints } from '../lib/startingpoints.js'
 import { createReservation } from '../lib/reservations.js'
 
 const route = useRoute()
@@ -326,7 +329,7 @@ const loadInitialData = async () => {
 
         const [productResult, startingPointsResult] = await Promise.all([
             getProductDetail(productId),
-            getStartingPoints()
+            getProductStartingPoints(productId)
         ])
 
         if (!productResult.success || !productResult.product) {
@@ -424,6 +427,12 @@ const formatDateForDisplay = (dateString) => {
     return dateString.replace(/-/g, '/')
 }
 
+const formatTime = (timeString) => {
+    if (!timeString) return ''
+    // 'HH:MM:SS' 형식을 'HH:MM' 형식으로 변환
+    return timeString.substring(0, 5)
+}
+
 // === 예약 신청 처리 ===
 const buildReservationData = () => {
     const travelersName = formData.value.sameAsBooker 
@@ -447,7 +456,7 @@ const buildReservationData = () => {
         agreeTerms: formData.value.agreements.every(agreed => agreed),
         travelersName,
         travelersPhone,
-        status: '대기'
+        status: 'pending'
     }
 }
 
@@ -682,6 +691,16 @@ textarea {
 
 .radio-text {
     font-size: 0.95rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex: 1;
+}
+
+.departure-time {
+    color: var(--text-secondary);
+    font-size: 0.8rem;
+    font-weight: 400;
 }
 
 .people-counter-grid {
