@@ -319,7 +319,7 @@ onMounted(async () => {
 .sidebar-wrapper {
   position: absolute;
   top: 3.5rem;
-  left: 2rem;
+  left: 1.5rem;
   z-index: 10;
 }
 
@@ -367,7 +367,7 @@ onMounted(async () => {
 }
 
 .content-container {
-  max-width: 800px;
+  max-width: 700px;
   width: 100%;
   padding: 0 20px;
 }
@@ -431,7 +431,7 @@ onMounted(async () => {
 .product-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
-  gap: 1.5rem;
+  gap: 1.3rem;
   margin-bottom: 2rem;
 }
 
@@ -449,14 +449,13 @@ onMounted(async () => {
 }
 
 .product-card:hover {
-  transform: translateY(-2px);
   border-color: var(--primary-color);
   box-shadow: var(--shadow-sm);
 }
 
 .product-image {
   position: relative;
-  height: 200px;
+  height: 180px;
   overflow: hidden;
 }
 
@@ -543,12 +542,12 @@ onMounted(async () => {
 /* 리스트 뷰 스타일 */
 .product-grid.list-view .product-card {
   display: flex;
-  height: 200px;
+  height: 180px;
 }
 
 .product-grid.list-view .product-image {
-  width: 300px;
-  height: 200px;
+  width: 250px;
+  height: 180px;
   flex-shrink: 0;
 }
 
@@ -603,7 +602,7 @@ onMounted(async () => {
   
   .product-grid.list-view .product-image {
     width: 100%;
-    height: 200px;
+    height: 180px;
   }
 }
 
