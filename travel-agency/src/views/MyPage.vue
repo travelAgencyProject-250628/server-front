@@ -52,7 +52,7 @@ const mypageMenu = ref({
 .mypage-content {
   width: 100%;
   min-height: 100vh;
-  background: #f8fafc;
+  background: white;
   /* 기존 페이지들과 동일한 스타일 적용 */
 }
 
