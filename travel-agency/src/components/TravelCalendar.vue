@@ -71,6 +71,11 @@ const props = defineProps({
     type: Number,
     default: 10
   },
+  // 출발확정 기준 인원
+  confirmedThreshold: {
+    type: Number,
+    default: 20
+  },
   // 선택된 날짜 (v-model)
   modelValue: {
     type: Date,
@@ -174,8 +179,8 @@ const calendarAttributes = computed(() => {
       let order = 0
       
       if (bookingInfo) {
-        if (bookingInfo.bookingCount >= 20) {
-          // 출발확정 (20명 이상) - 빨간색
+        if (bookingInfo.bookingCount >= props.confirmedThreshold) {
+          // 출발확정 (confirmedThreshold 이상) - 빨간색
           dotColor = 'red'
           attributeKey = 'guaranteed'
           order = 4
@@ -185,7 +190,7 @@ const calendarAttributes = computed(() => {
           attributeKey = 'closed'
           order = 3
         } else if (bookingInfo.bookingCount >= props.minRequiredBooking) {
-          // 출발유력 (10명 이상) - 파란색
+          // 출발유력 (minRequiredBooking 이상) - 파란색
           dotColor = 'blue'
           attributeKey = 'confirmed'
           order = 2
@@ -292,7 +297,7 @@ const getStatusClass = (date) => {
   const bookingInfo = bookingMap.value.get(dateKey)
   
   if (bookingInfo) {
-    if (bookingInfo.bookingCount >= 20) {
+    if (bookingInfo.bookingCount >= props.confirmedThreshold) {
       return 'guaranteed'
     } else if (bookingInfo.bookingCount >= 15) {
       return 'closed'
@@ -313,10 +318,10 @@ const getStatusText = (date) => {
   const bookingInfo = bookingMap.value.get(dateKey)
   
   if (bookingInfo) {
-    if (bookingInfo.bookingCount >= 20) {
-      return '출발확정'
-    } else if (bookingInfo.bookingCount >= 15) {
+    if (bookingInfo.bookingCount >= 45) {
       return '예약마감'
+    } else if (bookingInfo.bookingCount >= props.confirmedThreshold) {
+      return '출발확정'
     } else if (bookingInfo.bookingCount >= props.minRequiredBooking) {
       return '출발유력'
     } else {

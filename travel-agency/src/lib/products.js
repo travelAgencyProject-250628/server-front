@@ -598,3 +598,85 @@ export async function getAllProducts() {
     return { success: false, products: [], error: error.message };
   }
 } 
+
+/**
+ * 특정 상품의 예약 데이터 조회 (날짜별 예약 인원수)
+ * @param {number} productId - 상품 ID
+ * @returns {Promise<{success: boolean, bookingData: Array, error?: string}>}
+ */
+export async function getProductBookingData(productId) {
+  try {
+    // 상품 정보 조회 (출발유력 기준과 출발확정 기준 가져오기)
+    const { data: productData, error: productError } = await supabase
+      .from('Products')
+      .select('likely_departure_threshold, confirmed_departure_threshold')
+      .eq('id', productId)
+      .single()
+    
+    if (productError) throw productError
+    
+    const minRequired = productData?.likely_departure_threshold || 10
+    const confirmedThreshold = productData?.confirmed_departure_threshold || 20
+    
+    // 오늘부터 3주간의 날짜 범위 설정
+    const today = new Date()
+    const startDate = new Date(today)
+    startDate.setDate(today.getDate() + 1) // 내일부터
+    
+    const endDate = new Date(today)
+    endDate.setDate(today.getDate() + 21) // 3주 후
+    
+    // Bookings 테이블에서 해당 상품의 예약 데이터 조회
+    const { data, error } = await supabase
+      .from('Bookings')
+      .select(`
+        departure_date,
+        adult_count,
+        child_count,
+        status
+      `)
+      .eq('product_id', productId)
+      .gte('departure_date', startDate.toISOString().split('T')[0])
+      .lte('departure_date', endDate.toISOString().split('T')[0])
+      .not('status', 'eq', 'canceled') // 취소된 예약 제외
+    
+    if (error) throw error
+
+    // 날짜별로 예약 인원수 집계
+    const bookingMap = new Map()
+    
+    // 3주간의 모든 날짜에 대해 기본값 설정
+    for (let i = 1; i <= 21; i++) {
+      const date = new Date(today)
+      date.setDate(today.getDate() + i)
+      const dateKey = date.toISOString().split('T')[0]
+      bookingMap.set(dateKey, {
+        date: dateKey,
+        bookingCount: 0,
+        minRequired: minRequired
+      })
+    }
+    
+    // 실제 예약 데이터로 집계
+    data.forEach(booking => {
+      const dateKey = booking.departure_date
+      const currentData = bookingMap.get(dateKey)
+      
+      if (currentData) {
+        const totalCount = (booking.adult_count || 0) + (booking.child_count || 0)
+        currentData.bookingCount += totalCount
+      }
+    })
+    
+    const bookingData = Array.from(bookingMap.values())
+    
+    return { 
+      success: true, 
+      bookingData,
+      confirmedThreshold 
+    }
+  } catch (error) {
+    console.error('getProductBookingData error:', error)
+    return { success: false, bookingData: [], error: error.message }
+  }
+} 

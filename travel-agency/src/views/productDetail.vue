@@ -77,7 +77,8 @@
                         <TravelCalendar
                             v-model="selectedDate"
                             :booking-data="bookingData"
-                            :min-required-booking="10"
+                            :min-required-booking="productDetail.likelyDepartureThreshold || 10"
+                            :confirmed-threshold="confirmedThreshold"
                             @date-select="handleDateSelect"
                         />
                     </div>
@@ -256,7 +257,7 @@
 import { ref, onMounted, onBeforeUnmount } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import TravelCalendar from '@/components/TravelCalendar.vue'
-import { getProductDetail } from '@/lib/products.js'
+import { getProductDetail, getProductBookingData } from '@/lib/products.js'
 
 const route = useRoute()
 const router = useRouter()
@@ -268,6 +269,7 @@ const error = ref(null)
 const productDetail = ref(null)
 const selectedDate = ref(null)
 const bookingData = ref([])
+const confirmedThreshold = ref(20)
 
 // 섹션 refs
 const basicSection = ref(null)
@@ -310,8 +312,8 @@ const fetchProductDetail = async (productId) => {
                 images: product.images.length > 0 ? product.images : ['/images/default-product.jpg']
             }
             
-            // 예약 데이터 로드 (더미 데이터)
-            loadBookingData()
+            // 예약 데이터 로드 (실제 데이터)
+            await loadBookingData(productId)
         } else {
             if (response.error && response.error.includes('No rows found')) {
                 error.value = '존재하지 않는 상품입니다.'
@@ -385,33 +387,22 @@ const handleBooking = () => {
 }
 
 // 예약 데이터 로드 함수
-const loadBookingData = () => {
-    // 실제로는 API에서 받아올 데이터
-    const today = new Date()
-    const mockBookingData = []
-    
-    // 3주간의 더미 예약 데이터 생성
-    for (let i = 0; i <= 21; i++) {
-        const date = new Date(today)
-        date.setDate(today.getDate() + i)
+const loadBookingData = async (productId) => {
+    try {
+        const response = await getProductBookingData(productId)
         
-        // 랜덤하게 예약 인원 생성 (0~25명)
-        const bookingCount = Math.floor(Math.random() * 26)
-        
-        // 로컬 시간대에서 날짜 포맷팅 (시간대 오류 방지)
-        const year = date.getFullYear()
-        const month = String(date.getMonth() + 1).padStart(2, '0')
-        const day = String(date.getDate()).padStart(2, '0')
-        const dateString = `${year}-${month}-${day}`
-        
-        mockBookingData.push({
-            date: dateString,
-            bookingCount: bookingCount,
-            minRequired: 10
-        })
+        if (response.success) {
+            bookingData.value = response.bookingData
+            confirmedThreshold.value = response.confirmedThreshold
+        } else {
+            console.error('예약 데이터 로드 실패:', response.error)
+            // 실패 시 빈 배열로 설정
+            bookingData.value = []
+        }
+    } catch (error) {
+        console.error('예약 데이터 로드 오류:', error)
+        bookingData.value = []
     }
-    
-    bookingData.value = mockBookingData
 }
 
 // 날짜 선택 핸들러
