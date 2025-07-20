@@ -422,7 +422,7 @@
               </div>
               
               <div class="form-group">
-                <label for="imageUpload">상품 이미지 (최대 10개)</label>
+                <label for="imageUpload">상품 이미지 (최대 10개) : 첫 이미지가 대표 이미지로 설정됩니다.</label>
                 <div class="image-upload-container">
                   <div class="image-upload-input">
                     <input 
@@ -461,6 +461,52 @@
                       <button 
                         type="button"
                         @click="removeImage(index)"
+                        class="btn-remove-image"
+                      >
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
+                          <path d="M18 6L6 18M6 6l12 12" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                        </svg>
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              
+              <div class="form-group">
+                <label for="detailImageUpload">상세 이미지 (1개) : 상품 상세 페이지에 표시됩니다.</label>
+                <div class="image-upload-container">
+                  <div class="image-upload-input">
+                    <input 
+                      type="file"
+                      id="detailImageUpload"
+                      ref="detailImageFileInput"
+                      @change="handleDetailImageUpload"
+                      accept=".png,.jpg,.jpeg"
+                      class="file-input"
+                    >
+                    <button 
+                      type="button"
+                      @click="triggerDetailImageUpload"
+                      class="btn-upload-image"
+                      :disabled="formData.detailImage"
+                    >
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+                        <path d="M14.5 4h-5L7 7H4a2 2 0 00-2 2v9a2 2 0 002 2h16a2 2 0 002-2V9a2 2 0 00-2-2h-3l-2.5-3z" stroke="currentColor" stroke-width="2"/>
+                        <circle cx="12" cy="13" r="3" stroke="currentColor" stroke-width="2"/>
+                      </svg>
+                      상세 이미지 선택
+                    </button>
+                  </div>
+                  <div v-if="formData.detailImage" class="image-preview-list">
+                    <div class="image-preview-item">
+                      <img :src="formData.detailImage.url" :alt="formData.detailImage.name" class="preview-image">
+                      <div class="image-info">
+                        <span class="image-name">{{ formData.detailImage.name }}</span>
+                        <span class="image-size">{{ formatFileSize(formData.detailImage.size) }}</span>
+                      </div>
+                      <button 
+                        type="button"
+                        @click="removeDetailImage"
                         class="btn-remove-image"
                       >
                         <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
@@ -510,6 +556,7 @@ const modalMode = ref('create')
 const submitting = ref(false)
 const selectedProduct = ref(null)
 const imageFileInput = ref(null)
+const detailImageFileInput = ref(null)
 
 // 폼 데이터 - Supabase 컬럼명에 맞게 수정
 const formData = ref({
@@ -530,6 +577,7 @@ const formData = ref({
   confirmed_departure_threshold: 50,
   status: true,
   images: [],
+  detailImage: null,
   startingPoints: []
 })
 
@@ -643,6 +691,7 @@ const openCreateModal = () => {
     confirmed_departure_threshold: 50,
     status: true,
     images: [],
+    detailImage: null,
     startingPoints: []
   }
   showModal.value = true
@@ -669,6 +718,12 @@ const openEditModal = (product) => {
     confirmed_departure_threshold: product.confirmed_departure_threshold || 50,
     status: product.status,
     images: [...product.images],
+    detailImage: product.detail_image_url ? {
+      name: '기존 상세 이미지',
+      url: product.detail_image_url,
+      size: 0,
+      file: null
+    } : null,
     startingPoints: [...(product.startingPoints || [])]
   }
   showModal.value = true
@@ -732,6 +787,51 @@ const removeImage = (index) => {
   formData.value.images.splice(index, 1)
 }
 
+const triggerDetailImageUpload = () => {
+  if (detailImageFileInput.value) {
+    detailImageFileInput.value.click()
+  }
+}
+
+const handleDetailImageUpload = (event) => {
+  const file = event.target.files[0]
+  
+  if (!file) return
+  
+  // 파일 타입 검사
+  if (!file.type.match(/^image\/(png|jpg|jpeg)$/)) {
+    alert(`${file.name}은 지원되지 않는 파일 형식입니다. PNG, JPG, JPEG 파일만 업로드 가능합니다.`)
+    return
+  }
+  
+  // 파일 크기 검사 (5MB 제한)
+  if (file.size > 5 * 1024 * 1024) {
+    alert(`${file.name}은 파일 크기가 너무 큽니다. 5MB 이하의 파일만 업로드 가능합니다.`)
+    return
+  }
+  
+  // 파일을 URL로 변환
+  const reader = new FileReader()
+  reader.onload = (e) => {
+    formData.value.detailImage = {
+      name: file.name,
+      url: e.target.result,
+      size: file.size,
+      file: file
+    }
+  }
+  reader.readAsDataURL(file)
+  
+  // 파일 입력 초기화
+  if (detailImageFileInput.value) {
+    detailImageFileInput.value.value = ''
+  }
+}
+
+const removeDetailImage = () => {
+  formData.value.detailImage = null
+}
+
 const addStartingPoint = () => {
   formData.value.startingPoints.push({
     starting_point_id: '',
@@ -771,11 +871,13 @@ const handleSubmit = async () => {
     
     if (modalMode.value === 'create') {
       // createProduct API 호출
+      const { detailImage, ...cleanFormData } = formData.value
       const productData = {
-        ...cleanData(formData.value),
+        ...cleanData(cleanFormData),
         adult_price: parseInt(formData.value.adult_price),
         child_price: parseInt(formData.value.child_price),
-        images: formData.value.images.filter(img => img.file).map(img => img.file)
+        images: formData.value.images.filter(img => img.file).map(img => img.file),
+        detail_image_url: detailImage?.file || null
       }
       
       const result = await createProduct(productData)
@@ -788,11 +890,13 @@ const handleSubmit = async () => {
       }
     } else {
       // updateProduct API 호출
+      const { detailImage, ...cleanFormData } = formData.value
       const productData = {
-        ...cleanData(formData.value),
+        ...cleanData(cleanFormData),
         adult_price: parseInt(formData.value.adult_price),
         child_price: parseInt(formData.value.child_price),
-        images: formData.value.images.filter(img => img.file).map(img => img.file)
+        images: formData.value.images.filter(img => img.file).map(img => img.file),
+        detail_image_url: detailImage?.file || null
       }
       
       const result = await updateProduct(selectedProduct.value.id, productData)

@@ -56,6 +56,28 @@ export async function uploadProductImages(files, productNumber) {
 }
 
 /**
+ * Supabase Storage에 상세 이미지 업로드
+ * @param {File} file - 업로드할 상세 이미지 파일
+ * @param {string} productNumber - product_number (폴더명)
+ * @returns {Promise<{success: boolean, url?: string, error?: string}>}
+ */
+export async function uploadDetailImage(file, productNumber) {
+  try {
+    if (!file) return { success: false, error: '상세 이미지 파일이 없습니다.' };
+    
+    const path = `${productNumber}/detail`;
+    const { error } = await supabase.storage.from('products').upload(path, file, { upsert: true });
+    if (error) throw error;
+    
+    // publicUrl 구하기
+    const { data } = supabase.storage.from('products').getPublicUrl(path);
+    return { success: true, url: data.publicUrl };
+  } catch (error) {
+    return { success: false, error: error.message };
+  }
+}
+
+/**
  * 인기 투어 상품 리스트를 가져온다. -> 6개만
  * @returns {Promise<{success: boolean, tours: Array, error?: string}>}
  */
@@ -313,11 +335,20 @@ export async function createProduct(productData) {
       imageUrls = uploadResult.urls.slice(1);
     }
     
-    // 3. Products 테이블에 등록
+    // 3. 상세 이미지 업로드
+    let detailImageUrl = '';
+    if (productData.detail_image_url) {
+      const detailUploadResult = await uploadDetailImage(productData.detail_image_url, productNumber);
+      if (!detailUploadResult.success) throw new Error(detailUploadResult.error);
+      detailImageUrl = detailUploadResult.url;
+    }
+    
+    // 4. Products 테이블에 등록
     const insertData = {
       ...productData,
       product_number: productNumber,
       main_image_url: mainImageUrl,
+      detail_image_url: detailImageUrl,
     };
     delete insertData.images;
     delete insertData.startingPoints;
@@ -361,30 +392,39 @@ export async function createProduct(productData) {
  */
 export async function updateProduct(productId, productData) {
   try {
+    // 기존 product_number 가져오기
+    const { data: existingProduct, error: fetchError } = await supabase
+      .from('Products')
+      .select('product_number')
+      .eq('id', productId)
+      .single();
+    
+    if (fetchError) throw fetchError;
+    
     // 이미지 업로드 처리
     let mainImageUrl = '';
     let imageUrls = [];
     
     if (productData.images && productData.images.length) {
-      // 기존 product_number 가져오기
-      const { data: existingProduct, error: fetchError } = await supabase
-        .from('Products')
-        .select('product_number')
-        .eq('id', productId)
-        .single();
-      
-      if (fetchError) throw fetchError;
-      
       const uploadResult = await uploadProductImages(productData.images, existingProduct.product_number);
       if (!uploadResult.success) throw new Error(uploadResult.error);
       mainImageUrl = uploadResult.urls[0];
       imageUrls = uploadResult.urls.slice(1);
     }
     
+    // 상세 이미지 업로드 처리
+    let detailImageUrl = '';
+    if (productData.detail_image_url) {
+      const detailUploadResult = await uploadDetailImage(productData.detail_image_url, existingProduct.product_number);
+      if (!detailUploadResult.success) throw new Error(detailUploadResult.error);
+      detailImageUrl = detailUploadResult.url;
+    }
+    
     // Products 테이블 업데이트
     const updateData = {
       ...productData,
       main_image_url: mainImageUrl || productData.main_image_url,
+      detail_image_url: detailImageUrl || productData.detail_image_url,
     };
     delete updateData.images;
     delete updateData.startingPoints;
