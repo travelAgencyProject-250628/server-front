@@ -8,16 +8,21 @@
 
       <!-- 탈퇴정보입력 섹션 -->
       <div class="form-section">
-        <h2 class="section-title">탈퇴정보입력</h2>
+        <h2 class="section-title">탈퇴정보입력
+          <span class="required-notice">
+                                    <span class="required-icon">⦁</span>
+                                    필수항목
+                                </span>
+        </h2>
         
         <form @submit.prevent="handleWithdraw" class="withdraw-form">
           <div class="form-row">
             <div class="form-group">
-              <label for="userId">아이디</label>
+              <label for="email" class="form-label">이메일</label>
               <input 
-                type="text" 
-                id="userId" 
-                v-model="withdrawForm.userId" 
+                type="email" 
+                id="email" 
+                v-model="withdrawForm.email" 
                 readonly
                 class="form-input readonly"
               >
@@ -26,7 +31,10 @@
 
           <div class="form-row">
             <div class="form-group">
-              <label for="password">비밀번호 <span class="required">*</span></label>
+              <label for="password" class="form-label required">
+                <span class="required-icon">⦁</span>
+                비밀번호
+              </label>
               <input 
                 type="password" 
                 id="password" 
@@ -40,7 +48,10 @@
 
           <div class="form-row">
             <div class="form-group full-width">
-              <label for="reason">탈퇴사유 <span class="required">*</span></label>
+              <label for="reason" class="form-label required">
+                <span class="required-icon">⦁</span>
+                탈퇴사유
+              </label>
               <textarea 
                 id="reason" 
                 v-model="withdrawForm.reason" 
@@ -82,6 +93,7 @@ const router = useRouter()
 // 탈퇴 폼 데이터
 const withdrawForm = ref({
   userId: '',
+  email: '',
   password: '',
   reason: ''
 })
@@ -145,8 +157,9 @@ onMounted(async () => {
     return
   }
 
-  // 사용자 아이디 설정
+  // 사용자 정보 설정
   withdrawForm.value.userId = user.email || 'jbl6938'
+  withdrawForm.value.email = user.email || ''
 })
 </script>
 
@@ -173,34 +186,34 @@ onMounted(async () => {
 /* 전체 레이아웃 */
 .withdraw-page {
   font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
-  line-height: 1.5;
+  line-height: 1.6;
   color: var(--text-primary);
-  background: var(--bg-light);
+  background: white;
   min-height: 100vh;
-  padding: 2rem 0;
+  padding: 3.5rem 0 2rem 0;
 }
 
 .container {
-  max-width: 800px;
+  max-width: 700px;
   margin: 0 auto;
-  padding: 0 1rem;
+  padding: 0 20px;
 }
 
 /* 페이지 헤더 */
 .page-header {
   text-align: center;
-  margin-bottom: 3rem;
+  margin-bottom: 2rem;
 }
 
 .page-title {
-  font-size: 2rem;
+  font-size: 2.5rem;
   font-weight: 700;
   color: var(--text-primary);
   margin-bottom: 0.5rem;
 }
 
 .page-subtitle {
-  font-size: 1rem;
+  font-size: 0.95rem;
   color: var(--text-secondary);
   margin: 0;
 }
@@ -208,26 +221,33 @@ onMounted(async () => {
 /* 섹션 공통 스타일 */
 .form-section {
   background: white;
-  border-radius: var(--border-radius);
-  border: 1px solid var(--border-color);
-  padding: 2rem;
+  padding: 1.25rem;
   margin-bottom: 1.5rem;
-  box-shadow: var(--shadow-sm);
 }
 
 .section-title {
-  font-size: 1rem;
+  font-size: 1.125rem;
   font-weight: 600;
   color: var(--text-primary);
   margin-bottom: 1.5rem;
-  padding-bottom: 0.5rem;
+  padding-bottom: 0.75rem;
+  border-bottom: 2px solid var(--primary-color);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.required-notice {
+  color: var(--text-secondary);
+  font-size: 0.8rem;
+  font-weight: 500;
 }
 
 /* 폼 스타일 */
 .withdraw-form {
   display: flex;
   flex-direction: column;
-  gap: 1.5rem;
+  gap: 1.25rem;
 }
 
 .form-row {
@@ -245,15 +265,23 @@ onMounted(async () => {
   grid-column: 1 / -1;
 }
 
-.form-group label {
-  font-size: 0.9rem;
+.form-group label,
+.form-label {
+  font-size: 0.95rem;
   font-weight: 500;
   color: var(--text-primary);
   margin-bottom: 0.5rem;
 }
 
-.required {
-  color: var(--error-color);
+.form-label.required {
+  color: var(--text-secondary);
+}
+
+.required-icon {
+  color: var(--primary-color);
+  font-weight: bold;
+  font-size: 0.8rem;
+  margin-left: 0.25rem;
 }
 
 .form-input,
@@ -261,7 +289,7 @@ onMounted(async () => {
   padding: 0.75rem;
   border: 1px solid var(--border-color);
   border-radius: var(--border-radius);
-  font-size: 0.9rem;
+  font-size: 1rem;
   transition: var(--transition);
   background: white;
 }
@@ -281,7 +309,7 @@ onMounted(async () => {
 
 .form-textarea {
   resize: vertical;
-  min-height: 120px;
+  min-height: 100px;
 }
 
 /* 버튼 스타일 */
@@ -289,11 +317,11 @@ onMounted(async () => {
   display: flex;
   gap: 1rem;
   justify-content: center;
-  margin-top: 2rem;
+  margin-top: 1.5rem;
 }
 
 .btn {
-  padding: 0.75rem 2rem;
+  padding: 0.75rem 1.5rem;
   border: none;
   border-radius: var(--border-radius);
   font-size: 1rem;
@@ -329,19 +357,19 @@ onMounted(async () => {
 /* 반응형 디자인 */
 @media (max-width: 768px) {
   .withdraw-page {
-    padding: 1rem 0;
+    padding: 2rem 0 1rem 0;
   }
 
   .container {
-    padding: 0 1rem;
+    padding: 0 15px;
   }
 
   .page-title {
-    font-size: 1.75rem;
+    font-size: 1.5rem;
   }
 
   .form-section {
-    padding: 1.5rem;
+    padding: 1.25rem;
   }
 
   .form-row {
@@ -364,11 +392,15 @@ onMounted(async () => {
   }
 
   .page-title {
-    font-size: 1.5rem;
+    font-size: 1.375rem;
   }
 
   .section-title {
-    font-size: 1.1rem;
+    font-size: 1rem;
+  }
+
+  .container {
+    padding: 0 0.75rem;
   }
 }
 </style> 

@@ -5,6 +5,7 @@ import { useRoute } from 'vue-router'
 import { authService } from './lib/auth.js'
 import Header from './components/Header.vue'
 import Footer from './components/Footer.vue'
+import KakaoTalkButton from './components/KakaoTalkButton.vue'
 
 const route = useRoute()
 
@@ -16,7 +17,6 @@ const isAdminPage = computed(() => {
 onMounted(async () => {
   // 앱 시작 시 현재 사용자 정보 로드
   await authService.getCurrentUser()
-  console.log('App.vue 시작')
   
   // 인증 상태 변경 리스너 설정 (Supabase는 자동으로 처리됨)
   // authService.setupAuthListener()
@@ -28,6 +28,8 @@ onMounted(async () => {
     <Header v-if="!isAdminPage" />
     <RouterView />
     <Footer v-if="!isAdminPage" />
+    <!-- 카카오톡 상담 버튼 (어드민 페이지 제외) -->
+    <KakaoTalkButton v-if="!isAdminPage" />
   </div>
 </template>
 
@@ -47,5 +49,16 @@ onMounted(async () => {
   --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
   --border-radius: 8px;
   --transition: all 0.3s ease;
+}
+
+/* 모바일에서 고정 헤더를 위한 body padding */
+@media (max-width: 768px) {
+  body {
+    padding-top: 80px !important; /* 헤더 높이만큼 상단 여백 추가 */
+  }
+  
+  #app {
+    padding-top: 80px;
+  }
 }
 </style>

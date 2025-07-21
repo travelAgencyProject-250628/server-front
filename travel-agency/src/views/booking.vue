@@ -1,16 +1,23 @@
 <!-- 여행 예약 페이지 -->
 <template>
     <div class="booking-page">
-        <h1 class="page-title">여행 예약하기</h1>
-        
-        <!-- 로딩 인디케이터 -->
-        <div v-if="isLoading" class="loading-container">
-            <div class="loading-spinner"></div>
-            <p>상품 정보를 불러오는 중...</p>
-        </div>
-        
         <!-- 메인 컨텐츠 -->
-        <div v-else>
+        <main class="main-content">
+            <div class="container">
+                <!-- 페이지 제목 -->
+                <div class="page-header">
+                    <h1 class="page-title">여행 예약하기</h1>
+                    <p class="page-subtitle">나라투어와 함께 특별한 여행을 시작하세요</p>
+                </div>
+                
+                <!-- 로딩 인디케이터 -->
+                <div v-if="isLoading" class="loading-container">
+                    <div class="loading-spinner"></div>
+                    <p>상품 정보를 불러오는 중...</p>
+                </div>
+                
+                <!-- 메인 컨텐츠 -->
+                <div v-else>
         
         <!-- 상품 정보 요약 -->
         <div class="product-summary-box">
@@ -31,24 +38,38 @@
         <form @submit.prevent="handleSubmit" class="booking-form">
             <!-- 예약자 정보 -->
             <section class="form-section">
-                <h2>예약자 정보</h2>
+                <h2>예약자 정보
+                    <span class="required-notice">
+                        <span class="required-icon">⦁</span>
+                        필수항목
+                    </span>
+                </h2>
                 <div class="form-grid">
                     <div class="form-group">
-                        <label for="bookerName">예약자 이름 <span class="required">*</span></label>
+                        <label for="bookerName" class="form-label required">
+                            <span class="required-icon">⦁</span>
+                            예약자 이름
+                        </label>
                         <input type="text" id="bookerName" v-model="formData.bookerName" required>
                     </div>
                     <div class="form-group">
-                        <label for="bookerPhone">휴대폰 번호 <span class="required">*</span></label>
+                        <label for="bookerPhone" class="form-label required">
+                            <span class="required-icon">⦁</span>
+                            휴대폰 번호
+                        </label>
                         <input type="tel" id="bookerPhone" v-model="formData.bookerPhone" 
                                placeholder="010-1234-5678" required>
                     </div>
                     <div class="form-group">
-                        <label for="bookerEmail">이메일 <span class="required">*</span></label>
+                        <label for="bookerEmail" class="form-label required">
+                            <span class="required-icon">⦁</span>
+                            이메일
+                        </label>
                         <input type="email" id="bookerEmail" v-model="formData.bookerEmail" 
                                placeholder="example@email.com" required>
                     </div>
                     <div class="form-group">
-                        <label for="emergencyContact">비상연락처</label>
+                        <label for="emergencyContact" class="form-label">비상연락처</label>
                         <input type="tel" id="emergencyContact" v-model="formData.emergencyContact" 
                                placeholder="비상시 연락 가능한 번호">
                     </div>
@@ -70,11 +91,17 @@
                     </div>
                     <div v-if="!formData.sameAsBooker" class="form-grid">
                         <div class="form-group">
-                            <label for="travelerName">여행자 이름 <span class="required">*</span></label>
+                            <label for="travelerName" class="form-label required">
+                                <span class="required-icon">⦁</span>
+                                여행자 이름
+                            </label>
                             <input type="text" id="travelerName" v-model="formData.travelerName" required>
                         </div>
                         <div class="form-group">
-                            <label for="travelerPhone">여행자 연락처 <span class="required">*</span></label>
+                            <label for="travelerPhone" class="form-label required">
+                                <span class="required-icon">⦁</span>
+                                여행자 연락처
+                            </label>
                             <input type="tel" id="travelerPhone" v-model="formData.travelerPhone" required>
                         </div>
                     </div>
@@ -83,7 +110,12 @@
 
             <!-- 출발지역 선택 -->
             <section class="form-section">
-                <h2>출발지역 <span class="required">*</span></h2>
+                <h2>출발지역 
+                    <span class="required-notice">
+                        <span class="required-icon">⦁</span>
+                        필수항목
+                    </span>
+                </h2>
                 <div class="departure-options-simple">
                     <label v-for="location in departureLocations" :key="location.id" class="departure-radio">
                         <input type="radio" 
@@ -97,7 +129,12 @@
 
             <!-- 인원 선택 -->
             <section class="form-section">
-                <h2>인원 선택 <span class="required">*</span></h2>
+                <h2>인원 선택 
+                    <span class="required-notice">
+                        <span class="required-icon">⦁</span>
+                        필수항목
+                    </span>
+                </h2>
                 <div class="people-selection">
                     <div class="people-counter-grid">
                         <div class="counter-group">
@@ -144,7 +181,12 @@
 
             <!-- 결제 정보 -->
             <section class="form-section">
-                <h2>결제 정보</h2>
+                <h2>결제 정보
+                    <span class="required-notice">
+                        <span class="required-icon">⦁</span>
+                        필수항목
+                    </span>
+                </h2>
                 <div class="payment-info">
                     <div class="payment-details">
                         <div class="payment-row">
@@ -158,12 +200,15 @@
                     </div>
                     <div class="form-grid">
                         <div class="form-group">
-                            <label for="payerName">입금자명 <span class="required">*</span></label>
+                            <label for="payerName" class="form-label required">
+                                <span class="required-icon">⦁</span>
+                                입금자명
+                            </label>
                             <input type="text" id="payerName" v-model="formData.payerName" 
                                    placeholder="입금하실 분의 성함을 입력하세요" required>
                         </div>
                         <div class="form-group full-width">
-                            <label for="customerRequest">고객 요청사항</label>
+                            <label for="customerRequest" class="form-label">고객 요청사항</label>
                             <textarea id="customerRequest" v-model="formData.customerRequest" 
                                     rows="4"></textarea>
                         </div>
@@ -173,7 +218,12 @@
 
             <!-- 약관 동의 -->
             <section class="form-section terms-section">
-                <h2>약관 동의 <span class="required">*</span></h2>
+                <h2>약관 동의 
+                    <span class="required-notice">
+                        <span class="required-icon">⦁</span>
+                        필수항목
+                    </span>
+                </h2>
                 
                 <div class="terms-container">
                     <!-- 전체 동의 -->
@@ -243,7 +293,9 @@
                 </button>
             </div>
         </form>
-        </div>
+                </div>
+            </div>
+        </main>
     </div>
 </template>
 
@@ -500,19 +552,39 @@ onMounted(loadInitialData)
 /* 전체 레이아웃 */
 .booking-page {
     font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
-    line-height: 1.5;
+    line-height: 1.6;
     color: var(--text-primary);
-    max-width: 800px;
+}
+
+.container {
+    max-width: 700px;
     margin: 0 auto;
-    padding: 1.5rem 20px;
+    padding: 0 20px;
+}
+
+/* 메인 컨텐츠 */
+.main-content {
+    min-height: calc(100vh - 200px);
+    padding: 3.5rem 0 2rem 0;
+}
+
+/* 페이지 헤더 */
+.page-header {
+    text-align: center;
+    margin-bottom: 2rem;
 }
 
 .page-title {
-    font-size: 1.5rem;
+    font-size: 2.5rem;
     font-weight: 700;
-    margin-bottom: 1.5rem;
     color: var(--text-primary);
-    text-align: center;
+    margin-bottom: 0.5rem;
+}
+
+.page-subtitle {
+    font-size: 1rem;
+    color: var(--text-secondary);
+    margin: 0;
 }
 
 .product-summary-box {
@@ -533,13 +605,13 @@ onMounted(loadInitialData)
 }
 
 .summary-label {
-    font-size: 0.9rem;
+    font-size: 0.8rem;
     color: var(--primary-color);
     font-weight: 600;
 }
 
 .summary-value {
-    font-size: 0.95rem;
+    font-size: 0.9rem;
     font-weight: 600;
     color: var(--text-primary);
 }
@@ -553,14 +625,40 @@ onMounted(loadInitialData)
 }
 
 .form-section h2 {
-    font-size: 1rem;
-    margin-bottom: 1rem;
+    font-size: 1.125rem;
+    margin-bottom: 1.5rem;
+    padding-bottom: 0.75rem;
     color: var(--text-primary);
     font-weight: 600;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
 }
 
-.required {
-    color: var(--error-color);
+.required-notice {
+    color: var(--text-secondary);
+    font-size: 0.8rem;
+    font-weight: 500;
+}
+
+.required-icon {
+    color: var(--primary-color);
+    font-weight: bold;
+    font-size: 0.8rem;
+    margin-right: 0.25rem;
+}
+
+.form-label {
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+    font-weight: 500;
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+}
+
+.form-label.required {
+    color: var(--text-secondary);
 }
 
 .form-grid {
@@ -580,7 +678,7 @@ onMounted(loadInitialData)
 }
 
 label {
-    font-size: 0.9rem;
+    font-size: 0.85rem;
     color: var(--text-secondary);
     font-weight: 500;
 }
@@ -589,7 +687,7 @@ input, textarea, select {
     padding: 0.75rem;
     border: 1px solid var(--border-color);
     border-radius: var(--border-radius);
-    font-size: 0.95rem;
+    font-size: 0.9rem;
     transition: border-color 0.2s;
 }
 
@@ -612,7 +710,7 @@ textarea {
 .info-notice p, .departure-notice p {
     margin: 0;
     color: var(--text-secondary);
-    font-size: 0.85rem;
+    font-size: 0.8rem;
 }
 
 .traveler-info-checkbox {
@@ -637,14 +735,14 @@ textarea {
 }
 
 .payment-label {
-    font-size: 0.95rem;
+    font-size: 0.9rem;
     color: var(--text-secondary);
     min-width: 80px;
     font-weight: 500;
 }
 
 .payment-value {
-    font-size: 0.95rem;
+    font-size: 0.9rem;
     color: var(--text-primary);
     font-weight: 500;
 }
@@ -681,7 +779,7 @@ textarea {
 }
 
 .radio-text {
-    font-size: 0.95rem;
+    font-size: 0.9rem;
 }
 
 .people-counter-grid {
@@ -707,7 +805,7 @@ textarea {
 .counter-header label {
     font-weight: 500;
     color: var(--text-primary);
-    font-size: 0.9rem;
+    font-size: 0.85rem;
 }
 
 .counter {
@@ -748,7 +846,7 @@ textarea {
 .price {
     color: var(--primary-color);
     font-weight: 500;
-    font-size: 0.85rem;
+    font-size: 0.8rem;
 }
 
 .total-calculation {
@@ -761,7 +859,7 @@ textarea {
     justify-content: space-between;
     margin-bottom: 0.5rem;
     color: var(--text-secondary);
-    font-size: 0.9rem;
+    font-size: 0.85rem;
 }
 
 .total-price {
@@ -774,7 +872,7 @@ textarea {
 }
 
 .total-price strong {
-    font-size: 1.1rem;
+    font-size: 1rem;
     color: var(--primary-color);
 }
 
@@ -783,43 +881,46 @@ textarea {
     display: flex;
     align-items: center;
     cursor: pointer;
-    font-size: 1rem;
+    font-size: 0.9rem;
 }
 
 .checkbox-input {
-    margin-right: 0.7rem;
-    width: 18px;
-    height: 18px;
+    margin-right: 0.5rem;
+    width: 16px;
+    height: 16px;
     flex-shrink: 0;
 }
 
 .checkbox-text {
-    font-size: 1rem;
+    font-size: 0.9rem;
     color: var(--text-primary);
     line-height: 1.4;
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
 }
 
 .checkbox-text .required-mark {
-    background: none;
-    color: #2563eb;
-    padding: 0;
-    border-radius: 0;
-    font-size: 1rem;
-    font-weight: 600;
-    margin-right: 0.3rem;
+    color: var(--primary-color);
+    font-weight: bold;
+    font-size: 0.8rem;
 }
 
 .checkbox-text .optional-mark {
-    background: none;
-    color: #6b7280;
-    padding: 0;
-    border-radius: 0;
-    font-size: 1rem;
-    font-weight: 600;
-    margin-right: 0.3rem;
+    color: var(--text-secondary);
+    font-weight: bold;
+    font-size: 0.8rem;
 }
 
 /* 약관 섹션 */
+.terms-section {
+    background: white;
+    border-radius: var(--border-radius);
+    padding: 1.25rem;
+    margin-bottom: 1.5rem;
+    border: 1px solid var(--border-color);
+}
+
 .terms-container {
     border: 1px solid var(--border-color);
     border-radius: var(--border-radius);
@@ -860,7 +961,7 @@ textarea {
 .btn-terms {
     background: white;
     color: var(--text-secondary);
-    padding: 0.5rem 0.75rem;
+    padding: 0.5rem 0.25rem;
     font-size: 0.75rem;
     border: 1px solid var(--border-color);
     border-radius: var(--border-radius);
@@ -892,7 +993,7 @@ textarea {
     align-items: center;
     padding: 0.5rem 0;
     border-bottom: 1px solid var(--border-color);
-    font-size: 0.9rem;
+    font-size: 0.85rem;
 }
 
 .summary-row:nth-last-child(2) {
@@ -903,7 +1004,7 @@ textarea {
     border-top: 1px solid var(--primary-color);
     border-bottom: none; 
     padding-top: 0.75rem;
-    font-size: 1rem;
+    font-size: 0.95rem;
     font-weight: 500;
 }
 
@@ -915,7 +1016,7 @@ textarea {
 .submit-notice {
     color: var(--text-secondary);
     margin-bottom: 1rem;
-    font-size: 0.9rem;
+    font-size: 0.85rem;
 }
 
 .submit-btn {
@@ -967,13 +1068,21 @@ textarea {
 
 .loading-container p {
     color: var(--text-secondary);
-    font-size: 1rem;
+    font-size: 0.9rem;
     margin: 0;
 }
 
 @media (max-width: 768px) {
-    .booking-page {
-        padding: 1rem 15px;
+    .main-content {
+        padding-top: 1.5rem;
+    }
+    
+    .container {
+        padding: 0 15px;
+    }
+
+    .page-title {
+        font-size: 1.75rem;
     }
 
     .product-summary-box {
@@ -1003,24 +1112,34 @@ textarea {
     }
 
     .terms-header {
-        flex-direction: column;
-        align-items: flex-start;
+        flex-direction: row;
+        align-items: center;
         gap: 0.75rem;
     }
 
     .btn-terms {
-        width: 100%;
-        padding: 0.75rem;
-        font-size: 0.9rem;
+        width: auto;
+        padding: 0.5rem 0.25rem;
+        font-size: 0.75rem;
         text-align: center;
+        min-width: 60px;
+        flex-shrink: 0;
     }
 
     .terms-item {
-        padding: 1rem;
+        padding: 0.5rem 0.75rem;
     }
 
     .terms-all-agree {
-        padding: 1rem;
+        padding: 0.75rem;
+    }
+    
+    .checkbox-text {
+        font-size: 0.85rem;
+    }
+    
+    .form-section h2 {
+        font-size: 1rem;
     }
 }
 </style> 

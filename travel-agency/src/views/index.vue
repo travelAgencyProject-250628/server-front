@@ -19,12 +19,12 @@
 
       <!-- 슬라이더 인디케이터 -->
       <div v-if="!isLoading" class="hero-indicators">
-        <button 
-          v-for="(image, index) in bannerImages" 
+        <span 
+          v-for="(_, index) in bannerImages" 
           :key="index"
-          :class="{ active: currentSlide === index }"
+          :class="['dot', { active: index === currentSlide }]"
           @click="setSlide(index)"
-        ></button>
+        ></span>
       </div>
     </section>
 
@@ -410,30 +410,28 @@ onBeforeUnmount(() => {
 
 .hero-indicators {
   position: absolute;
-  bottom: 2rem;
+  bottom: 1.5rem;
   left: 50%;
   transform: translateX(-50%);
   display: flex;
   gap: 0.5rem;
 }
 
-.hero-indicators button {
-  width: 10px;
-  height: 10px;
+.hero-indicators .dot {
+  width: 8px;
+  height: 8px;
   border-radius: 50%;
-  border: none;
-  background: rgba(255, 255, 255, 0.4);
+  background: var(--border-color);
   cursor: pointer;
   transition: all 0.3s ease;
 }
 
-.hero-indicators button:hover {
-  background: rgba(255, 255, 255, 0.6);
-  transform: scale(1.1);
+.hero-indicators .dot:hover {
+  background: rgba(255, 255, 255, 0.7);
 }
 
-.hero-indicators button.active {
-  background: white;
+.hero-indicators .dot.active {
+  background: var(--primary-color);
   transform: scale(1.2);
 }
 
@@ -643,6 +641,17 @@ onBeforeUnmount(() => {
 }
 
 @media (max-width: 768px) {
+  /* 모바일에서 히어로 배너 이미지 조정 */
+  .hero {
+    height: 250px; /* 모바일에서 높이 줄임 */
+  }
+  
+  .hero-bg {
+    background-size: 100% auto !important;
+    background-position: center top !important;
+    background-color: #f8fafc; /* 이미지가 없는 부분 배경색 */
+  }
+  
   .hero-content h2 {
     font-size: 2rem;
   }
@@ -659,8 +668,6 @@ onBeforeUnmount(() => {
     grid-template-columns: 1fr;
   }
   
-
-  
   .container {
     padding: 0 15px;
   }
@@ -672,7 +679,12 @@ onBeforeUnmount(() => {
 
 @media (max-width: 480px) {
   .hero {
-    height: 400px;
+    height: 200px; /* 작은 화면에서 더 작게 */
+  }
+  
+  .hero-bg {
+    background-size: cover !important; /* 작은 화면에서는 cover 사용 */
+    background-position: center !important;
   }
   
   .hero-content h2 {

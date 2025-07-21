@@ -172,7 +172,7 @@
                                             class="checkbox-input" required>
                                         <span class="checkbox-text">
                                             <span class="required-mark">[필수]</span>
-                                            개인정보수집 및 이용에 관한 안내에 동의
+                                            개인정보 수집 및 이용 동의
                                         </span>
                                     </label>
                                     <button type="button" class="btn-terms"
@@ -481,7 +481,7 @@ watch([() => formData.agreePrivacy, () => formData.agreePolicy, () => formData.a
 }
 
 .container {
-    max-width: 800px;
+    max-width: 700px;
     margin: 0 auto;
     padding: 0 20px;
 }
@@ -684,20 +684,25 @@ watch([() => formData.agreePrivacy, () => formData.agreePolicy, () => formData.a
 }
 
 .checkbox-input {
-    width: 18px;
-    height: 18px;
+    width: 16px;
+    height: 16px;
     flex-shrink: 0;
+    margin-right: 0;
 }
 
 .checkbox-text {
+    font-size: 0.9rem;
     color: var(--text-primary);
     line-height: 1.4;
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
 }
 
 .checkbox-text .required-mark {
     color: var(--primary-color);
-    font-weight: 600;
-    margin-right: 0.25rem;
+    font-weight: bold;
+    font-size: 0.8rem;
 }
 
 /* 약관 섹션 */
@@ -706,6 +711,7 @@ watch([() => formData.agreePrivacy, () => formData.agreePolicy, () => formData.a
     border-radius: var(--border-radius);
     padding: 1.25rem;
     margin-bottom: 1.5rem;
+    border: 1px solid var(--border-color);
 }
 
 .terms-container {
@@ -766,7 +772,7 @@ watch([() => formData.agreePrivacy, () => formData.agreePolicy, () => formData.a
 .btn-terms {
     background: white;
     color: var(--text-secondary);
-    padding: 0.5rem 0.75rem;
+    padding: 0.5rem 0.25rem;
     font-size: 0.75rem;
     border: 1px solid var(--border-color);
     border-radius: var(--border-radius);
@@ -774,6 +780,7 @@ watch([() => formData.agreePrivacy, () => formData.agreePolicy, () => formData.a
     transition: var(--transition);
     white-space: nowrap;
     font-weight: 500;
+    
 }
 
 .btn-terms:hover {
@@ -885,16 +892,18 @@ watch([() => formData.agreePrivacy, () => formData.agreePolicy, () => formData.a
     }
 
     .terms-header {
-        flex-direction: column;
-        align-items: flex-start;
+        flex-direction: row;
+        align-items: center;
         gap: 0.75rem;
     }
 
     .btn-terms {
-        width: 100%;
-        padding: 0.75rem;
-        font-size: 0.9rem;
+        width: auto;
+        padding: 0.5rem 0.25rem;
+        font-size: 0.75rem;
         text-align: center;
+        min-width: 60px;
+        flex-shrink: 0;
     }
 
     /* 제출 버튼 */
@@ -950,6 +959,10 @@ watch([() => formData.agreePrivacy, () => formData.agreePolicy, () => formData.a
         font-size: 0.85rem;
     }
 
+    .checkbox-text {
+        font-size: 0.85rem;
+    }
+
     .field-notice {
         font-size: 0.75rem;
         line-height: 1.4;
@@ -969,8 +982,8 @@ watch([() => formData.agreePrivacy, () => formData.agreePolicy, () => formData.a
 
     .btn-check,
     .btn-terms {
-        padding: 0.75rem;
-        font-size: 0.9rem;
+        padding: 0.5rem 0.25rem;
+        font-size: 0.75rem;
     }
 
     .form-actions {
