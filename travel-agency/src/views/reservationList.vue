@@ -43,13 +43,14 @@
                                     <span class="people-badge child">소인 <strong>{{ reservation.childCount }}명</strong></span>
                                 </div>
                             </div>
+                            
                             <div class="departure-date">{{ reservation.departureDate }}</div>
                             <div class="price">
                                 <span class="amount">{{ formatPrice(reservation.totalAmount) }}원</span>
                             </div>
                             <div class="status">
                                 <span :class="['status-badge', getStatusClass(reservation.status)]">
-                                    {{ reservation.status }}
+                                    {{ getStatusText(reservation.status) }}
                                 </span>
                             </div>
                         </div>
@@ -106,16 +107,18 @@ const formatPrice = (price) => {
 
 // 상태에 따른 CSS 클래스
 const getStatusClass = (status) => {
-    switch (status) {
-        case '예약확정':
-            return 'confirmed'
-        case '예약대기':
-            return 'pending'
-        case '예약취소':
-            return 'cancelled'
-        default:
-            return 'confirmed'
-    }
+    if (status === 'confirmed') return 'completed'
+    if (status === 'pending') return 'pending'
+    if (status === 'cancelled') return 'cancelled'
+    return 'pending'
+}
+
+// 상태에 따른 텍스트 반환
+const getStatusText = (status) => {
+    if (status === 'confirmed') return '예약완료'
+    if (status === 'pending') return '예약대기'
+    if (status === 'cancelled') return '예약취소'
+    return '예약대기'
 }
 
 // 예약 상세 페이지로 이동
@@ -229,7 +232,7 @@ onMounted(() => {
 .reservation-content {
     display: grid;
     grid-template-columns: 2fr 1fr 1fr 1fr;
-    gap: 1rem;
+    gap: 0.5rem;
     padding: 1.25rem 1rem;
     align-items: center;
 }
@@ -307,19 +310,19 @@ onMounted(() => {
     min-width: 80px;
 }
 
-.status-badge.confirmed {
-    background: #dcfce7;
-    color: var(--success-color);
+.status-badge.completed {
+    background-color: var(--success-color);
+    color: white;
 }
 
 .status-badge.pending {
-    background: #fef3c7;
-    color: var(--warning-color);
+    background-color: var(--warning-color);
+    color: white;
 }
 
 .status-badge.cancelled {
-    background: #fee2e2;
-    color: var(--error-color);
+    background-color: var(--error-color);
+    color: white;
 }
 
 .no-reservations {
@@ -415,7 +418,7 @@ onMounted(() => {
 
     .reservation-content {
         grid-template-columns: 1fr;
-        gap: 1rem;
+        gap: 0.75rem;
         padding: 1rem;
     }
 
@@ -427,8 +430,6 @@ onMounted(() => {
         order: 2;
         text-align: left;
         padding: 0.5rem;
-        background: var(--bg-light);
-        border-radius: var(--border-radius);
     }
 
     .departure-date::before {
@@ -441,8 +442,6 @@ onMounted(() => {
         order: 3;
         text-align: left;
         padding: 0.5rem;
-        background: var(--bg-light);
-        border-radius: var(--border-radius);
     }
 
     .price::before {
