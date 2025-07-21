@@ -35,12 +35,6 @@
                             </h2>
 
                             <div class="form-grid">
-                                <div class="form-group">
-                                    <label class="form-label">
-                                        아이디
-                                    </label>
-                                    <input type="text" v-model="formData.userId" class="form-input" readonly>
-                                </div>
 
                                 <div class="form-group">
                                     <label class="form-label required">
@@ -50,6 +44,16 @@
                                     <input type="text" v-model="formData.name" class="form-input"
                                         placeholder="성명을 입력하세요" :class="{ error: errors.name }" required>
                                     <div v-if="errors.name" class="error-message">{{ errors.name }}</div>
+                                </div>
+
+                                <div class="form-group">
+                                    <label class="form-label required">
+                                        <span class="required-icon">⦁</span>
+                                        E-Mail주소
+                                    </label>
+                                    <input type="email" v-model="formData.email" class="form-input"
+                                        placeholder="이메일 주소를 입력하세요" :class="{ error: errors.email }" readonly>
+                                    <div v-if="errors.email" class="error-message">{{ errors.email }}</div>
                                 </div>
 
                                 <div class="form-group">
@@ -103,16 +107,6 @@
                                             placeholder="5678" maxlength="4">
                                     </div>
                                     <div v-if="errors.mobile" class="error-message">{{ errors.mobile }}</div>
-                                </div>
-
-                                <div class="form-group">
-                                    <label class="form-label required">
-                                        <span class="required-icon">⦁</span>
-                                        E-Mail주소
-                                    </label>
-                                    <input type="email" v-model="formData.email" class="form-input"
-                                        placeholder="이메일 주소를 입력하세요" :class="{ error: errors.email }" readonly>
-                                    <div v-if="errors.email" class="error-message">{{ errors.email }}</div>
                                 </div>
 
                                 <div class="form-group full-width">
@@ -431,44 +425,42 @@ onMounted(async () => {
 /* 전체 레이아웃 */
 .profile-edit-page {
   font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
-  line-height: 1.5;
+  line-height: 1.6;
   color: var(--text-primary);
-  background: var(--bg-light);
-  min-height: 100vh;
 }
 
 .main-content {
-  padding: 2rem 0;
+  min-height: calc(100vh - 200px);
+  padding: 3.5rem 0 2rem 0;
 }
 
 .container {
-  max-width: 1200px;
+  max-width: 700px;
   margin: 0 auto;
-  padding: 0 1rem;
+  padding: 0 20px;
 }
 
 /* 페이지 헤더 */
 .page-header {
   text-align: center;
-  margin-bottom: 3rem;
+  margin-bottom: 2rem;
 }
 
 .page-title {
-  font-size: 2rem;
+  font-size: 2.5rem;
   font-weight: 700;
   color: var(--text-primary);
   margin-bottom: 0.5rem;
 }
 
 .page-subtitle {
-  font-size: 0.9rem;
+  font-size: 1rem;
   color: var(--text-secondary);
   margin-bottom: 0;
 }
 
 /* 폼 래퍼 */
 .join-form-wrapper {
-  max-width: 800px;
   margin: 0 auto;
 }
 
@@ -538,22 +530,18 @@ onMounted(async () => {
 }
 
 .join-form {
-  display: flex;
-  flex-direction: column;
-  gap: 2rem;
+  padding: 0;
 }
 
 /* 폼 섹션 */
 .form-section {
   background: white;
-  border-radius: var(--border-radius);
-  box-shadow: var(--shadow-sm);
-  border: 1px solid var(--border-color);
-  padding: 2rem;
+  padding: 1.25rem;
+  margin-bottom: 1.5rem;
 }
 
 .section-title {
-  font-size: 1.25rem;
+  font-size: 1.125rem;
   font-weight: 600;
   color: var(--text-primary);
   margin-bottom: 1.5rem;
@@ -565,21 +553,20 @@ onMounted(async () => {
 }
 
 .required-notice {
-  font-size: 0.875rem;
   color: var(--text-secondary);
-  font-weight: 400;
+  font-size: 0.8rem;
+  font-weight: 500;
 }
 
 .required-icon {
   color: var(--primary-color);
-  margin-right: 0.25rem;
 }
 
-/* 폼 그리드 */
+/* 폼 필드 */
 .form-grid {
   display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 1.5rem;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 1rem;
 }
 
 .form-group {
@@ -594,7 +581,7 @@ onMounted(async () => {
 
 /* 폼 라벨 */
 .form-label {
-  font-size: 0.9rem;
+  font-size: 0.85rem;
   color: var(--text-secondary);
   font-weight: 500;
   display: flex;
@@ -618,7 +605,7 @@ onMounted(async () => {
   padding: 0.75rem;
   border: 1px solid var(--border-color);
   border-radius: var(--border-radius);
-  font-size: 0.95rem;
+  font-size: 0.9rem;
   transition: var(--transition);
   background: white;
 }
@@ -691,7 +678,7 @@ onMounted(async () => {
   display: flex;
   align-items: center;
   cursor: pointer;
-  font-size: 0.95rem;
+  font-size: 0.9rem;
   gap: 0.5rem;
 }
 
@@ -705,7 +692,7 @@ onMounted(async () => {
 }
 
 .field-notice {
-  font-size: 0.85rem;
+  font-size: 0.8rem;
   color: var(--text-secondary);
   margin: 0;
   font-style: italic;
@@ -787,12 +774,8 @@ onMounted(async () => {
     padding: 0 1rem;
   }
 
-  .main-content {
-    padding: 1rem 0;
-  }
-
   .page-title {
-    font-size: 1.25rem;
+    font-size: 2rem;
   }
 
   .page-subtitle {
@@ -862,7 +845,7 @@ onMounted(async () => {
   }
 
   .page-title {
-    font-size: 1.125rem;
+    font-size: 1.75rem;
   }
 
   .page-subtitle {
@@ -875,25 +858,25 @@ onMounted(async () => {
   }
 
   .section-title {
-    font-size: 0.95rem;
+    font-size: 1rem;
     margin-bottom: 1rem;
   }
 
   .form-label {
-    font-size: 0.85rem;
+    font-size: 0.8rem;
   }
 
   .form-input {
     padding: 0.75rem;
-    font-size: 0.95rem;
-  }
-
-  .radio-label {
     font-size: 0.9rem;
   }
 
+  .radio-label {
+    font-size: 0.85rem;
+  }
+
   .field-notice {
-    font-size: 0.8rem;
+    font-size: 0.75rem;
     line-height: 1.4;
   }
 }

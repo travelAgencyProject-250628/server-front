@@ -19,59 +19,30 @@
     <!-- 메인 콘텐츠 -->
     <div class="main-content">
       <div class="content-container">
-        <!-- 페이지 헤더 -->
-        <div class="page-header">
-          <h1 class="page-title">{{ pageTitle }}</h1>
-          <div class="breadcrumb">
-            <span>홈</span>
-            <span class="separator">></span>
-            <span>{{ categoryName }}</span>
-            <span class="separator" v-if="subCategoryName">></span>
-            <span v-if="subCategoryName">{{ subCategoryName }}</span>
-          </div>
-        </div>
-
-        <!-- 상품 정렬 및 뷰 -->
+        <!-- 페이지 제목 -->
         <div class="filter-section">
-          <div class="filter-right">
-            <div class="sort-group">
-              <label>정렬:</label>
-              <select v-model="sortBy" @change="sortProducts">
-                <option value="latest">최신순</option>
-                <option value="price-low">가격 낮은순</option>
-                <option value="price-high">가격 높은순</option>
-                <option value="popular">인기순</option>
-              </select>
-            </div>
-            <div class="view-toggle">
-              <button 
-                :class="['view-btn', { active: viewMode === 'grid' }]"
-                @click="viewMode = 'grid'"
-              >
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
-                  <path d="M3 3h7v7H3V3zm0 11h7v7H3v-7zm11-11h7v7h-7V3zm0 11h7v7h-7v-7z"/>
-                </svg>
-              </button>
-              <button 
-                :class="['view-btn', { active: viewMode === 'list' }]"
-                @click="viewMode = 'list'"
-              >
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
-                  <path d="M3 4h18v2H3V4zm0 7h18v2H3v-2zm0 7h18v2H3v-2z"/>
-                </svg>
-              </button>
-            </div>
-          </div>
+          <h1 class="page-title">{{ pageTitle }}</h1>
         </div>
 
-        <!-- 상품 개수 표시 -->
-        <div class="product-count">
-          총 <strong>{{ totalProducts }}</strong>개의 상품이 있습니다.
-          ({{ currentPage }}/{{ totalPages }} 페이지)
+        <!-- 상품 정보 및 정렬 -->
+        <div class="filter-info">
+          <div class="product-count">
+            총 <strong>{{ totalProducts }}</strong>개의 상품이 있습니다.
+            ({{ currentPage }}/{{ totalPages }} 페이지)
+          </div>
+          <div class="sort-group">
+            <label>정렬:</label>
+            <select v-model="sortBy" @change="sortProducts">
+              <option value="latest">최신순</option>
+              <option value="price-low">가격 낮은순</option>
+              <option value="price-high">가격 높은순</option>
+              <option value="popular">인기순</option>
+            </select>
+          </div>
         </div>
 
         <!-- 상품 리스트 -->
-        <div class="product-grid" :class="{ 'list-view': viewMode === 'list' }">
+        <div class="product-grid list-view">
           <div 
             v-for="product in products" 
             :key="product.id"
@@ -97,7 +68,7 @@
         </div>
 
         <!-- 페이지네이션 -->
-        <div class="pagination" v-if="totalPages > 1">
+        <div class="pagination" >
           <button 
             class="page-btn" 
             :disabled="currentPage === 1"
@@ -139,7 +110,6 @@ const router = useRouter()
 // 반응형 데이터
 const products = ref([])
 const sortBy = ref('latest')
-const viewMode = ref('grid')
 const currentPage = ref(1)
 const itemsPerPage = 12
 const menuData = ref(null)
@@ -292,7 +262,7 @@ watch(() => route.query, async () => {
     // 병렬로 처리하여 로딩 시간 단축
     await Promise.all([
       loadMenuData(),
-      loadProducts()
+  loadProducts()
     ])
   } finally {
     loading.value = false
@@ -307,7 +277,7 @@ onMounted(async () => {
     // 병렬로 처리하여 로딩 시간 단축
     await Promise.all([
       loadMenuData(),
-      loadProducts()
+  loadProducts()
     ])
   } finally {
     loading.value = false
@@ -340,25 +310,24 @@ onMounted(async () => {
 .product-list-page {
   position: relative;
   min-height: 100vh;
-  background: var(--bg-light);
   font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+  line-height: 1.6;
+  color: var(--text-primary);
 }
 
 /* 사이드바 래퍼 (absolute 위치) */
 .sidebar-wrapper {
   position: absolute;
-  top: 2rem;
-  left: 2rem;
+  top: 3.5rem;
+  left: 1.5rem;
   z-index: 10;
 }
 
 /* 사이드바 로딩 */
 .sidebar-loading {
   width: 200px;
-  background: white;
-  border-radius: var(--border-radius);
-  box-shadow: var(--shadow-md);
   border: 1px solid var(--border-color);
+  border-radius: var(--border-radius);
   padding: 2rem 1rem;
 }
 
@@ -394,58 +363,46 @@ onMounted(async () => {
   display: flex;
   justify-content: center;
   align-items: flex-start;
-  padding: 2rem;
+  padding: 3.5rem 2rem 2rem 2rem;
 }
 
 .content-container {
-  max-width: 800px;
+  max-width: 700px;
   width: 100%;
-  background: white;
-  border-radius: var(--border-radius);
-  box-shadow: var(--shadow-sm);
-  padding: 1.5rem 20px;
+  padding: 0 20px;
 }
 
-/* 페이지 헤더 */
-.page-header {
-  margin-bottom: 2rem;
-  text-align: center;
+/* 제목 섹션 */
+.filter-section {
+  font-size: 1.125rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin-bottom: 1.0rem;
+  padding-bottom: 0.75rem;
+  border-bottom: 2px solid var(--primary-color);
 }
 
 .page-title {
-  font-size: 1.75rem;
-  font-weight: 700;
+  font-size: 1.125rem;
+  font-weight: 600;
   color: var(--text-primary);
-  margin-bottom: 0.5rem;
+  margin: 0;
 }
 
-.breadcrumb {
+/* 필터 정보 섹션 */
+.filter-info {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.5rem;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.product-count {
   font-size: 0.9rem;
   color: var(--text-secondary);
-}
-
-.separator {
-  margin: 0 0.5rem;
-  color: var(--border-color);
-}
-
-/* 필터 섹션 */
-.filter-section {
-  display: flex;
-  justify-content: flex-end;
-  align-items: center;
-  padding: 1rem;
-  background: var(--bg-light);
-  border-radius: var(--border-radius);
-  margin-bottom: 1.5rem;
-  flex-wrap: wrap;
-  gap: 1rem;
-}
-
-.filter-right {
-  display: flex;
-  gap: 1rem;
-  align-items: center;
+  font-weight: 400;
 }
 
 .sort-group {
@@ -468,43 +425,13 @@ onMounted(async () => {
   background: white;
 }
 
-.view-toggle {
-  display: flex;
-  border: 1px solid var(--border-color);
-  border-radius: var(--border-radius);
-  overflow: hidden;
-}
 
-.view-btn {
-  padding: 0.5rem;
-  background: white;
-  border: none;
-  color: var(--text-secondary);
-  cursor: pointer;
-  transition: var(--transition);
-}
-
-.view-btn:hover {
-  background: var(--bg-light);
-}
-
-.view-btn.active {
-  background: var(--primary-color);
-  color: white;
-}
-
-/* 상품 개수 */
-.product-count {
-  margin-bottom: 1.5rem;
-  font-size: 0.9rem;
-  color: var(--text-secondary);
-}
 
 /* 상품 그리드 */
 .product-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
-  gap: 1.5rem;
+  gap: 1.3rem;
   margin-bottom: 2rem;
 }
 
@@ -514,21 +441,21 @@ onMounted(async () => {
 
 .product-card {
   background: white;
+  border: 1px solid var(--border-color);
   border-radius: var(--border-radius);
-  box-shadow: var(--shadow-sm);
   overflow: hidden;
   cursor: pointer;
   transition: var(--transition);
 }
 
 .product-card:hover {
-  transform: translateY(-2px);
-  box-shadow: var(--shadow-md);
+  border-color: var(--primary-color);
+  box-shadow: var(--shadow-sm);
 }
 
 .product-image {
   position: relative;
-  height: 200px;
+  height: 180px;
   overflow: hidden;
 }
 
@@ -597,7 +524,8 @@ onMounted(async () => {
 }
 
 .page-btn:hover:not(:disabled) {
-  background: var(--bg-light);
+  border-color: var(--primary-color);
+  color: var(--primary-color);
 }
 
 .page-btn.active {
@@ -614,12 +542,12 @@ onMounted(async () => {
 /* 리스트 뷰 스타일 */
 .product-grid.list-view .product-card {
   display: flex;
-  height: 200px;
+  height: 180px;
 }
 
 .product-grid.list-view .product-image {
-  width: 300px;
-  height: 200px;
+  width: 250px;
+  height: 180px;
   flex-shrink: 0;
 }
 
@@ -641,19 +569,26 @@ onMounted(async () => {
   }
   
   .main-content {
-    padding: 1rem;
+    padding: 2rem 1rem;
   }
   
   .content-container {
-    padding: 1rem;
+    padding: 0 1rem;
   }
   
   .filter-section {
-    justify-content: center;
+    font-size: 1.125rem;
+    padding-bottom: 0.5rem;
   }
-  
-  .filter-right {
-    justify-content: center;
+
+  .filter-info {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 1rem;
+  }
+
+  .sort-group {
+    align-self: flex-end;
   }
   
   .product-grid {
@@ -667,7 +602,39 @@ onMounted(async () => {
   
   .product-grid.list-view .product-image {
     width: 100%;
-    height: 200px;
+    height: 180px;
+  }
+}
+
+@media (max-width: 480px) {
+  .content-container {
+    padding: 0 0.75rem;
+  }
+
+  .filter-section {
+    font-size: 1rem;
+    padding-bottom: 0.5rem;
+  }
+
+  .page-title {
+    font-size: 1rem;
+  }
+
+  .filter-info {
+    gap: 0.75rem;
+  }
+
+  .product-count {
+    font-size: 0.85rem;
+  }
+
+  .sort-group label {
+    font-size: 0.8rem;
+  }
+
+  .sort-group select {
+    padding: 0.5rem;
+    font-size: 0.9rem;
   }
 }
 </style> 

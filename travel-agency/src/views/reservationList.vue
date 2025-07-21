@@ -1,61 +1,67 @@
 <!-- 예약 확인 페이지 -->
 <template>
     <div class="reservation-page">
-        <div class="page-header">
-            <h1 class="page-title">예약/결제현황</h1>
-            <!-- <p class="page-subtitle">거꾸로는 합리적인비용으로 즐기는 고품격여행 - 굿모닝여행사</p> -->
-        </div>
+        <!-- 메인 컨텐츠 -->
+        <main class="main-content">
+            <div class="container">
+                <!-- 페이지 제목 -->
+                <div class="page-header">
+                    <h1 class="page-title">예약/결제현황</h1>
+                    <p class="page-subtitle">나라투어와 함께하는 특별한 여행의 예약 현황을 확인하세요</p>
+                </div>
 
-        <!-- 로딩 상태 -->
-        <div v-if="isLoading" class="loading-container">
-            <div class="loading-spinner"></div>
-            <p>예약 목록을 불러오는 중...</p>
-        </div>
+                <!-- 로딩 상태 -->
+                <div v-if="isLoading" class="loading-container">
+                    <div class="loading-spinner"></div>
+                    <p>예약 목록을 불러오는 중...</p>
+                </div>
 
-        <!-- 에러 상태 -->
-        <div v-else-if="error" class="error-container">
-            <p>{{ error }}</p>
-            <button @click="loadReservations" class="retry-button">다시 시도</button>
-        </div>
+                <!-- 에러 상태 -->
+                <div v-else-if="error" class="error-container">
+                    <p>{{ error }}</p>
+                    <button @click="loadReservations" class="retry-button">다시 시도</button>
+                </div>
 
-        <!-- 예약 리스트 -->
-        <div v-else-if="reservations.length > 0" class="reservation-table">
-            <!-- 테이블 헤더 -->
-            <div class="table-header">
-                <div class="header-item">상품명</div>
-                <div class="header-item">출발일</div>
-                <div class="header-item">결제금액</div>
-                <div class="header-item">예약상태</div>
-            </div>
+                <!-- 예약 리스트 -->
+                <div v-else-if="reservations.length > 0" class="reservation-table">
+                    <!-- 테이블 헤더 -->
+                    <div class="table-header">
+                        <div class="header-item">상품명</div>
+                        <div class="header-item">출발일</div>
+                        <div class="header-item">결제금액</div>
+                        <div class="header-item">예약상태</div>
+                    </div>
 
-            <!-- 예약 리스트 -->
-            <div v-for="reservation in reservations" :key="reservation.id" class="reservation-item" @click="goToDetail(reservation.id)">
-                <div class="reservation-content">
-                    <div class="product-info">
-                        <div class="reservation-date">예약일 : {{ reservation.reservationDate }}</div>
-                        <div class="product-title">{{ reservation.productTitle }}</div>
-                        <div class="people-info">
-                            <span class="people-badge adult">대인 <strong>{{ reservation.adultCount }}명</strong></span>
-                            <span class="people-badge child">소인 <strong>{{ reservation.childCount }}명</strong></span>
+                    <!-- 예약 리스트 -->
+                    <div v-for="reservation in reservations" :key="reservation.id" class="reservation-item" @click="goToDetail(reservation.id)">
+                        <div class="reservation-content">
+                            <div class="product-info">
+                                <div class="reservation-date">예약일 : {{ reservation.reservationDate }}</div>
+                                <div class="product-title">{{ reservation.productTitle }}</div>
+                                <div class="people-info">
+                                    <span class="people-badge adult">대인 <strong>{{ reservation.adultCount }}명</strong></span>
+                                    <span class="people-badge child">소인 <strong>{{ reservation.childCount }}명</strong></span>
+                                </div>
+                            </div>
+                            <div class="departure-date">{{ reservation.departureDate }}</div>
+                            <div class="price">
+                                <span class="amount">{{ formatPrice(reservation.totalAmount) }}원</span>
+                            </div>
+                            <div class="status">
+                                <span :class="['status-badge', getStatusClass(reservation.status)]">
+                                    {{ reservation.status }}
+                                </span>
+                            </div>
                         </div>
                     </div>
-                    <div class="departure-date">{{ reservation.departureDate }}</div>
-                    <div class="price">
-                        <span class="amount">{{ formatPrice(reservation.totalAmount) }}원</span>
-                    </div>
-                    <div class="status">
-                        <span :class="['status-badge', getStatusClass(reservation.status)]">
-                            {{ reservation.status }}
-                        </span>
-                    </div>
+                </div>
+
+                <!-- 예약이 없을 때 -->
+                <div v-else class="no-reservations">
+                    <p>예약된 여행이 없습니다.</p>
                 </div>
             </div>
-        </div>
-
-        <!-- 예약이 없을 때 -->
-        <div v-else class="no-reservations">
-            <p>예약된 여행이 없습니다.</p>
-        </div>
+        </main>
     </div>
 </template>
 
@@ -147,31 +153,39 @@ onMounted(() => {
 /* 전체 레이아웃 */
 .reservation-page {
     font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
-    line-height: 1.5;
+    line-height: 1.6;
     color: var(--text-primary);
-    max-width: 800px;
-    margin: 0 auto;
-    padding: 1.5rem 20px;
 }
 
+.container {
+    max-width: 700px;
+    margin: 0 auto;
+    padding: 0 20px;
+}
+
+/* 메인 컨텐츠 */
+.main-content {
+    min-height: calc(100vh - 200px);
+    padding: 3.5rem 0 2rem 0;
+}
+
+/* 페이지 헤더 */
 .page-header {
-    margin-bottom: 1.5rem;
-    padding-bottom: 1rem;
+    text-align: center;
+    margin-bottom: 2rem;
 }
 
 .page-title {
-    font-size: 1.5rem;
+    font-size: 2.5rem;
     font-weight: 700;
     color: var(--text-primary);
     margin-bottom: 0.5rem;
-    text-align: center;
 }
 
 .page-subtitle {
+    font-size: 1rem;
     color: var(--text-secondary);
-    font-size: 0.9rem;
     margin: 0;
-    text-align: center;
 }
 
 .reservation-table {
@@ -196,10 +210,6 @@ onMounted(() => {
     color: var(--text-primary);
     text-align: center;
     font-size: 0.95rem;
-}
-
-.header-item:first-child {
-    text-align: left;
 }
 
 .reservation-item {
@@ -383,12 +393,20 @@ onMounted(() => {
 
 /* 반응형 디자인 */
 @media (max-width: 768px) {
-    .reservation-page {
-        padding: 1rem 15px;
+    .main-content {
+        padding-top: 1.5rem;
+    }
+    
+    .container {
+        padding: 0 15px;
     }
 
     .page-title {
-        font-size: 1.3rem;
+        font-size: 1.75rem;
+    }
+
+    .page-subtitle {
+        font-size: 0.9rem;
     }
 
     .table-header {

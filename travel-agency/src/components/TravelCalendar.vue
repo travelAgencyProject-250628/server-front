@@ -10,8 +10,8 @@
     <div class="calendar-container">
       <VCalendar
         v-model="selectedDate"
-        :columns="2"
-        :rows="1"
+        :columns="calendarColumns"
+        :rows="calendarRows"
         :min-date="currentMonth"
         :max-date="nextMonthEnd"
         :from-page="fromPage"
@@ -21,6 +21,8 @@
         locale="ko"
         @dayclick="handleDateClick"
         :nav-visibility="'hidden'"
+        class="custom-calendar"
+        :style="calendarStyle"
       />
     </div>
     
@@ -55,7 +57,7 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted, watch } from 'vue'
+import { ref, computed, onMounted, onBeforeUnmount, watch } from 'vue'
 import 'v-calendar/style.css'
 
 // Props 정의
@@ -88,7 +90,38 @@ const emit = defineEmits(['update:modelValue', 'dateSelect'])
 
 // 반응형 데이터
 const selectedDate = ref(props.modelValue)
+// 시간 부분을 제거한 오늘 날짜 (00:00:00으로 설정)
 const today = new Date()
+today.setHours(0, 0, 0, 0)
+const windowWidth = ref(window.innerWidth)
+
+// 반응형 columns와 rows 계산
+const calendarColumns = computed(() => {
+  return windowWidth.value > 750 ? 2 : 1  // 큰 화면: 가로 2개, 작은 화면: 가로 1개
+})
+
+const calendarRows = computed(() => {
+  return windowWidth.value > 750 ? 1 : 2  // 큰 화면: 세로 1개, 작은 화면: 세로 2개
+})
+
+// 달력 크기 스타일 계산
+const calendarStyle = computed(() => {
+  if (windowWidth.value > 750) {
+    // 큰 화면: 2개월 가로 배치
+    return {
+      width: '100%',
+      maxWidth: '650px',
+      fontSize: '1rem'
+    }
+  } else {
+    // 작은 화면: 2개월 세로 배치, 더 컴팩트
+    return {
+      width: '100%',
+      maxWidth: '340px',
+      fontSize: '0.9rem'
+    }
+  }
+})
 
 // 이번 달과 다음 달 설정
 const currentMonth = computed(() => {
@@ -125,7 +158,7 @@ const toPage = computed(() => {
 // 비활성화할 날짜들 (3주 범위 외 + 예약마감 날짜)
 const disabledDates = computed(() => {
   const disabled = [
-    // 오늘 포함 이전 날짜들
+    // 오늘까지 이전 날짜들 (내일부터 선택 가능하도록)
     { start: null, end: today },
     // 3주 이후 날짜들
     { start: new Date(maxSelectableDate.value.getTime() + 24 * 60 * 60 * 1000), end: null }
@@ -341,115 +374,102 @@ watch(selectedDate, (newValue) => {
 })
 
 onMounted(() => {
-  // 컴포넌트 마운트 시 초기화
+  // 윈도우 리사이즈 이벤트 리스너 추가
+  const handleResize = () => {
+    windowWidth.value = window.innerWidth
+  }
+  
+  window.addEventListener('resize', handleResize)
+  
+  // 컴포넌트 언마운트 시 이벤트 리스너 제거
+  onBeforeUnmount(() => {
+    window.removeEventListener('resize', handleResize)
+  })
 })
 </script>
 
 <style scoped>
+/* CSS 변수 정의 */
+:root {
+  --primary-color: #2563eb;
+  --text-primary: #1e293b;
+  --text-secondary: #64748b;
+  --calendar-title-weight: 700;
+}
+
 .travel-calendar {
   font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
-  max-width: 750px;
+  max-width: 100%;
   margin: 0 auto;
 }
 
 .calendar-header {
-  margin-bottom: 2.25rem;
-  text-align: center;
+  margin-bottom: 1.5rem;
 }
 
 .calendar-header h3 {
-  font-size: 1.35rem;
+  font-size: 1.125rem;
   font-weight: 600;
   color: #1e293b;
   margin-bottom: 0.6rem;
 }
 
 .calendar-description {
-  font-size: 0.95rem;
-  color: #64748b;
-  margin: 0;
+  font-size: 0.8rem;
+  color: var(--text-secondary);
+  margin: 0 0 0.5rem 0;
+  font-weight: 400;
 }
 
 .calendar-container {
-  margin-bottom: 1.75rem;
+  margin-bottom: 1.5rem;
   display: flex;
   justify-content: center;
 }
 
-/* 네비게이션 화살표 완전 제거 */
+/* v-calendar 기본 스타일 설정 */
+.custom-calendar {
+  margin: 0 auto;
+  border-radius: 8px;
+  border: 1px solid #e2e8f0;
+  overflow: hidden;
+}
+
+/* 네비게이션 화살표 제거 */
 :deep(.vc-arrow) {
   display: none !important;
 }
 
-/* 월 제목 배경 제거 */
+/* 월 제목 스타일 */
 :deep(.vc-title) {
   background: transparent !important;
   border: none !important;
   box-shadow: none !important;
+  pointer-events: none;
+  cursor: default;
+  padding: 0.75rem !important;
+  font-size: 1.0rem !important;
+  font-weight: 700 !important;
+  font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, system-ui, sans-serif !important;
+}
+
+
+/* 모든 가능한 월 제목 선택자 */
+:deep(.vc-pane .vc-header .vc-title span) {
+  font-weight: 700 !important;
 }
 
 :deep(.vc-header) {
     margin-bottom: 1rem;
 }
 
-/* v-calendar 컨테이너 z-index 설정 */
-:deep(.vc-container) {
-  margin: 0 auto;
-  font-size: 1.05rem;
-  position: relative;
-  z-index: 0;
-}
-
-
-/* 달력 셀 크기 확대 */
-:deep(.vc-day) {
-  min-height: 50px !important;
-  padding: 0.6rem !important;
-}
-
-/* 요일 헤더 크기 확대 */
-:deep(.vc-weekday) {
-  padding: 0.8rem 0.6rem !important;
-  font-size: 0.95rem !important;
-  font-weight: 600 !important;
-}
-
-/* 날짜 숫자 크기 확대 */
-:deep(.vc-day-content) {
-  font-size: 1.05rem !important;
-  padding: 0.4rem !important;
-}
-
-/* 월 제목 크기 확대 */
-:deep(.vc-title) {
-  font-size: 1.1rem !important;
-  font-weight: 600 !important;
-  padding: 0.8rem !important;
-  pointer-events: none;
-  cursor: default;
-}
-
-/* dot 크기 확대 */
-:deep(.vc-dots) {
-  display: flex;
-  justify-content: center;
-  padding: 2px 0;
-}
-
-:deep(.vc-dot) {
-  width: 8px !important;
-  height: 8px !important;
-  border-radius: 50% !important;
-  margin: 0 1px !important;
-}
-
 /* 범례 스타일 */
 .calendar-legend {
   display: flex;
   justify-content: center;
-  gap: 1.5rem;
+  gap: 1.2rem;
   margin-bottom: 1.5rem;
-  padding: 1rem;
+  padding: 0.75rem;
   background: #f8fafc;
   border-radius: 8px;
 }
@@ -457,20 +477,20 @@ onMounted(() => {
 .legend-item {
   display: flex;
   align-items: center;
-  gap: 0.5rem;
-  font-size: 0.85rem;
-  color: #64748b;
+  gap: 0.4rem;
+  font-size: 0.75rem;
+  color: var(--text-secondary);
 }
 
 .legend-dot {
-  width: 12px;
-  height: 12px;
+  width: 8px;
+  height: 8px;
   border-radius: 50%;
-  border: 2px solid;
+  border: 1px solid;
 }
 
   .legend-text.available {
-    color: #64748b;
+    color: var(--text-secondary);
     font-weight: 500;
   }
   
@@ -507,13 +527,13 @@ onMounted(() => {
 
 .date-label {
   font-size: 0.9rem;
-  color: #64748b;
+  color: var(--text-secondary);
 }
 
 .date-value {
   font-size: 1rem;
   font-weight: 600;
-  color: #1e293b;
+  color: var(--text-primary);
 }
 
 .booking-status {
@@ -531,7 +551,7 @@ onMounted(() => {
 
 .status-badge.available {
   background: #f1f5f9;
-  color: #64748b;
+  color: var(--text-secondary);
 }
 
 .status-badge.closed {
@@ -550,11 +570,23 @@ onMounted(() => {
 }
 
 /* 반응형 디자인 */
-@media (max-width: 768px) {
-  .travel-calendar {
-    padding: 1rem;
+@media (max-width: 750px) {
+  .calendar-container {
+    display: flex;
+    justify-content: center;
   }
   
+  /* 세로 배치일 때 월 간격 조정 */
+  .custom-calendar :deep(.vc-pane) {
+    margin-bottom: 1.5rem;
+  }
+  
+  .custom-calendar :deep(.vc-pane:last-child) {
+    margin-bottom: 0;
+  }
+}
+
+@media (max-width: 480px) {
   .calendar-legend {
     flex-direction: column;
     gap: 0.75rem;

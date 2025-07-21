@@ -274,10 +274,10 @@ const goToJoin = () => {
 
 .tab-button {
     flex: 1;
-    padding: 1rem;
+    padding: 0.875rem;
     background:white;
     border: none;
-    font-size: 1rem;
+    font-size: 0.9rem;
     font-weight: 500;
     color: var(--text-secondary);
     cursor: pointer;
@@ -294,13 +294,13 @@ const goToJoin = () => {
 /* 폼 스타일 */
 .login-form,
 .guest-form {
-    padding: 2rem;
+    padding: 1.5rem;
 }
 
 .form {
     display: flex;
     flex-direction: column;
-    gap: 1.5rem;
+    gap: 1.25rem;
 }
 
 .input-group {
@@ -316,7 +316,7 @@ const goToJoin = () => {
 
 .input-icon {
     position: absolute;
-    left: 1rem;
+    left: 0.875rem;
     z-index: 1;
     display: flex;
     align-items: center;
@@ -325,10 +325,10 @@ const goToJoin = () => {
 
 .form-input {
     width: 100%;
-    padding: 1rem 1rem 1rem 3rem;
+    padding: 0.875rem 0.875rem 0.875rem 2.75rem;
     border: none;
     border-radius: var(--border-radius);
-    font-size: 1rem;
+    font-size: 0.9rem;
     background-color: #f5f5f5;
     color: var(--text-primary);
     transition: var(--transition);
@@ -348,10 +348,10 @@ const goToJoin = () => {
 .btn-login {
     background: var(--primary-color);
     color: white;
-    padding: 1rem;
+    padding: 0.875rem;
     border: none;
     border-radius: var(--border-radius);
-    font-size: 1.1rem;
+    font-size: 1rem;
     font-weight: 600;
     cursor: pointer;
     transition: var(--transition);
@@ -368,8 +368,8 @@ const goToJoin = () => {
     justify-content: center;
     align-items: center;
     gap: 0.5rem;
-    margin-top: 2rem;
-    padding-top: 1.5rem;
+    margin-top: 1.5rem;
+    padding-top: 1.25rem;
     border-top: 1px solid var(--border-color);
 }
 
@@ -377,7 +377,7 @@ const goToJoin = () => {
     background: none;
     border: none;
     color: var(--text-secondary);
-    font-size: 0.9rem;
+    font-size: 0.85rem;
     cursor: pointer;
     transition: var(--transition);
 }
@@ -394,7 +394,7 @@ const goToJoin = () => {
 /* 반응형 디자인 */
 @media (max-width: 768px) {
     .page-title {
-        font-size: 2rem;
+        font-size: 1.3rem;
     }
 
     .container {
@@ -408,13 +408,13 @@ const goToJoin = () => {
 
     .tab-button {
         padding: 0.75rem;
-        font-size: 0.9rem;
+        font-size: 0.85rem;
     }
 }
 
 @media (max-width: 480px) {
     .page-title {
-        font-size: 1.75rem;
+        font-size: 1.125rem;
     }
 
     .login-links {

@@ -630,9 +630,6 @@ onMounted(async () => {
 }
 
 /* 메인 헤더 */
-.main-header {
-  padding: 0.2rem 0;
-}
 
 .main-header-container {
   max-width: 1200px;
@@ -988,7 +985,11 @@ onMounted(async () => {
   background: none;
   border: none;
   cursor: pointer;
-  padding: 0.5rem;
+  padding: 0.75rem;
+  width: 48px;
+  height: 48px;
+  align-items: center;
+  justify-content: center;
 }
 
 .mobile-menu-btn span {
@@ -1020,10 +1021,10 @@ onMounted(async () => {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 1rem 1.5rem;
+  padding: 0.75rem 1rem;
   background: white;
   border-bottom: 1px solid var(--border-color);
-  min-height: 60px;
+  min-height: 80px;
 }
 
 .mobile-logo h1 {
@@ -1031,6 +1032,9 @@ onMounted(async () => {
   font-size: 1.5rem;
   font-weight: 700;
   margin: 0;
+  font-family: 'Inter', 'Noto Sans KR', -apple-system, BlinkMacSystemFont, system-ui, Roboto, 'Helvetica Neue', 'Segoe UI', sans-serif;
+  letter-spacing: -0.02em;
+  line-height: 1;
 }
 
 .mobile-close-btn {
@@ -1038,9 +1042,14 @@ onMounted(async () => {
   border: none;
   color: var(--text-primary);
   cursor: pointer;
-  padding: 0.5rem;
+  padding: 0.75rem;
+  width: 48px;
+  height: 48px;
   border-radius: 50%;
   transition: var(--transition);
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .mobile-close-btn:hover {
@@ -1129,7 +1138,6 @@ onMounted(async () => {
 .mobile-user-menu {
   padding: 1.5rem;
   background: var(--bg-light);
-  border-top: 2px solid var(--border-color);
   display: flex;
   flex-direction: column;
   gap: 0.75rem;
@@ -1259,6 +1267,18 @@ onMounted(async () => {
 
 /* 반응형 디자인 */
 @media (max-width: 768px) {
+  /* 모바일에서 헤더 고정 */
+  .header {
+    position: fixed !important;
+    top: 0 !important;
+    left: 0 !important;
+    right: 0 !important;
+    width: 100% !important;
+    z-index: 1000 !important;
+    box-shadow: var(--shadow-md) !important;
+    background: white !important;
+  }
+  
   .top-bar {
     display: none;
   }
@@ -1272,16 +1292,29 @@ onMounted(async () => {
   .main-header-container {
     padding: 0 1rem;
     gap: 1rem;
+    min-height: 80px;
   }
   
   .logo h1 {
     font-size: 1.5rem;
   }
   
+  .logo-image {
+    width: 50px;
+    height: 50px;
+  }
+  
   .mobile-logo {
     display: flex;
     align-items: center;
     gap: 0.5rem;
+    height: 100%;
+  }
+  
+  .mobile-logo .logo-image {
+    width: 50px;
+    height: 50px;
+    object-fit: contain;
   }
   
   .search-area {
