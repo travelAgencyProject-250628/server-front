@@ -175,7 +175,7 @@
     <!-- 모바일 네비게이션 -->
     <nav class="nav-mobile" :class="{ active: mobileMenuOpen }">
       <div class="mobile-header">
-        <div class="mobile-logo">
+        <div class="mobile-logo" @click="goHome">
           <img src="/logo.png" alt="나라투어 로고" class="logo-image">
           <h1>나라투어</h1>
         </div>
@@ -386,6 +386,12 @@ const handleLogout = async () => {
       alert(`로그아웃 중 오류가 발생했습니다: ${error.message}`)
     }
   }
+}
+
+// 홈으로 이동
+const goHome = () => {
+  router.push('/')
+  closeMobileMenu()
 }
 
 // 어드민 페이지로 이동
@@ -1025,6 +1031,19 @@ onMounted(async () => {
   background: white;
   border-bottom: 1px solid var(--border-color);
   min-height: 80px;
+}
+
+.mobile-logo {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  height: 100%;
+  cursor: pointer;
+  transition: var(--transition);
+}
+
+.mobile-logo:hover {
+  opacity: 0.8;
 }
 
 .mobile-logo h1 {
