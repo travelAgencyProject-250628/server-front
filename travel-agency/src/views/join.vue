@@ -846,7 +846,7 @@ watch([() => formData.agreePrivacy, () => formData.agreePolicy, () => formData.a
     }
 
     .form-section {
-        padding: 1rem;
+        padding: 0;
         margin-bottom: 1rem;
     }
 
@@ -936,7 +936,7 @@ watch([() => formData.agreePrivacy, () => formData.agreePolicy, () => formData.a
     }
 
     .form-section {
-        padding: 0.75rem;
+        padding: 0;
         margin-bottom: 0.75rem;
     }
 

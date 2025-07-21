@@ -80,7 +80,12 @@ const router = createRouter({
           path: 'withdraw',
           name: 'mypageWithdraw',
           component: () => import('@/views/withdraw.vue'),
-          meta: { requiresAuth: true }
+          meta: { requiresAuth: true },
+          beforeEnter: (to, from, next) => {
+            // 회원탈퇴 페이지 접근을 막고 마이페이지로 리다이렉트
+            alert('현재 회원탈퇴 기능이 일시적으로 사용 중단되었습니다.')
+            next('/mypage')
+          }
         },
         {
           path: 'reservations/:id',

@@ -403,62 +403,6 @@ onMounted(async () => {
 </script>
 
 <style scoped>
-/* CSS 변수 정의 */
-:root {
-  --primary-color: #2563eb;
-  --primary-dark: #1e40af;
-  --secondary-color: #64748b;
-  --accent-color: #f59e0b;
-  --text-primary: #1e293b;
-  --text-secondary: #64748b;
-  --bg-light: #f8fafc;
-  --border-color: #e2e8f0;
-  --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
-  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
-  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
-  --border-radius: 8px;
-  --transition: all 0.3s ease;
-  --error-color: #dc2626;
-  --success-color: #059669;
-}
-
-/* 전체 레이아웃 */
-.profile-edit-page {
-  font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
-  line-height: 1.6;
-  color: var(--text-primary);
-}
-
-.main-content {
-  min-height: calc(100vh - 200px);
-  padding: 3.5rem 0 2rem 0;
-}
-
-.container {
-  max-width: 700px;
-  margin: 0 auto;
-  padding: 0 20px;
-}
-
-/* 페이지 헤더 */
-.page-header {
-  text-align: center;
-  margin-bottom: 2rem;
-}
-
-.page-title {
-  font-size: 2.5rem;
-  font-weight: 700;
-  color: var(--text-primary);
-  margin-bottom: 0.5rem;
-}
-
-.page-subtitle {
-  font-size: 1rem;
-  color: var(--text-secondary);
-  margin-bottom: 0;
-}
-
 /* 폼 래퍼 */
 .join-form-wrapper {
   margin: 0 auto;
@@ -534,12 +478,6 @@ onMounted(async () => {
 }
 
 /* 폼 섹션 */
-.form-section {
-  background: white;
-  padding: 1.25rem;
-  margin-bottom: 1.5rem;
-}
-
 .section-title {
   font-size: 1.125rem;
   font-weight: 600;
@@ -770,8 +708,12 @@ onMounted(async () => {
 
 /* 반응형 디자인 */
 @media (max-width: 768px) {
+  .join-form {
+    padding: 0;
+  }
+
   .container {
-    padding: 0 1rem;
+    padding: 0;
   }
 
   .page-title {
@@ -783,7 +725,7 @@ onMounted(async () => {
   }
 
   .form-section {
-    padding: 1rem;
+    padding: 0;
     margin-bottom: 1rem;
   }
 
@@ -841,7 +783,7 @@ onMounted(async () => {
 
 @media (max-width: 480px) {
   .container {
-    padding: 0 0.75rem;
+    padding: 0;
   }
 
   .page-title {
@@ -853,7 +795,7 @@ onMounted(async () => {
   }
 
   .form-section {
-    padding: 0.75rem;
+    padding: 0;
     margin-bottom: 0.75rem;
   }
 
