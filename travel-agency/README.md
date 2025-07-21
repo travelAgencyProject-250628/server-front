@@ -34,3 +34,8 @@ npm run build
 ```sh
 npm install @supabase/supabase-js
 ```
+
+# 이메일 전송로직 테스트
+```sh
+brew install supabase/tap/supabase
+```
