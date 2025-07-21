@@ -163,16 +163,17 @@
                                 <p>{{ productDetail.excludedItems }}</p>
                             </div>
                             <div class="info-item">
-                                <h3>모이는장소</h3>
+                                <h3>모이는 장소</h3>
                                 <div class="meeting-points-list">
                                     <div v-if="startingPoints.length === 0" class="no-points">
                                         <p>출발지점 정보를 불러오는 중입니다...</p>
                                     </div>
                                     <div v-else class="points-list">
-                                        <span v-for="(point, index) in startingPoints" :key="point.id"
+                                        <div v-for="(point, index) in startingPoints" :key="point.id"
                                             class="point-item">
-                                            {{ point.name }}<span v-if="index < startingPoints.length - 1">, </span>
-                                        </span>
+                                            <span class="point-name">{{ point.name }}</span>
+                                            <span v-if="point.time" class="point-time">({{ formatTime(point.time) }})</span>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
@@ -268,7 +269,7 @@ import { ref, onMounted, onBeforeUnmount } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import TravelCalendar from '@/components/TravelCalendar.vue'
 import { getProductDetail, getProductBookingData } from '@/lib/products.js'
-import { getStartingPoints } from '@/lib/startingpoints.js'
+import { getProductStartingPoints } from '@/lib/startingpoints.js'
 
 const route = useRoute()
 const router = useRouter()
@@ -293,17 +294,26 @@ const formatPrice = (price) => {
     return new Intl.NumberFormat('ko-KR').format(price)
 }
 
+// 시간 포맷팅
+const formatTime = (timeString) => {
+    if (!timeString) return ''
+    // 'HH:MM:SS' 형식을 'HH:MM' 형식으로 변환
+    return timeString.substring(0, 5)
+}
+
 // 출발지점 데이터 가져오기
-const fetchStartingPoints = async () => {
+const fetchStartingPoints = async (productId) => {
     try {
-        const response = await getStartingPoints()
+        const response = await getProductStartingPoints(productId)
         if (response.success) {
             startingPoints.value = response.startingPoints
         } else {
             console.error('출발지점 조회 실패:', response.error)
+            startingPoints.value = []
         }
     } catch (error) {
         console.error('출발지점 조회 오류:', error)
+        startingPoints.value = []
     }
 }
 
@@ -340,6 +350,9 @@ const fetchProductDetail = async (productId) => {
             
             // 예약 데이터 로드 (실제 데이터)
             await loadBookingData(productId)
+            
+            // 출발지점 데이터 로드
+            await fetchStartingPoints(productId)
         } else {
             if (response.error && response.error.includes('No rows found')) {
                 error.value = '존재하지 않는 상품입니다.'
@@ -497,7 +510,6 @@ onMounted(() => {
     const productId = parseInt(route.params.id)
     if (productId && !isNaN(productId)) {
         fetchProductDetail(productId)
-        fetchStartingPoints() // 출발지점 데이터 로드
     } else {
         error.value = '올바르지 않은 상품 ID입니다.'
     }
