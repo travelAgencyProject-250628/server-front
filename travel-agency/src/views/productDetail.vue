@@ -115,8 +115,13 @@
 
                     <!-- 일정 선택 -->
                     <div class="schedule-selection">
-                        <TravelCalendar v-model="selectedDate" :booking-data="bookingData" :min-required-booking="10"
-                            @date-select="handleDateSelect" />
+                        <TravelCalendar 
+                            v-model="selectedDate" 
+                            :booking-data="bookingData" 
+                            :min-required-booking="productDetail.likelyDepartureThreshold || 10"
+                            :confirmed-threshold="confirmedThreshold"
+                            @date-select="handleDateSelect" 
+                        />
                     </div>
 
                     <!-- 탭 메뉴 -->
@@ -345,6 +350,8 @@ const fetchProductDetail = async (productId) => {
                 includedItems: product.includedItems,
                 excludedItems: product.excludedItems,
                 meetingPoint: product.meetingPoint,
+                likelyDepartureThreshold: product.likelyDepartureThreshold,
+                confirmedDepartureThreshold: product.confirmedDepartureThreshold,
                 images: product.images.length > 0 ? product.images : ['/images/default-product.jpg']
             }
             
@@ -353,6 +360,9 @@ const fetchProductDetail = async (productId) => {
             
             // 출발지점 데이터 로드
             await fetchStartingPoints(productId)
+            
+            // 출발확정 기준 설정
+            confirmedThreshold.value = product.confirmedDepartureThreshold || 20
         } else {
             if (response.error && response.error.includes('No rows found')) {
                 error.value = '존재하지 않는 상품입니다.'
