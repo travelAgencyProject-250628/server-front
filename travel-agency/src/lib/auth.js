@@ -34,20 +34,20 @@ export class AuthService {
           auth_id: data.user.id
         }
 
-        const { data: userTableData, error: userTableError } = await this.supabase
-          .from('Users')
+      const { data: userTableData, error: userTableError } = await this.supabase
+        .from('Users')
           .insert([userInsertData])
-          .select()
+        .select()
 
-        if (userTableError) {
-          console.error('Users 테이블 저장 실패:', userTableError)
+      if (userTableError) {
+        console.error('Users 테이블 저장 실패:', userTableError)
           // Users 테이블 저장 실패해도 Auth는 성공했으므로 경고만 표시
           console.warn('Auth는 성공했지만 Users 테이블 저장에 실패했습니다.')
         } else {
           console.log('Users 테이블 저장 성공:', userTableData[0])
         }
       }
-
+      
       return {
         success: true,
         message: '회원가입이 완료되었습니다. 이메일을 확인해주세요.',
@@ -260,13 +260,13 @@ export class AuthService {
 
       // 현재 비밀번호가 제공된 경우에만 확인
       if (currentPassword) {
-        const { error: signInError } = await this.supabase.auth.signInWithPassword({
-          email: user.email,
-          password: currentPassword
-        })
+      const { error: signInError } = await this.supabase.auth.signInWithPassword({
+        email: user.email,
+        password: currentPassword
+      })
 
-        if (signInError) {
-          throw new Error('현재 비밀번호가 올바르지 않습니다.')
+      if (signInError) {
+        throw new Error('현재 비밀번호가 올바르지 않습니다.')
         }
       }
 

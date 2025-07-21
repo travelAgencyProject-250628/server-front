@@ -400,7 +400,7 @@
                           </option>
                         </select>
                         <input 
-                          type="datetime-local"
+                          type="time"
                           :value="point.time"
                           @change="updateStartingPoint(index, 'time', $event.target.value)"
                           class="form-input starting-point-time"
@@ -804,9 +804,9 @@ const handleDetailImageUpload = (event) => {
     return
   }
   
-  // 파일 크기 검사 (5MB 제한)
-  if (file.size > 5 * 1024 * 1024) {
-    alert(`${file.name}은 파일 크기가 너무 큽니다. 5MB 이하의 파일만 업로드 가능합니다.`)
+  // 파일 크기 검사 (50MB 제한 - detail 이미지는 더 큰 사이즈 허용)
+  if (file.size > 50 * 1024 * 1024) {
+    alert(`${file.name}은 파일 크기가 너무 큽니다. 50MB 이하의 파일만 업로드 가능합니다.`)
     return
   }
   

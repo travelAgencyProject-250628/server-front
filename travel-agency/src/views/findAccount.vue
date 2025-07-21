@@ -192,7 +192,7 @@ const handleFindId = async () => {
 
     try {
         console.log('아이디 찾기 시도:', findIdData)
-        
+    
         const result = await authService.findEmail(findIdData.name, findIdData.phone)
         
         if (result.success) {
@@ -200,7 +200,7 @@ const handleFindId = async () => {
             // 성공 후 폼 초기화
             findIdData.name = ''
             findIdData.phone = ''
-        } else {
+    } else {
             alert(result.message)
         }
     } catch (error) {
@@ -217,7 +217,7 @@ const handleFindPassword = async () => {
 
     try {
         console.log('비밀번호 찾기 시도:', findPasswordData)
-        
+    
         // 1단계: 사용자 정보 확인
         const verifyResult = await authService.verifyUserForPasswordReset(
             findPasswordData.email, 
@@ -239,7 +239,7 @@ const handleFindPassword = async () => {
             findPasswordData.email = ''
             findPasswordData.name = ''
             findPasswordData.phone = ''
-        } else {
+    } else {
             alert(resetResult.message)
         }
     } catch (error) {
