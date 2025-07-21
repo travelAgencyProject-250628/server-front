@@ -2,7 +2,7 @@
 <template>
   <div class="product-list-page">
     <!-- 사이드바 -->
-    <div class="sidebar-wrapper">
+    <aside class="sidebar-section">
       <Sidebar 
         v-if="!loading"
         :title="menuData.title" 
@@ -14,10 +14,10 @@
           <p>메뉴 로딩중...</p>
         </div>
       </div>
-    </div>
+    </aside>
     
     <!-- 메인 콘텐츠 -->
-    <div class="main-content">
+    <main class="main-content">
       <div class="content-container">
         <!-- 페이지 제목 -->
         <div class="filter-section">
@@ -68,7 +68,7 @@
         </div>
 
         <!-- 페이지네이션 -->
-        <div class="pagination" >
+        <div v-if="totalProducts > 0" class="pagination" >
           <button 
             class="page-btn" 
             :disabled="currentPage === 1"
@@ -86,14 +86,14 @@
           </button>
           <button 
             class="page-btn" 
-            :disabled="currentPage === totalPages"
+            :disabled="currentPage >= totalPages || totalPages === 0"
             @click="changePage(currentPage + 1)"
           >
             다음
           </button>
         </div>
       </div>
-    </div>
+    </main>
   </div>
 </template>
 
@@ -308,24 +308,27 @@ onMounted(async () => {
 
 /* 전체 레이아웃 */
 .product-list-page {
-  position: relative;
+  display: grid;
+  grid-template-columns: 1fr 220px 740px 1fr;
   min-height: 100vh;
   font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
   line-height: 1.6;
   color: var(--text-primary);
+  padding-top: 3.5rem;
 }
 
-/* 사이드바 래퍼 (absolute 위치) */
-.sidebar-wrapper {
-  position: absolute;
-  top: 3.5rem;
-  left: 1.5rem;
-  z-index: 10;
+/* 사이드바 섹션 */
+.sidebar-section {
+  grid-column: 2;
+  padding: 1.5rem 1rem 0 0;
+  display: flex;
+  align-items: flex-start;
+  align-self: start;
 }
 
 /* 사이드바 로딩 */
 .sidebar-loading {
-  width: 200px;
+  width: 100%;
   border: 1px solid var(--border-color);
   border-radius: var(--border-radius);
   padding: 2rem 1rem;
@@ -359,11 +362,12 @@ onMounted(async () => {
 }
 
 .main-content {
+  grid-column: 3;
   width: 100%;
   display: flex;
   justify-content: center;
   align-items: flex-start;
-  padding: 3.5rem 2rem 2rem 2rem;
+  padding: 1.5rem 0 2rem 0;
 }
 
 .content-container {
@@ -560,20 +564,32 @@ onMounted(async () => {
 
 /* 반응형 디자인 */
 @media (max-width: 768px) {
-  .sidebar-wrapper {
+  .product-list-page {
+    display: block;
+    position: relative;
+    padding-top: 0rem !important;
+  }
+  
+  .sidebar-section {
     position: relative;
     top: 0;
     left: 0;
     width: 100%;
     margin-bottom: 1rem;
+    padding: 0;
+    display: block;
   }
   
   .main-content {
-    padding: 2rem 1rem;
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+    padding: 2rem 1rem 2rem 1rem;
   }
   
   .content-container {
-    padding: 0 1rem;
+    padding: 0;
   }
   
   .filter-section {
@@ -607,8 +623,28 @@ onMounted(async () => {
 }
 
 @media (max-width: 480px) {
-  .content-container {
-    padding: 0 0.75rem;
+  .product-list-page {
+    display: block;
+    position: relative;
+    padding-top: 1.5rem;
+  }
+  
+  .sidebar-section {
+    position: relative;
+    top: 0;
+    left: 0;
+    width: 100%;
+    margin-bottom: 1rem;
+    padding: 0;
+    display: block;
+  }
+  
+  .main-content {
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+    padding: 2rem 0.75rem 1.5rem 0.75rem;
   }
 
   .filter-section {
