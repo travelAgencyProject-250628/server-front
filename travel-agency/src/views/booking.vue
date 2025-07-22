@@ -308,6 +308,7 @@ import { useRoute, useRouter } from 'vue-router'
 import { getProductDetail } from '../lib/products.js'
 import { getProductStartingPoints } from '../lib/startingpoints.js'
 import { createReservation } from '../lib/reservations.js'
+import { authService } from '../lib/auth.js'
 
 const route = useRoute()
 const router = useRouter()
@@ -407,12 +408,46 @@ const loadInitialData = async () => {
             ? startingPointsResult.startingPoints
             : getDefaultDepartureLocations()
 
+        // 로그인된 사용자 정보 로드 및 폼에 미리 채우기
+        await loadUserInfo()
+
     } catch (error) {
         console.error('데이터 로드 오류:', error)
         alert(error.message || '페이지 로드 중 오류가 발생했습니다.')
         router.push('/')
     } finally {
         isLoading.value = false
+    }
+}
+
+// 로그인된 사용자 정보 로드 및 폼에 미리 채우기
+const loadUserInfo = async () => {
+    try {
+        const userResult = await authService.getCurrentUser()
+        
+        if (userResult.success && userResult.user) {
+            const user = userResult.user
+            
+            // 사용자 정보를 폼에 미리 채우기
+            formData.value.bookerName = user.name || ''
+            formData.value.bookerEmail = user.email || ''
+            
+            // 전화번호 처리 (mobile_number 또는 phone_number 중 사용 가능한 것)
+            if (user.mobile_number) {
+                formData.value.bookerPhone = user.mobile_number
+            } else if (user.phone_number) {
+                formData.value.bookerPhone = user.phone_number
+            }
+            
+            console.log('사용자 정보가 폼에 미리 채워졌습니다:', {
+                name: formData.value.bookerName,
+                email: formData.value.bookerEmail,
+                phone: formData.value.bookerPhone
+            })
+        }
+    } catch (error) {
+        console.error('사용자 정보 로드 오류:', error)
+        // 사용자 정보 로드 실패는 예약 진행에 영향을 주지 않으므로 에러를 던지지 않음
     }
 }
 
