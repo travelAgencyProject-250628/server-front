@@ -400,7 +400,7 @@ const handleSubmit = async () => {
         
         if (result.success) {
             alert('회원가입이 완료되었습니다! 이메일을 확인해주세요.')
-            router.push('/login')
+            router.push('/')
         } else {
             alert(`회원가입 실패: ${result.message}`)
         }
