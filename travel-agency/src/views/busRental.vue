@@ -101,20 +101,34 @@
 
           <div class="field-group">
             <label class="field-label">가는날</label>
-            <input 
-              type="date" 
-              v-model="formData.departureDate" 
-              class="field-input"
-            >
+            <div class="datetime-group">
+              <input 
+                type="date" 
+                v-model="formData.departureDate" 
+                class="field-input"
+              >
+              <input 
+                type="time" 
+                v-model="formData.departureTime" 
+                class="field-input"
+              >
+            </div>
           </div>
 
           <div class="field-group" v-if="tripType === 'round'">
             <label class="field-label">오는날</label>
-            <input 
-              type="date" 
-              v-model="formData.returnDate" 
-              class="field-input"
-            >
+            <div class="datetime-group">
+              <input 
+                type="date" 
+                v-model="formData.returnDate" 
+                class="field-input"
+              >
+              <input 
+                type="time" 
+                v-model="formData.returnTime" 
+                class="field-input"
+              >
+            </div>
           </div>
 
           <div class="field-group">
@@ -124,12 +138,22 @@
               <option v-for="i in 50" :key="i" :value="i">{{ i }}명</option>
             </select>
           </div>
+
+          <div class="field-group">
+            <label class="field-label">연락처</label>
+            <input 
+              type="tel" 
+              v-model="formData.phone" 
+              placeholder="연락처 입력 (예: 010-1234-5678)" 
+              class="field-input"
+            >
+          </div>
         </div>
 
         <!-- 견적 신청 버튼 -->
         <div class="submit-section">
-          <button class="submit-button" @click="requestQuote">
-            견적 신청
+          <button class="submit-button" @click="requestQuote" :disabled="isSubmitting">
+            {{ isSubmitting ? '신청 중...' : '견적 신청' }}
           </button>
         </div>
       </div>
@@ -139,17 +163,24 @@
 
 <script setup>
 import { ref, reactive, onMounted } from 'vue'
+import { createBusRental } from '@/lib/busRentals.js'
 
 // 여행 타입 (왕복/편도)
 const tripType = ref('round')
+
+// 제출 상태
+const isSubmitting = ref(false)
 
 // 폼 데이터
 const formData = reactive({
   departure: '',
   arrival: '',
   departureDate: '',
+  departureTime: '',
   returnDate: '',
+  returnTime: '',
   passengers: '',
+  phone: '',
   stopovers: []
 })
 
@@ -219,10 +250,15 @@ const removeStopover = (index) => {
 }
 
 // 견적 신청
-const requestQuote = () => {
+const requestQuote = async () => {
   // 필수 필드 검증
   if (!formData.departure || !formData.arrival || !formData.departureDate) {
     alert('출발지, 도착지, 가는날을 입력해주세요.')
+    return
+  }
+
+  if (!formData.departureTime) {
+    alert('가는 시간을 입력해주세요.')
     return
   }
 
@@ -231,14 +267,73 @@ const requestQuote = () => {
     return
   }
 
+  if (tripType.value === 'round' && !formData.returnTime) {
+    alert('오는 시간을 입력해주세요.')
+    return
+  }
+
   if (!formData.passengers) {
     alert('인원수를 선택해주세요.')
     return
   }
 
-  // 견적 신청 로직 (임시)
-  console.log('견적 신청:', formData)
-  alert('견적 신청이 완료되었습니다. 곧 연락드리겠습니다.')
+  if (!formData.phone) {
+    alert('연락처를 입력해주세요.')
+    return
+  }
+
+  // 전화번호 형식 검증
+  const phoneRegex = /^[0-9-]+$/
+  if (!phoneRegex.test(formData.phone)) {
+    alert('올바른 전화번호 형식으로 입력해주세요.')
+    return
+  }
+
+  isSubmitting.value = true
+
+  try {
+    // JSON 형태로 데이터 구성
+    const rentalData = {
+      tripType: tripType.value,
+      departure: formData.departure,
+      arrival: formData.arrival,
+      departureDate: formData.departureDate,
+      departureTime: formData.departureTime,
+      returnDate: formData.returnDate,
+      returnTime: formData.returnTime,
+      passengers: formData.passengers,
+      phone: formData.phone,
+      stopovers: formData.stopovers.filter(stopover => stopover.trim() !== ''),
+      submittedAt: new Date().toISOString()
+    }
+
+    // 데이터베이스에 저장
+    const result = await createBusRental(rentalData)
+    
+    if (result.success) {
+      alert('견적 신청이 완료되었습니다. 곧 연락드리겠습니다.')
+      
+      // 폼 초기화
+      formData.departure = ''
+      formData.arrival = ''
+      formData.departureDate = ''
+      formData.departureTime = ''
+      formData.returnDate = ''
+      formData.returnTime = ''
+      formData.passengers = ''
+      formData.phone = ''
+      formData.stopovers = []
+      
+      console.log('버스 대절 신청 저장 완료:', result.data)
+    } else {
+      alert(`견적 신청 중 오류가 발생했습니다: ${result.error}`)
+    }
+      } catch (error) {
+      console.error('견적 신청 오류:', error)
+      alert('견적 신청 중 오류가 발생했습니다. 다시 시도해주세요.')
+    } finally {
+      isSubmitting.value = false
+    }
 }
 </script>
 
@@ -328,7 +423,7 @@ const requestQuote = () => {
 /* 입력 필드 */
 .input-fields {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
   gap: 1.5rem;
   margin-bottom: 2rem;
 }
@@ -390,6 +485,16 @@ const requestQuote = () => {
   transform: translateY(-1px);
 }
 
+/* 날짜/시간 입력 그룹 */
+.datetime-group {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.datetime-group .field-input {
+  flex: 1;
+}
+
 /* 경유지 섹션 */
 .stopovers-section {
   margin: 1.5rem 0;
@@ -397,6 +502,7 @@ const requestQuote = () => {
   background: #f8fafc;
   border-radius: 12px;
   border: 2px solid #e2e8f0;
+  max-width: 100%;
 }
 
 .stopovers-title {
@@ -419,10 +525,15 @@ const requestQuote = () => {
 
 .stopover-item {
   margin-bottom: 1rem;
+  max-width: 100%;
 }
 
 .stopover-item:last-child {
   margin-bottom: 0;
+}
+
+.stopover-item .field-group {
+  width: 100%;
 }
 
 .remove-stopover-btn {
@@ -488,6 +599,25 @@ const requestQuote = () => {
   background: #555;
   transform: translateY(-2px);
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+}
+
+/* PC 뷰 최적화 */
+@media (min-width: 769px) {
+  .form-container {
+    max-width: 1000px;
+  }
+  
+  .input-fields {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  
+  .stopovers-section {
+    grid-column: 1 / -1;
+  }
+  
+  .submit-section {
+    grid-column: 1 / -1;
+  }
 }
 
 /* 반응형 디자인 */
