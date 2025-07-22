@@ -38,11 +38,8 @@
                                         <span class="required-icon">⦁</span>
                                         이메일
                                     </label>
-                                    <div class="input-with-button">
-                                        <input type="email" v-model="formData.email" class="form-input"
-                                            placeholder="이메일 주소를 입력하세요" :class="{ error: errors.email }" required>
-                                        <button type="button" class="btn-check" @click="checkEmailDuplicate">중복확인</button>
-                                    </div>
+                                    <input type="email" v-model="formData.email" class="form-input"
+                                        placeholder="이메일 주소를 입력하세요" :class="{ error: errors.email }" required>
                                     <div v-if="errors.email" class="error-message">{{ errors.email }}</div>
                                 </div>
 
@@ -232,7 +229,6 @@ import { authService } from '../lib/auth.js'
 const router = useRouter()
 
 // 반응형 데이터
-const emailDuplicateChecked = ref(false)
 const errors = ref({})
 const agreeAll = ref(false)
 
@@ -262,13 +258,11 @@ const formData = reactive({
 const validateForm = () => {
     errors.value = {}
 
-    // 이메일 중복 확인 검증
+    // 이메일 검증
     if (!formData.email) {
         errors.value.email = '이메일 주소를 입력해주세요.'
     } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
         errors.value.email = '올바른 이메일 주소를 입력해주세요.'
-    } else if (!emailDuplicateChecked.value) {
-        errors.value.email = '이메일 중복확인을 해주세요.'
     }
 
     // 비밀번호 검증
@@ -310,34 +304,7 @@ const validateForm = () => {
     return Object.keys(errors.value).length === 0
 }
 
-const checkEmailDuplicate = async () => {
-    if (!formData.email) {
-        alert('이메일을 입력해주세요.')
-        return
-    }
 
-    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
-        alert('올바른 이메일 주소를 입력해주세요.')
-        return
-    }
-
-    try {
-        const result = await authService.checkEmailExists(formData.email)
-        
-        if (result.exists) {
-            alert('이미 사용중인 이메일입니다.')
-            emailDuplicateChecked.value = false
-        } else {
-            alert('사용 가능한 이메일입니다.')
-            emailDuplicateChecked.value = true
-            errors.value.email = ''
-        }
-    } catch (error) {
-        console.error('이메일 중복 확인 오류:', error)
-        alert('이메일 중복 확인 중 오류가 발생했습니다.')
-        emailDuplicateChecked.value = false
-    }
-}
 
 const findAddress = () => {
   // Daum 우편번호 API 사용
@@ -442,10 +409,7 @@ const handleSubmit = async () => {
     }
 }
 
-// 이메일 변경 감시 (watch 사용)
-watch(() => formData.email, () => {
-    emailDuplicateChecked.value = false
-})
+
 
 // 개별 약관 동의 상태 감시 (전체 동의 체크박스 자동 업데이트)
 watch([() => formData.agreePrivacy, () => formData.agreePolicy, () => formData.agreeService], () => {

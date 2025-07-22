@@ -21,6 +21,14 @@ export class AuthService {
 
       if (error) {
         console.error('회원가입 실패:', error)
+        
+        // 이메일 중복 에러 처리
+        if (error.message.includes('User already registered') || 
+            error.message.includes('already been registered') ||
+            error.message.includes('already exists')) {
+          throw new Error('이미 등록된 이메일입니다.')
+        }
+        
         throw error
       }
 
@@ -217,37 +225,7 @@ export class AuthService {
     }
   }
 
-  // 이메일 중복 확인
-  async checkEmailExists(email) {
-    try {
-      const { data, error } = await this.supabase
-        .from('Users')
-        .select('email')
-        .eq('email', email)
-        .single()
 
-      if (error && error.code === 'PGRST116') {
-        // 이메일이 존재하지 않는 경우
-        return {
-          exists: false,
-          available: true
-        }
-      }
-
-      if (error) throw error
-
-      return {
-        exists: true,
-        available: false
-      }
-    } catch (error) {
-      return {
-        exists: false,
-        available: true,
-        error: error.message
-      }
-    }
-  }
 
   // 비밀번호 변경
   async changePassword(currentPassword, newPassword) {
