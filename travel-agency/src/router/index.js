@@ -75,12 +75,7 @@ const router = createRouter({
           component: () => import('@/views/reservationList.vue'),
           meta: { requiresAuth: true }
         },
-        {
-          path: 'withdraw',
-          name: 'mypageWithdraw',
-          component: () => import('@/views/withdraw.vue'),
-          meta: { requiresAuth: true }
-        },
+
         {
           path: 'reservations/:id',
           name: 'mypageReservationDetail',

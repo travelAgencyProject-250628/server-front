@@ -27,8 +27,7 @@ const mypageMenu = ref({
   title: '마이페이지',
   items: [
     { name: '회원정보수정', path: '/mypage/profile' },
-    { name: '예약/결제현황', path: '/mypage/reservations' },
-    { name: '회원탈퇴', path: '/mypage/withdraw' }
+    { name: '예약/결제현황', path: '/mypage/reservations' }
   ]
 })
 </script>
