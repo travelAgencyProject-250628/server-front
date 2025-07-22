@@ -9,7 +9,7 @@
     </aside>
     
     <!-- 메인 콘텐츠 -->
-    <main class="main-content">
+    <main class="mypage-content">
       <router-view />
     </main>
   </div>
@@ -54,14 +54,9 @@ const mypageMenu = ref({
 
 /* 메인 콘텐츠 */
 
-.main-content {
+.mypage-content {
   grid-column: 3;
   width: 100%;
-  display: flex;
-  justify-content: center;
-  align-items: flex-start;
-  background: white;
-  min-height: 100vh;
   padding: 0;
 }
 
@@ -82,14 +77,6 @@ const mypageMenu = ref({
     padding: 0;
     display: block;
   }
-  
-  .main-content {
-    width: 100%;
-    display: flex;
-    justify-content: center;
-    align-items: flex-start;
-    min-height: auto;
-  }
 }
 
 @media (max-width: 480px) {
@@ -107,14 +94,6 @@ const mypageMenu = ref({
     margin-bottom: 1rem;
     padding: 0;
     display: block;
-  }
-  
-  .main-content {
-    width: 100%;
-    display: flex;
-    justify-content: center;
-    align-items: flex-start;
-    min-height: auto;
   }
 }
 </style> 

@@ -55,7 +55,6 @@
             <div class="tour-content">
               <div class="tour-info">
                 <h3 class="tour-title">{{ tour.title }}</h3>
-                <p class="tour-description">{{ tour.description }}</p>
               </div>
               <div class="tour-details">
                 <span class="tour-duration">{{ tour.duration }}</span>
@@ -63,10 +62,8 @@
               </div>
               <div class="tour-footer">
                 <div class="tour-price">
-                  <span class="price-label">1인</span>
                   <span class="price">{{ tour.price.toLocaleString() }}원</span>
                 </div>
-                <button class="btn-tour">예약하기</button>
               </div>
             </div>
           </div>
@@ -75,10 +72,6 @@
         <!-- 상품이 없을 때 -->
         <div v-else class="no-tours">
           <p>현재 등록된 인기 상품이 없습니다.</p>
-        </div>
-        
-        <div v-if="!isLoading" class="more-tours">
-          <button class="btn-outline">더 많은 상품 보기</button>
         </div>
       </div>
     </section>
@@ -240,7 +233,7 @@ onBeforeUnmount(() => {
 
 /* 헤더 스타일 - Header 컴포넌트로 이동 */
 
-.btn-primary, .btn-secondary, .btn-outline, .btn-hero, .btn-search, .btn-tour {
+.btn-primary, .btn-secondary, .btn-outline, .btn-hero, .btn-search {
   border: none;
   border-radius: var(--border-radius);
   padding: 0.5rem 1rem;
@@ -533,22 +526,13 @@ onBeforeUnmount(() => {
   color: var(--text-primary);
 }
 
-.tour-description {
-  color: var(--text-secondary);
-  margin-bottom: 1rem;
-  line-height: 1.5;
-  font-size: 0.95rem;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  display: -webkit-box;
-  -webkit-line-clamp: 2;
-  -webkit-box-orient: vertical;
-}
+
 
 .tour-details {
   display: flex;
   gap: 1rem;
   margin-bottom: 1.5rem;
+  margin-top: 1rem;
   flex: 0 0 auto;
 }
 
@@ -563,7 +547,6 @@ onBeforeUnmount(() => {
 
 .tour-footer {
   display: flex;
-  justify-content: space-between;
   align-items: center;
   flex: 0 0 auto;
   margin-top: auto;
@@ -585,21 +568,7 @@ onBeforeUnmount(() => {
   color: var(--primary-color);
 }
 
-.btn-tour {
-  background: var(--primary-color);
-  color: white;
-  padding: 0.75rem 1.5rem;
-  font-size: 0.95rem;
-  font-weight: 500;
-}
 
-.btn-tour:hover {
-  background: var(--primary-dark);
-}
-
-.more-tours {
-  text-align: center;
-}
 
 .tours-loading, .no-tours {
   text-align: center;
@@ -665,7 +634,8 @@ onBeforeUnmount(() => {
   }
   
   .tours-grid {
-    grid-template-columns: 1fr;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1rem;
   }
   
   .container {
@@ -674,6 +644,27 @@ onBeforeUnmount(() => {
 
   .popular-tours {
     padding: 2rem 0;
+  }
+  
+  /* 모바일에서 투어 카드 조정 */
+  .tour-content {
+    padding: 1rem;
+  }
+  
+  .tour-title {
+    font-size: 1rem;
+  }
+  
+  .tour-details {
+    margin-bottom: 1rem;
+    margin-top: 0.75rem;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+  }
+  
+  .tour-duration, .tour-location {
+    font-size: 0.8rem;
+    padding: 0.25rem 0.5rem;
   }
 }
 
@@ -691,10 +682,6 @@ onBeforeUnmount(() => {
     font-size: 1.5rem;
   }
   
-  .tour-footer {
-    flex-direction: column;
-    gap: 1rem;
-    align-items: stretch;
-  }
+
 }
 </style>

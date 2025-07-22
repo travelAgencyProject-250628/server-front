@@ -245,11 +245,8 @@ onMounted(() => {
 
 <style scoped>
 
-
-/* 전체 레이아웃 */
-
-
 /* 상세 섹션들 */
+
 .detail-sections {
     display: flex;
     flex-direction: column;
