@@ -3,15 +3,18 @@ import { supabase } from './supabase.js'
 /**
  * 전체 유저 목록을 가져온다.
  * Bookings 테이블에서 예약 수를 카운트하고 status를 계산한다.
- * Users 테이블의 is_admin 필드를 직접 사용한다.
+ * UserRoles 테이블과 조인하여 관리자 권한도 포함한다.
  * @returns {Object} { success, users, error }
  */
 export async function getAllUsers() {
   try {
-    // 1. 모든 유저 정보 조회 (is_admin 필드 직접 사용)
+    // 1. 모든 유저 정보 조회 (UserRoles 테이블과 조인)
     const { data: users, error: usersError } = await supabase
       .from('Users')
-      .select('*')
+      .select(`
+        *,
+        UserRoles(is_admin)
+      `)
       .order('created_at', { ascending: false })
 
     if (usersError) {
@@ -60,7 +63,7 @@ export async function getAllUsers() {
       lastBooking: user.last_booking_date || null,
       totalPayment: user.total_payment || 0,
       createdAt: user.created_at ? new Date(user.created_at).toISOString().split('T')[0] : null,
-      is_admin: user.is_admin || false
+      is_admin: user.UserRoles?.is_admin || false
     }))
 
     return {
