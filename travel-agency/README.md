@@ -39,3 +39,5 @@ npm install @supabase/supabase-js
 ```sh
 brew install supabase/tap/supabase
 ```
+
+# UserRoles 는 read only
