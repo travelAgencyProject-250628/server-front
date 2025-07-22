@@ -56,8 +56,23 @@
           </div>
         </div>
 
-        <!-- 예약확인 버튼 (항상 표시) -->
+        <!-- 버스대절 버튼 -->
         <div class="reservation-menu">
+          <div class="menu-item" @click="handleBusRental">
+            <div class="menu-icon">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M4 6h16"/>
+                <path d="M4 10h16"/>
+                <path d="M4 14h16"/>
+                <path d="M4 18h16"/>
+                <path d="M2 6h20v12H2z"/>
+                <circle cx="6" cy="16" r="2"/>
+                <circle cx="18" cy="16" r="2"/>
+              </svg>
+            </div>
+            <span class="menu-text">버스대절</span>
+          </div>
+           <!-- 예약확인 버튼 (항상 표시) -->
           <div class="menu-item" @click="handleReservation">
             <div class="menu-icon">
               <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -238,6 +253,18 @@
           <template v-if="!isLoggedIn">
             <router-link to="/login" class="btn-secondary" @click="closeMobileMenu">로그인</router-link>
             <router-link to="/join" class="btn-secondary" @click="closeMobileMenu">회원가입</router-link>
+            <button class="btn-primary" @click="() => { handleBusRental(); closeMobileMenu(); }">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M4 6h16"/>
+                <path d="M4 10h16"/>
+                <path d="M4 14h16"/>
+                <path d="M4 18h16"/>
+                <path d="M2 6h20v12H2z"/>
+                <circle cx="6" cy="16" r="2"/>
+                <circle cx="18" cy="16" r="2"/>
+              </svg>
+              버스대절
+            </button>
             <button class="btn-primary" @click="() => { handleGuestReservation(); closeMobileMenu(); }">
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                 <path d="M9 12L11 14L15 10M21 12C21 16.9706 16.9706 21 12 21C7.02944 21 3 16.9706 3 12C3 7.02944 7.02944 3 12 3C16.9706 3 21 7.02944 21 12Z"/>
@@ -250,6 +277,18 @@
           <template v-else>
             <router-link to="/mypage" class="btn-secondary" @click="closeMobileMenu">마이페이지</router-link>
             <button @click="handleLogout" class="btn-secondary">로그아웃</button>
+            <button class="btn-primary" @click="() => { handleBusRental(); closeMobileMenu(); }">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M4 6h16"/>
+                <path d="M4 10h16"/>
+                <path d="M4 14h16"/>
+                <path d="M4 18h16"/>
+                <path d="M2 6h20v12H2z"/>
+                <circle cx="6" cy="16" r="2"/>
+                <circle cx="18" cy="16" r="2"/>
+              </svg>
+              버스대절
+            </button>
             <button class="btn-primary" @click="() => { handleReservation(); closeMobileMenu(); }">
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                 <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
@@ -530,6 +569,11 @@ const handleReservation = () => {
   router.push('/mypage/reservations')
 }
 
+const handleBusRental = () => {
+  // 버스대절 페이지로 이동 (임시로 홈으로 이동)
+  router.push('/')
+}
+
 const handleGuestReservation = () => {
   router.push('/login?tab=guest')
 }
@@ -757,6 +801,8 @@ onMounted(async () => {
 .reservation-menu {
   display: flex;
   flex-shrink: 0;
+  gap: 1rem;
+  align-items: center;
 }
 
 /* 로그인되지 않은 경우 빈 공간 */
