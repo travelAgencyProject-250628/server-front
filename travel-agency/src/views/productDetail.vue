@@ -858,8 +858,8 @@ const handleImageError = (event) => {
 }
 
 .price-table th {
-    background: #6b7eeb;
-    color: white;
+    background: var(--primary-light);
+    color: var(--text-primary);
     font-weight: 500;
     font-size: 0.9rem;
 }
@@ -882,7 +882,7 @@ const handleImageError = (event) => {
 
 .price-table .price-cell {
     font-weight: 600;
-    color: #5b72e8;
+    color: var(--primary-light);
 }
 
 .price-table .price-cell::after {
@@ -1300,7 +1300,7 @@ const handleImageError = (event) => {
 }
 
 .insurance-banner {
-    background: linear-gradient(135deg, #4A90E2, #357ABD);
+    background: linear-gradient(135deg, var(--primary-color), var(--primary-dark));
     border-radius: var(--border-radius);
     padding: 1.5rem;
     color: white;
@@ -1347,7 +1347,7 @@ const handleImageError = (event) => {
 
 .btn-insurance {
     background-color: white;
-    color: #4A90E2;
+    color: var(--primary-color);
     border: none;
     padding: 12px 24px;
     border-radius: 6px;
@@ -1358,7 +1358,7 @@ const handleImageError = (event) => {
 }
 
 .btn-insurance:hover {
-    background-color: #f0f0f0;
+    background-color: var(--bg-light);
 }
 
 /* 보험 섹션 스타일 */
@@ -1381,7 +1381,7 @@ const handleImageError = (event) => {
     justify-content: center;
     width: 20px;
     height: 20px;
-    background: #4A90E2;
+    background: var(--primary-color);
     color: white;
     border-radius: 50%;
     font-style: normal;
@@ -1397,7 +1397,7 @@ const handleImageError = (event) => {
 
 .insurance-button {
     display: inline-block;
-    background: #6C8EF2;
+    background: var(--primary-color);
     color: white;
     padding: 12px 24px;
     border-radius: 6px;
@@ -1407,7 +1407,7 @@ const handleImageError = (event) => {
 }
 
 .insurance-button:hover {
-    background: #5A7DE0;
+    background: var(--primary-dark);
 }
 
 /* 로딩 및 에러 상태 스타일 */

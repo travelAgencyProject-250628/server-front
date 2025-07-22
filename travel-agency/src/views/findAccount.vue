@@ -250,24 +250,6 @@ const handleFindPassword = async () => {
 </script>
 
 <style scoped>
-/* CSS 변수 정의 - 전역으로 적용 */
-:global(:root) {
-    --primary-color: #2563eb;
-    --primary-dark: #1e40af;
-    --secondary-color: #64748b;
-    --accent-color: #f59e0b;
-    --text-primary: #1e293b;
-    --text-secondary: #64748b;
-    --bg-light: #f8fafc;
-    --border-color: #e2e8f0;
-    --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
-    --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
-    --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
-    --border-radius: 8px;
-    --transition: all 0.3s ease;
-    --error-color: #dc2626;
-    --success-color: #059669;
-}
 
 /* 전체 레이아웃 */
 .find-account-page {
@@ -285,20 +267,7 @@ const handleFindPassword = async () => {
 /* 메인 컨텐츠 */
 .main-content {
     min-height: calc(100vh - 200px);
-    padding: 2rem 0;
-}
-
-/* 페이지 헤더 */
-.page-header {
-    text-align: center;
-    margin-bottom: 2rem;
-}
-
-.page-title {
-    font-size: 2.5rem;
-    font-weight: 700;
-    color: var(--text-primary);
-    margin-bottom: 0.5rem;
+    padding: 3.5rem 0 2rem 0;
 }
 
 .page-description {
@@ -322,10 +291,10 @@ const handleFindPassword = async () => {
 
 .tab-button {
     flex: 1;
-    padding: 1rem;
-    background: white;
+    padding: 0.875rem;
+    background:white;
     border: none;
-    font-size: 1rem;
+    font-size: 0.9rem;
     font-weight: 500;
     color: var(--text-secondary);
     cursor: pointer;
@@ -341,13 +310,13 @@ const handleFindPassword = async () => {
 
 /* 폼 스타일 */
 .find-form {
-    padding: 2rem;
+    padding: 1.5rem;
 }
 
 .form {
     display: flex;
     flex-direction: column;
-    gap: 1.5rem;
+    gap: 1.25rem;
 }
 
 .input-group {
@@ -363,7 +332,7 @@ const handleFindPassword = async () => {
 
 .input-icon {
     position: absolute;
-    left: 1rem;
+    left: 0.875rem;
     z-index: 1;
     display: flex;
     align-items: center;
@@ -372,10 +341,10 @@ const handleFindPassword = async () => {
 
 .form-input {
     width: 100%;
-    padding: 1rem 1rem 1rem 3rem;
+    padding: 0.875rem 0.875rem 0.875rem 2.75rem;
     border: none;
     border-radius: var(--border-radius);
-    font-size: 1rem;
+    font-size: 0.9rem;
     background-color: #f5f5f5;
     color: var(--text-primary);
     transition: var(--transition);
@@ -395,10 +364,10 @@ const handleFindPassword = async () => {
 .btn-find {
     background: var(--primary-color);
     color: white;
-    padding: 1rem;
+    padding: 0.875rem;
     border: none;
     border-radius: var(--border-radius);
-    font-size: 1.1rem;
+    font-size: 1rem;
     font-weight: 600;
     cursor: pointer;
     transition: var(--transition);
@@ -425,10 +394,6 @@ const handleFindPassword = async () => {
 
 /* 반응형 디자인 */
 @media (max-width: 768px) {
-    .page-title {
-        font-size: 2rem;
-    }
-
     .container {
         padding: 0 15px;
     }
@@ -439,13 +404,7 @@ const handleFindPassword = async () => {
 
     .tab-button {
         padding: 0.75rem;
-        font-size: 0.9rem;
-    }
-}
-
-@media (max-width: 480px) {
-    .page-title {
-        font-size: 1.75rem;
+        font-size: 0.85rem;
     }
 }
 </style> 
