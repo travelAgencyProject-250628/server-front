@@ -326,3 +326,67 @@ export async function getRecentReservations(limit = 8) {
     return { success: false, reservations: null, error: error.message }
   }
 } 
+
+/**
+ * 비회원 예약조회 (auth_id가 null인 예약)
+ * @param {string} bookerName - 예약자명
+ * @param {string} bookerPhone - 예약자 전화번호
+ * @returns {Promise<{success: boolean, reservations: Array, error?: string}>}
+ */
+export async function getGuestReservations(bookerName, bookerPhone) {
+  try {
+    const { data, error } = await supabase
+      .from('Bookings')
+      .select(`
+        id,
+        created_at,
+        departure_date,
+        status,
+        booker_name,
+        booker_phone,
+        adult_count,
+        child_count,
+        product:product_id(
+          id,
+          title
+        ),
+        starting_point:starting_point_id(
+          id,
+          name
+        )
+      `)
+      .is('auth_id', null) // auth_id가 null인 예약만 조회
+      .eq('booker_name', bookerName)
+      .eq('booker_phone', bookerPhone)
+      .order('created_at', { ascending: false })
+    
+    if (error) throw error
+
+    // 각 예약에 대해 출발 시간 정보 추가
+    const reservationsWithTime = await Promise.all((data || []).map(async (reservation) => {
+      let departureTime = ''
+      
+      if (reservation.product?.id && reservation.starting_point?.id) {
+        const { data: timeData, error: timeError } = await supabase
+          .from('ProductStartingPoints')
+          .select('time')
+          .eq('product_id', reservation.product.id)
+          .eq('starting_point_id', reservation.starting_point.id)
+          .single()
+        
+        if (!timeError && timeData) {
+          departureTime = timeData.time
+        }
+      }
+      
+      return {
+        ...reservation,
+        departureTime
+      }
+    }))
+
+    return { success: true, reservations: reservationsWithTime }
+  } catch (error) {
+    return { success: false, reservations: [], error: error.message }
+  }
+} 

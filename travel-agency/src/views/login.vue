@@ -90,14 +90,15 @@
                                 <div class="input-wrapper">
                                     <div class="input-icon">
                                         <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
-                                            <path d="M9 12L11 14L15 10M21 12C21 16.9706 16.9706 21 12 21C7.02944 21 3 16.9706 3 12C3 7.02944 7.02944 3 12 3C16.9706 3 21 7.02944 21 12Z" stroke="#9CA3AF" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+                                            <path d="M12 12C14.7614 12 17 9.76142 17 7C17 4.23858 14.7614 2 12 2C9.23858 2 7 4.23858 7 7C7 9.76142 9.23858 12 12 12Z" fill="#9CA3AF"/>
+                                            <path d="M12 14C7.58172 14 4 17.5817 4 22H20C20 17.5817 16.4183 14 12 14Z" fill="#9CA3AF"/>
                                         </svg>
                                     </div>
                                     <input 
                                         type="text" 
-                                        v-model="guestData.reservationNumber" 
+                                        v-model="guestData.name" 
                                         class="form-input"
-                                        placeholder="예약번호"
+                                        placeholder="예약자명"
                                         required
                                     >
                                 </div>
@@ -115,14 +116,61 @@
                                         type="text" 
                                         v-model="guestData.phone" 
                                         class="form-input"
-                                        placeholder="휴대폰번호 ( - 없이 입력)"
+                                        placeholder="휴대폰번호 (010-1234-5678)"
                                         required
                                     >
                                 </div>
                             </div>
 
-                            <button type="submit" class="btn-login">예약조회</button>
+                            <button type="submit" class="btn-login" :disabled="isLoading">
+                                {{ isLoading ? '조회 중...' : '예약조회' }}
+                            </button>
                         </form>
+
+                        <!-- 예약조회 결과 -->
+                        <div v-if="showGuestResults && guestReservations.length > 0" class="reservation-results">
+                            <h3 class="results-title">예약 조회 결과</h3>
+                            <div class="reservation-list">
+                                <div v-for="reservation in guestReservations" :key="reservation.id" class="reservation-item">
+                                    <div class="reservation-header">
+                                        <h4 class="product-title">{{ reservation.product?.title || '상품명 없음' }}</h4>
+                                        <span class="reservation-status" :class="`status-${reservation.status}`">
+                                            {{ getStatusText(reservation.status) }}
+                                        </span>
+                                    </div>
+                                    <div class="reservation-details">
+                                        <div class="detail-row">
+                                            <span class="detail-label">예약번호:</span>
+                                            <span class="detail-value">{{ reservation.id }}</span>
+                                        </div>
+                                        <div class="detail-row">
+                                            <span class="detail-label">출발일:</span>
+                                            <span class="detail-value">{{ formatDate(reservation.departure_date) }}</span>
+                                        </div>
+                                        <div class="detail-row">
+                                            <span class="detail-label">출발지:</span>
+                                            <span class="detail-value">
+                                                {{ reservation.starting_point?.name || '미정' }}
+                                                <span v-if="reservation.departureTime" class="departure-time">
+                                                    ({{ formatTime(reservation.departureTime) }})
+                                                </span>
+                                            </span>
+                                        </div>
+                                        <div class="detail-row">
+                                            <span class="detail-label">인원:</span>
+                                            <span class="detail-value">
+                                                성인 {{ reservation.adult_count }}명, 
+                                                아동 {{ reservation.child_count }}명
+                                            </span>
+                                        </div>
+                                        <div class="detail-row">
+                                            <span class="detail-label">예약일:</span>
+                                            <span class="detail-value">{{ formatDateTime(reservation.created_at) }}</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -134,14 +182,22 @@
 import { ref, reactive } from 'vue'
 import { useRouter } from 'vue-router'
 import { authService } from '../lib/auth.js'
-import Header from '../components/Header.vue'
-import Footer from '../components/Footer.vue'
+import { getGuestReservations } from '../lib/reservations.js'
 
 // 라우터 사용
 const router = useRouter()
 
 // 반응형 데이터
 const activeTab = ref('member')
+const isLoading = ref(false)
+const guestReservations = ref([])
+const showGuestResults = ref(false)
+
+// URL 파라미터에서 탭 설정
+const route = useRouter().currentRoute
+if (route.value.query.tab === 'guest') {
+    activeTab.value = 'guest'
+}
 
 // 로그인 데이터
 const loginData = reactive({
@@ -151,7 +207,7 @@ const loginData = reactive({
 
 // 비회원 예약조회 데이터
 const guestData = reactive({
-    reservationNumber: '',
+    name: '',
     phone: ''
 })
 
@@ -177,15 +233,33 @@ const handleLogin = async () => {
     }
 }
 
-const handleGuestReservation = () => {
-    if (!guestData.reservationNumber || !guestData.phone) {
-        alert('예약번호와 휴대폰번호를 입력해주세요.')
+const handleGuestReservation = async () => {
+    if (!guestData.name || !guestData.phone) {
+        alert('예약자명과 휴대폰번호를 입력해주세요.')
         return
     }
 
-    // 실제로는 서버 API 호출
-    console.log('예약조회:', guestData)
-    alert('예약조회 기능은 준비 중입니다.')
+    isLoading.value = true
+    showGuestResults.value = false
+    
+    try {
+        const result = await getGuestReservations(guestData.name, guestData.phone)
+        
+        if (result.success) {
+            guestReservations.value = result.reservations
+            showGuestResults.value = true
+            
+            if (result.reservations.length === 0) {
+                alert('해당 정보로 조회된 예약이 없습니다.')
+            }
+        } else {
+            alert(`예약조회 실패: ${result.error}`)
+        }
+    } catch (error) {
+        alert(`예약조회 중 오류가 발생했습니다: ${error.message}`)
+    } finally {
+        isLoading.value = false
+    }
 }
 
 const findId = () => {
@@ -198,6 +272,47 @@ const findPassword = () => {
 
 const goToJoin = () => {
     router.push('/join')
+}
+
+// 유틸리티 함수들
+const getStatusText = (status) => {
+    switch (status) {
+        case 'pending':
+            return '예약대기'
+        case 'confirmed':
+            return '예약확정'
+        case 'cancelled':
+            return '예약취소'
+        default:
+            return status || '대기중'
+    }
+}
+
+const formatDate = (dateString) => {
+    if (!dateString) return ''
+    const date = new Date(dateString)
+    const year = date.getFullYear()
+    const month = String(date.getMonth() + 1).padStart(2, '0')
+    const day = String(date.getDate()).padStart(2, '0')
+    const dayNames = ['일', '월', '화', '수', '목', '금', '토']
+    const dayName = dayNames[date.getDay()]
+    return `${year}.${month}.${day} (${dayName})`
+}
+
+const formatTime = (timeString) => {
+    if (!timeString) return ''
+    return timeString.substring(0, 5)
+}
+
+const formatDateTime = (dateTimeString) => {
+    if (!dateTimeString) return ''
+    const date = new Date(dateTimeString)
+    const year = date.getFullYear()
+    const month = String(date.getMonth() + 1).padStart(2, '0')
+    const day = String(date.getDate()).padStart(2, '0')
+    const hours = String(date.getHours()).padStart(2, '0')
+    const minutes = String(date.getMinutes()).padStart(2, '0')
+    return `${year}.${month}.${day} ${hours}:${minutes}`
 }
 </script>
 
@@ -425,5 +540,112 @@ const goToJoin = () => {
     .link-divider {
         display: none;
     }
+}
+
+/* 예약조회 결과 스타일 */
+.reservation-results {
+    margin-top: 2rem;
+    padding-top: 1.5rem;
+    border-top: 1px solid var(--border-color);
+}
+
+.results-title {
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin-bottom: 1rem;
+}
+
+.reservation-list {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.reservation-item {
+    background: var(--bg-light);
+    border: 1px solid var(--border-color);
+    border-radius: var(--border-radius);
+    padding: 1rem;
+}
+
+.reservation-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 0.75rem;
+    padding-bottom: 0.75rem;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.product-title {
+    font-size: 1rem;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin: 0;
+    flex: 1;
+}
+
+.reservation-status {
+    padding: 0.25rem 0.5rem;
+    border-radius: 12px;
+    font-size: 0.75rem;
+    font-weight: 500;
+    white-space: nowrap;
+    margin-left: 0.5rem;
+}
+
+.status-pending {
+    background: #fef3c7;
+    color: #d97706;
+}
+
+.status-confirmed {
+    background: #d1fae5;
+    color: #059669;
+}
+
+.status-cancelled {
+    background: #fee2e2;
+    color: #dc2626;
+}
+
+.reservation-details {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.detail-row {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.detail-label {
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+    font-weight: 500;
+    min-width: 60px;
+}
+
+.detail-value {
+    font-size: 0.85rem;
+    color: var(--text-primary);
+}
+
+.departure-time {
+    color: var(--primary-color);
+    font-weight: 500;
+}
+
+/* 로딩 상태 */
+.btn-login:disabled {
+    background: var(--text-secondary);
+    cursor: not-allowed;
+}
+
+.btn-login:disabled:hover {
+    background: var(--text-secondary);
 }
 </style>

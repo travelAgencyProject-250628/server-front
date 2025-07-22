@@ -238,12 +238,18 @@
           <template v-if="!isLoggedIn">
             <router-link to="/login" class="btn-secondary" @click="closeMobileMenu">로그인</router-link>
             <router-link to="/join" class="btn-secondary" @click="closeMobileMenu">회원가입</router-link>
+            <button class="btn-primary" @click="() => { handleGuestReservation(); closeMobileMenu(); }">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M9 12L11 14L15 10M21 12C21 16.9706 16.9706 21 12 21C7.02944 21 3 16.9706 3 12C3 7.02944 7.02944 3 12 3C16.9706 3 21 7.02944 21 12Z"/>
+              </svg>
+              비회원 예약조회
+            </button>
           </template>
           
-                  <!-- 로그인된 경우 -->
-        <template v-else>
-          <router-link to="/mypage" class="btn-secondary" @click="closeMobileMenu">마이페이지</router-link>
-          <button @click="handleLogout" class="btn-secondary">로그아웃</button>
+          <!-- 로그인된 경우 -->
+          <template v-else>
+            <router-link to="/mypage" class="btn-secondary" @click="closeMobileMenu">마이페이지</router-link>
+            <button @click="handleLogout" class="btn-secondary">로그아웃</button>
             <button class="btn-primary" @click="() => { handleReservation(); closeMobileMenu(); }">
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                 <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
@@ -254,7 +260,7 @@
               </svg>
               예약확인
             </button>
-        </template>
+          </template>
         </div>
       </div>
     </nav>
@@ -522,6 +528,10 @@ const handleReservation = () => {
   }
   
   router.push('/mypage/reservations')
+}
+
+const handleGuestReservation = () => {
+  router.push('/login?tab=guest')
 }
 
 const handleSearch = () => {
