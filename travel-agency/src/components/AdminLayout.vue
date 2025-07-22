@@ -74,11 +74,6 @@
         <div class="header-left">
           <h1 class="page-title">{{ pageTitle }}</h1>
         </div>
-        <div class="header-right">
-          <div class="admin-user">
-            <span class="admin-name">관리자</span>
-          </div>
-        </div>
       </header>
       
       <!-- 페이지 콘텐츠 -->
@@ -228,7 +223,7 @@ const toggleSidebar = () => {
 .main-content {
   flex: 1;
   display: flex;
-  flex-direction: column;
+  /* flex-direction: column; */
   margin-left: 0;
   transition: var(--admin-transition);
 }
