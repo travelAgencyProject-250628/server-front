@@ -570,8 +570,8 @@ const handleReservation = () => {
 }
 
 const handleBusRental = () => {
-  // 버스대절 페이지로 이동 (임시로 홈으로 이동)
-  router.push('/')
+  // 버스대절 페이지로 이동
+  router.push('/bus-rental')
 }
 
 const handleGuestReservation = () => {
