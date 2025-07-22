@@ -84,23 +84,20 @@ export class AuthService {
 
       console.log('로그인 성공:', data)
 
-      // Users 테이블에서 추가 정보 조회 (UserRoles 테이블과 left join)
+      // Users 테이블에서 추가 정보 조회 (is_admin 필드 직접 사용)
       let userInfo = null
       if (data.user) {
         const { data: userData, error: userError } = await this.supabase
           .from('Users')
-          .select(`
-            *,
-            UserRoles(is_admin)
-          `)
+          .select('*')
           .eq('auth_id', data.user.id)
           .maybeSingle()
 
         if (!userError && userData) {
-          // UserRoles 정보를 포함하여 userInfo 구성
+          // is_admin 필드를 직접 사용
           userInfo = {
             ...userData,
-            is_admin: userData.UserRoles?.is_admin || false
+            is_admin: userData.is_admin || false
           }
         } else if (userError) {
           console.warn('Users 테이블 조회 실패 (계속 진행):', userError)
@@ -167,14 +164,11 @@ export class AuthService {
 
       console.log('Auth 사용자 확인:', user.email)
 
-      // Users 테이블에서 상세 정보 조회 (UserRoles 테이블과 left join)
+      // Users 테이블에서 상세 정보 조회 (is_admin 필드 직접 사용)
       console.log('Users 테이블 조회 시작, auth_id:', user.id)
       const { data: userInfo, error: userInfoError } = await this.supabase
         .from('Users')
-        .select(`
-          *,
-          UserRoles(is_admin)
-        `)
+        .select('*')
         .eq('auth_id', user.id)
         .maybeSingle()
       console.log('Users 테이블 조회 완료:', { userInfo: userInfo ? '있음' : '없음', userInfoError })
@@ -196,10 +190,10 @@ export class AuthService {
         }
       }
 
-      // UserRoles 정보를 포함하여 반환
+      // is_admin 필드를 직접 사용
       const userWithRole = {
         ...userInfo,
-        is_admin: userInfo.UserRoles?.is_admin || false
+        is_admin: userInfo.is_admin || false
       }
 
       console.log('현재 사용자 정보!!!:', userWithRole)
@@ -208,11 +202,11 @@ export class AuthService {
         user: userWithRole
       }
     } catch (error) {
-      console.error('현재 사용자 조회 오류:', error)
+      console.error('getCurrentUser 오류:', error)
       return {
         success: false,
-        error: error.message,
-        user: null
+        user: null,
+        error: error.message
       }
     }
   }
@@ -499,9 +493,9 @@ export async function checkAdminRole() {
 
     const auth_id = userData.user.id
 
-    // UserRoles 테이블에서 관리자 권한 확인
+    // Users 테이블에서 관리자 권한 확인
     const { data, error } = await supabase
-      .from('UserRoles')
+      .from('Users')
       .select('is_admin')
       .eq('auth_id', auth_id)
       .single()
