@@ -133,62 +133,11 @@ onMounted(() => {
 </script>
 
 <style scoped>
-/* CSS 변수 정의 - 전역으로 적용 */
-:global(:root) {
-    --primary-color: #2563eb;
-    --primary-dark: #1e40af;
-    --secondary-color: #64748b;
-    --accent-color: #f59e0b;
-    --text-primary: #1e293b;
-    --text-secondary: #64748b;
-    --bg-light: #f8fafc;
-    --border-color: #e2e8f0;
-    --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
-    --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
-    --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
-    --border-radius: 8px;
-    --transition: all 0.3s ease;
-    --error-color: #dc2626;
-    --success-color: #059669;
-    --warning-color: #d97706;
-}
-
 /* 전체 레이아웃 */
 .reservation-page {
     font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
     line-height: 1.6;
     color: var(--text-primary);
-}
-
-.container {
-    max-width: 700px;
-    margin: 0 auto;
-    padding: 0 20px;
-}
-
-/* 메인 컨텐츠 */
-.main-content {
-    min-height: calc(100vh - 200px);
-    padding: 3.5rem 0 2rem 0;
-}
-
-/* 페이지 헤더 */
-.page-header {
-    text-align: center;
-    margin-bottom: 2rem;
-}
-
-.page-title {
-    font-size: 2.5rem;
-    font-weight: 700;
-    color: var(--text-primary);
-    margin-bottom: 0.5rem;
-}
-
-.page-subtitle {
-    font-size: 1rem;
-    color: var(--text-secondary);
-    margin: 0;
 }
 
 .reservation-table {
@@ -215,6 +164,7 @@ onMounted(() => {
     font-size: 0.95rem;
 }
 
+/* 예약 항목 */
 .reservation-item {
     border-bottom: 1px solid var(--border-color);
     cursor: pointer;
@@ -363,6 +313,7 @@ onMounted(() => {
 
 .loading-container p {
     color: var(--text-secondary);
+    font-size: 1rem;
     margin: 0;
 }
 
@@ -396,22 +347,6 @@ onMounted(() => {
 
 /* 반응형 디자인 */
 @media (max-width: 768px) {
-    .main-content {
-        padding-top: 1.5rem;
-    }
-    
-    .container {
-        padding: 0 15px;
-    }
-
-    .page-title {
-        font-size: 1.75rem;
-    }
-
-    .page-subtitle {
-        font-size: 0.9rem;
-    }
-
     .table-header {
         display: none;
     }

@@ -361,21 +361,6 @@ onMounted(async () => {
   100% { transform: rotate(360deg); }
 }
 
-.main-content {
-  grid-column: 3;
-  width: 100%;
-  display: flex;
-  justify-content: center;
-  align-items: flex-start;
-  padding: 1.5rem 0 2rem 0;
-}
-
-.content-container {
-  max-width: 700px;
-  width: 100%;
-  padding: 0 20px;
-}
-
 /* 제목 섹션 */
 .filter-section {
   font-size: 1.125rem;

@@ -317,24 +317,7 @@ const formatDateTime = (dateTimeString) => {
 </script>
 
 <style scoped>
-/* CSS 변수 정의 - 전역으로 적용 */
-:global(:root) {
-    --primary-color: #2563eb;
-    --primary-dark: #1e40af;
-    --secondary-color: #64748b;
-    --accent-color: #f59e0b;
-    --text-primary: #1e293b;
-    --text-secondary: #64748b;
-    --bg-light: #f8fafc;
-    --border-color: #e2e8f0;
-    --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
-    --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
-    --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
-    --border-radius: 8px;
-    --transition: all 0.3s ease;
-    --error-color: #dc2626;
-    --success-color: #059669;
-}
+
 
 /* 전체 레이아웃 */
 .login-page {
@@ -361,12 +344,7 @@ const formatDateTime = (dateTimeString) => {
     margin-bottom: 2rem;
 }
 
-.page-title {
-    font-size: 2.5rem;
-    font-weight: 700;
-    color: var(--text-primary);
-    margin-bottom: 0.5rem;
-}
+
 
 .page-description {
     color: var(--text-secondary);
@@ -508,10 +486,6 @@ const formatDateTime = (dateTimeString) => {
 
 /* 반응형 디자인 */
 @media (max-width: 768px) {
-    .page-title {
-        font-size: 1.3rem;
-    }
-
     .container {
         padding: 0 15px;
     }
@@ -528,10 +502,6 @@ const formatDateTime = (dateTimeString) => {
 }
 
 @media (max-width: 480px) {
-    .page-title {
-        font-size: 1.125rem;
-    }
-
     .login-links {
         flex-direction: column;
         gap: 1rem;

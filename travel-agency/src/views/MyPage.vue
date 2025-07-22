@@ -1,17 +1,17 @@
 <template>
   <div class="mypage-layout">
-    <!-- 사이드바 (absolute 위치) -->
-    <div class="sidebar-wrapper">
+    <!-- 사이드바 -->
+    <aside class="sidebar-section">
       <Sidebar 
         :title="mypageMenu.title" 
         :menuItems="mypageMenu.items"
       />
-    </div>
+    </aside>
     
-    <!-- 메인 콘텐츠 (중앙 정렬) -->
-    <div class="mypage-content">
+    <!-- 메인 콘텐츠 -->
+    <main class="mypage-content">
       <router-view />
-    </div>
+    </main>
   </div>
 </template>
 
@@ -33,41 +33,67 @@ const mypageMenu = ref({
 </script>
 
 <style scoped>
+/* 전체 레이아웃 - ProductList와 동일 */
 .mypage-layout {
-  position: relative;
-  background: #f8fafc;
+  display: grid;
+  grid-template-columns: 1fr 220px 740px 1fr;
   min-height: 100vh;
+  font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+  line-height: 1.6;
+  padding-top: 3.5rem;
 }
 
-/* 사이드바 래퍼 (absolute 위치) */
-.sidebar-wrapper {
-  position: absolute;
-  top: 2rem;
-  left: 2rem;
-  z-index: 10;
+/* 사이드바 섹션 */
+.sidebar-section {
+  grid-column: 2;
+  padding: 1.5rem 1rem 0 0;
+  display: flex;
+  align-items: flex-start;
+  align-self: start;
 }
 
-/* 메인 콘텐츠 (중앙 정렬) */
+/* 메인 콘텐츠 */
+
 .mypage-content {
+  grid-column: 3;
   width: 100%;
-  min-height: 100vh;
-  background: white;
-  /* 기존 페이지들과 동일한 스타일 적용 */
+  padding: 0;
 }
 
-/* 모바일 반응형 */
+/* 반응형 디자인 - 모바일에서는 기존 방식으로 복구 */
 @media (max-width: 768px) {
-  .sidebar-wrapper {
+  .mypage-layout {
+    display: block;
+    position: relative;
+    padding-top: 0rem !important;
+  }
+  
+  .sidebar-section {
     position: relative;
     top: 0;
     left: 0;
     width: 100%;
     margin-bottom: 1rem;
+    padding: 0;
+    display: block;
+  }
+}
+
+@media (max-width: 480px) {
+  .mypage-layout {
+    display: block;
+    position: relative;
+    padding-top: 1.5rem;
   }
   
-  .mypage-content {
-    min-height: auto;
-    padding: 1rem;
+  .sidebar-section {
+    position: relative;
+    top: 0;
+    left: 0;
+    width: 100%;
+    margin-bottom: 1rem;
+    padding: 0;
+    display: block;
   }
 }
 </style> 

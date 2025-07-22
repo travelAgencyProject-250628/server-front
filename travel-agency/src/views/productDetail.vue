@@ -131,6 +131,10 @@
                                 @click="scrollToSection('basic')">
                                 기본정보
                             </button>
+                            <button type="button" class="tab-button" :class="{ active: activeTab === 'detail' }"
+                                @click="scrollToSection('detail')">
+                                상세정보
+                            </button>
                             <button type="button" class="tab-button" :class="{ active: activeTab === 'notice' }"
                                 @click="scrollToSection('notice')">
                                 유의 및 취소사항
@@ -141,19 +145,6 @@
                             </button>
                         </div>
                     </div>
-
-                    <!-- 상세 이미지 섹션 -->
-                    <section v-if="productDetail.detailImage" class="content-section detail-image-section">
-                        <h2 class="section-title">상세정보</h2>
-                        <div class="detail-image-container">
-                            <img 
-                                :src="productDetail.detailImage" 
-                                :alt="productDetail.title + ' 상세 이미지'"
-                                class="detail-image"
-                                @error="handleImageError"
-                            />
-                        </div>
-                    </section>
 
                     <!-- 기본정보 섹션 -->
                     <section id="basic" class="content-section" ref="basicSection">
@@ -174,7 +165,7 @@
                                         <p>출발지점 정보를 불러오는 중입니다...</p>
                                     </div>
                                     <div v-else class="points-list">
-                                        <div v-for="(point, index) in startingPoints" :key="point.id"
+                                        <div v-for="point in startingPoints" :key="point.id"
                                             class="point-item">
                                             <span class="point-name">{{ point.name }}</span>
                                             <span v-if="point.time" class="point-time">({{ formatTime(point.time) }})</span>
@@ -184,6 +175,21 @@
                             </div>
                         </div>
                     </section>
+
+                    <!-- 상세 이미지 섹션 -->
+                    <section id="detail" v-if="productDetail.detailImage" class="content-section detail-image-section" ref="detailSection">
+                        <h2 class="section-title">상세정보</h2>
+                        <div class="detail-image-container">
+                            <img 
+                                :src="productDetail.detailImage" 
+                                :alt="productDetail.title + ' 상세 이미지'"
+                                class="detail-image"
+                                @error="handleImageError"
+                            />
+                        </div>
+                    </section>
+
+                
 
                     <!-- 유의 및 취소사항 섹션 -->
                     <section id="notice" class="content-section" ref="noticeSection">
@@ -293,6 +299,7 @@ const startingPoints = ref([])
 const basicSection = ref(null)
 const noticeSection = ref(null)
 const insuranceSection = ref(null)
+const detailSection = ref(null) // 상세 이미지 섹션을 위한 ref 추가
 
 // 가격 포맷팅
 const formatPrice = (price) => {
@@ -382,6 +389,7 @@ const fetchProductDetail = async (productId) => {
 const handleScroll = () => {
     const sections = [
         { name: 'basic', element: basicSection.value },
+        { name: 'detail', element: detailSection.value }, // 상세정보는 이미지 섹션에 포함되므로 별도 처리
         { name: 'notice', element: noticeSection.value },
         { name: 'insurance', element: insuranceSection.value }
     ]
@@ -405,6 +413,7 @@ const handleScroll = () => {
 const scrollToSection = (sectionName) => {
     const sectionMap = {
         basic: basicSection.value,
+        detail: detailSection.value, // 상세정보는 이미지 섹션에 포함되므로 별도 처리
         notice: noticeSection.value,
         insurance: insuranceSection.value
     }
@@ -558,24 +567,7 @@ const handleImageError = (event) => {
 </script>
 
 <style scoped>
-/* CSS 변수 정의 - 전역으로 적용 */
-:global(:root) {
-    --primary-color: #2563eb;
-    --primary-dark: #1e40af;
-    --secondary-color: #64748b;
-    --accent-color: #f59e0b;
-    --text-primary: #1e293b;
-    --text-secondary: #64748b;
-    --bg-light: #f8fafc;
-    --border-color: #e2e8f0;
-    --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
-    --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
-    --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
-    --border-radius: 8px;
-    --transition: all 0.3s ease;
-    --error-color: #dc2626;
-    --success-color: #059669;
-}
+
 
 /* 전체 레이아웃 */
 .product-detail-page {
@@ -866,8 +858,8 @@ const handleImageError = (event) => {
 }
 
 .price-table th {
-    background: #6b7eeb;
-    color: white;
+    background: var(--primary-light);
+    color: var(--text-primary);
     font-weight: 500;
     font-size: 0.9rem;
 }
@@ -890,7 +882,7 @@ const handleImageError = (event) => {
 
 .price-table .price-cell {
     font-weight: 600;
-    color: #5b72e8;
+    color: var(--primary-light);
 }
 
 .price-table .price-cell::after {
@@ -1308,7 +1300,7 @@ const handleImageError = (event) => {
 }
 
 .insurance-banner {
-    background: linear-gradient(135deg, #4A90E2, #357ABD);
+    background: linear-gradient(135deg, var(--primary-color), var(--primary-dark));
     border-radius: var(--border-radius);
     padding: 1.5rem;
     color: white;
@@ -1355,7 +1347,7 @@ const handleImageError = (event) => {
 
 .btn-insurance {
     background-color: white;
-    color: #4A90E2;
+    color: var(--primary-color);
     border: none;
     padding: 12px 24px;
     border-radius: 6px;
@@ -1366,7 +1358,7 @@ const handleImageError = (event) => {
 }
 
 .btn-insurance:hover {
-    background-color: #f0f0f0;
+    background-color: var(--bg-light);
 }
 
 /* 보험 섹션 스타일 */
@@ -1389,7 +1381,7 @@ const handleImageError = (event) => {
     justify-content: center;
     width: 20px;
     height: 20px;
-    background: #4A90E2;
+    background: var(--primary-color);
     color: white;
     border-radius: 50%;
     font-style: normal;
@@ -1405,7 +1397,7 @@ const handleImageError = (event) => {
 
 .insurance-button {
     display: inline-block;
-    background: #6C8EF2;
+    background: var(--primary-color);
     color: white;
     padding: 12px 24px;
     border-radius: 6px;
@@ -1415,7 +1407,7 @@ const handleImageError = (event) => {
 }
 
 .insurance-button:hover {
-    background: #5A7DE0;
+    background: var(--primary-dark);
 }
 
 /* 로딩 및 에러 상태 스타일 */

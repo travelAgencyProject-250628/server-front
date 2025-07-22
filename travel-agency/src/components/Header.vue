@@ -87,12 +87,53 @@
           </div>
         </div>
 
-      <!-- 모바일 햄버거 메뉴 -->
-      <button class="mobile-menu-btn" @click="toggleMobileMenu">
-        <span></span>
-        <span></span>
-        <span></span>
-      </button>
+      <!-- 모바일 버튼 그룹 -->
+      <div class="mobile-buttons-group">
+        <!-- 모바일 검색 아이콘 -->
+        <button class="mobile-btn mobile-search-btn" @click="toggleMobileSearch">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M21 21L16.5 16.5M19 11C19 15.4183 15.4183 19 11 19C6.58172 19 3 15.4183 3 11C3 6.58172 6.58172 3 11 3C15.4183 3 19 6.58172 19 11Z" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </button>
+
+        <!-- 모바일 햄버거 메뉴 -->
+        <button class="mobile-btn mobile-menu-btn" @click="toggleMobileMenu">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <line x1="3" y1="6" x2="21" y2="6"/>
+            <line x1="3" y1="12" x2="21" y2="12"/>
+            <line x1="3" y1="18" x2="21" y2="18"/>
+          </svg>
+        </button>
+      </div>
+    </div>
+
+    <!-- 모바일 검색 오버레이 -->
+    <div v-if="mobileSearchOpen" class="mobile-search-overlay" @click="closeMobileSearch">
+      <div class="mobile-search-expanded" @click.stop>
+        <div class="mobile-search-container">
+          <button class="mobile-search-back" @click="closeMobileSearch">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M19 12H5M12 19l-7-7 7-7"/>
+            </svg>
+          </button>
+          <div class="mobile-search-input-wrapper">
+            <input 
+              ref="mobileSearchInput"
+              type="text" 
+              placeholder="검색어를 입력해 주세요." 
+              class="mobile-search-input"
+              v-model="mobileSearchQuery"
+              @keyup.enter="handleMobileSearch"
+              @keyup.esc="closeMobileSearch"
+            >
+            <button class="mobile-search-submit" @click="handleMobileSearch">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M21 21L16.5 16.5M19 11C19 15.4183 15.4183 19 11 19C6.58172 19 3 15.4183 3 11C3 6.58172 6.58172 3 11 3C15.4183 3 19 6.58172 19 11Z" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+            </button>
+          </div>
+        </div>
+      </div>
     </div>
     </div>
 
@@ -317,6 +358,9 @@ const router = useRouter()
 // 반응형 데이터
 const mobileMenuOpen = ref(false)
 const searchQuery = ref('')
+const mobileSearchOpen = ref(false)
+const mobileSearchQuery = ref('')
+const mobileSearchInput = ref(null)
 const activeSubMenu = ref(null)
 const subMenuTimeout = ref(null)
 const showAllMenuFlag = ref(false)
@@ -369,8 +413,10 @@ const getCurrentSession = async () => {
 const toggleMobileMenu = () => {
   mobileMenuOpen.value = !mobileMenuOpen.value
   
-  // 모바일 메뉴가 열릴 때 body 스크롤 방지
+  // 모바일 메뉴가 열릴 때 검색창 닫기
   if (mobileMenuOpen.value) {
+    mobileSearchOpen.value = false
+    mobileSearchQuery.value = ''
     document.body.style.overflow = 'hidden'
   } else {
     document.body.style.overflow = ''
@@ -585,6 +631,42 @@ const handleSearch = () => {
     router.push(`/search?q=${encodeURIComponent(searchQuery.value.trim())}`)
   }
 }
+
+const toggleMobileSearch = () => {
+  mobileSearchOpen.value = !mobileSearchOpen.value
+  
+  if (mobileSearchOpen.value) {
+    // 검색창이 열릴 때 다른 메뉴들 닫기
+    mobileMenuOpen.value = false
+    document.body.style.overflow = 'hidden'
+    
+    // 검색 입력창에 포커스
+    nextTick(() => {
+      if (mobileSearchInput.value) {
+        mobileSearchInput.value.focus()
+      }
+    })
+  } else {
+    document.body.style.overflow = ''
+  }
+}
+
+const closeMobileSearch = () => {
+  mobileSearchOpen.value = false
+  mobileSearchQuery.value = ''
+  document.body.style.overflow = ''
+}
+
+const handleMobileSearch = () => {
+  if (mobileSearchQuery.value.trim()) {
+    console.log('모바일 검색어:', mobileSearchQuery.value)
+    // 검색 결과 페이지로 이동
+    router.push(`/search?q=${encodeURIComponent(mobileSearchQuery.value.trim())}`)
+    closeMobileSearch()
+  }
+}
+
+
 
 // 컴포넌트 마운트 시 메뉴 데이터 불러오기
 onMounted(async () => {
@@ -1039,28 +1121,156 @@ onMounted(async () => {
   border-color: var(--primary-color);
 }
 
-/* 모바일 메뉴 */
-.mobile-menu-btn {
+/* 모바일 버튼 그룹 */
+.mobile-buttons-group {
   display: none;
-  flex-direction: column;
-  gap: 4px;
+  align-items: center;
+  gap: 0.25rem; /* 검색과 햄버거 아이콘 사이 좁은 간격 */
+}
+
+/* 모바일 공통 버튼 스타일 */
+.mobile-btn {
   background: none;
   border: none;
   cursor: pointer;
   padding: 0.75rem;
   width: 48px;
   height: 48px;
+  display: flex;
   align-items: center;
   justify-content: center;
+  color: var(--text-secondary);
+  transition: var(--transition);
+  border-radius: 8px;
 }
 
-.mobile-menu-btn span {
-  width: 25px;
-  height: 3px;
-  background: var(--text-primary);
-  border-radius: 2px;
+.mobile-btn:hover {
+  color: var(--primary-color);
+}
+
+.mobile-btn:active {
+  transform: scale(0.95);
+  background: var(--border-color);
+}
+
+.mobile-btn svg {
+  color: currentColor;
+}
+
+/* 모바일 검색 오버레이 */
+.mobile-search-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.3);
+  z-index: 9999;
+  animation: fadeIn 0.3s ease;
+}
+
+.mobile-search-expanded {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  background: white;
+  border-bottom: 1px solid var(--border-color);
+  box-shadow: var(--shadow-lg);
+  animation: slideDown 0.3s ease;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes slideDown {
+  from { transform: translateY(-100%); }
+  to { transform: translateY(0); }
+}
+
+.mobile-search-container {
+  display: flex;
+  align-items: center;
+  padding: 0 1rem;
+  min-height: 80px;
+  gap: 1rem;
+}
+
+.mobile-search-back {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0.5rem;
+  color: var(--text-secondary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
   transition: var(--transition);
 }
+
+.mobile-search-back:hover {
+  background: var(--bg-light);
+  color: var(--primary-color);
+}
+
+.mobile-search-input-wrapper {
+  flex: 1;
+  position: relative;
+  display: flex;
+  align-items: center;
+  background: var(--bg-light);
+  border: 1px solid transparent;
+  border-radius: 10px;
+  overflow: hidden;
+  transition: var(--transition);
+  height: 44px;
+}
+
+.mobile-search-input-wrapper:focus-within {
+  border-color: var(--primary-color);
+  background: white;
+}
+
+.mobile-search-input {
+  flex: 1;
+  padding: 0 1rem;
+  border: none;
+  outline: none;
+  font-size: 1rem;
+  background: transparent;
+  color: var(--text-primary);
+  height: 100%;
+}
+
+.mobile-search-input::placeholder {
+  color: var(--text-secondary);
+  font-weight: 400;
+}
+
+.mobile-search-submit {
+  background: transparent;
+  border: none;
+  padding: 0.75rem;
+  color: var(--text-secondary);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: var(--transition);
+  border-radius: 0 10px 10px 0;
+}
+
+.mobile-search-submit:hover {
+  background: var(--primary-color);
+  color: white;
+}
+
+
+
+/* 모바일 메뉴 */
 
 .nav-mobile {
   display: none;
@@ -1400,7 +1610,7 @@ onMounted(async () => {
     display: none;
   }
   
-  .mobile-menu-btn {
+  .mobile-buttons-group {
     display: flex;
   }
   
