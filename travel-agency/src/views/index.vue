@@ -76,10 +76,6 @@
         <div v-else class="no-tours">
           <p>현재 등록된 인기 상품이 없습니다.</p>
         </div>
-        
-        <div v-if="!isLoading" class="more-tours">
-          <button class="btn-outline">더 많은 상품 보기</button>
-        </div>
       </div>
     </section>
 
