@@ -182,31 +182,24 @@ export async function updateUserInfo(updateData) {
     }
 
     // 4. Users 테이블 정보 업데이트
-    const { error: updateError } = await supabase
+    const { data: updateResult, error: updateError } = await supabase
       .from('Users')
       .update(updateFields)
       .eq('id', userRow.id)
+      .select()
+
 
     if (updateError) {
       console.error('Users 테이블 업데이트 오류:', updateError)
       return { success: false, error: '회원정보 수정에 실패했습니다.' }
     }
 
-    // 5. 업데이트된 정보 다시 조회
-    const { data: updatedUser, error: fetchError } = await supabase
-      .from('Users')
-      .select('*')
-      .eq('id', userRow.id)
-      .maybeSingle()
-
-    if (fetchError) {
-      console.error('업데이트된 유저 정보 조회 오류:', fetchError)
-      return { success: false, error: '업데이트된 유저 정보를 조회할 수 없습니다.' }
-    }
-
-    if (!updatedUser) {
+    if (!updateResult || updateResult.length === 0) {
+      console.error('업데이트 결과가 없습니다.')
       return { success: false, error: '업데이트된 유저 정보를 찾을 수 없습니다.' }
     }
+
+    const updatedUser = updateResult[0]
 
     // 6. 비밀번호 변경이 포함된 경우
     if (updateData.password) {
