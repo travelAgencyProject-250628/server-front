@@ -18,7 +18,7 @@
             ref="searchInputRef"
             type="text" 
             v-model="searchQuery" 
-            placeholder="예약자명 또는 상품명으로 검색"
+            placeholder="예약자명, 상품명, 여행자명, 연락처로 검색"
             @keyup.enter="performSearch"
             @input="handleSearchInput"
             @focus="showSearchHistory = true"
@@ -126,15 +126,20 @@
         <table>
           <thead>
             <tr>
-              <th>예약번호</th>
+              <th>번호</th>
               <th>예약일</th>
               <th>예약자</th>
               <th>연락처</th>
+              <th>이메일</th>
               <th>상품명</th>
               <th>출발일</th>
               <th>출발지</th>
               <th>인원</th>
-              <th>총 금액</th>
+              <th>여행자명</th>
+              <th>여행자연락처</th>
+              <th>비상연락</th>
+              <th>입금자</th>
+              <th>총액</th>
               <th>상태</th>
               <th>관리</th>
             </tr>
@@ -145,13 +150,18 @@
               <td>{{ formatDate(reservation.created_at) }}</td>
               <td v-html="highlightText(reservation.booker_name, searchQuery)"></td>
               <td>{{ reservation.booker_phone }}</td>
+              <td>{{ reservation.booker_email }}</td>
               <td class="product-name" v-html="highlightText(reservation.product?.title, searchQuery)"></td>
               <td>{{ formatDate(reservation.departure_date) }}</td>
               <td>{{ reservation.starting_point?.name }}</td>
-              <td>
-                <span v-if="reservation.adult_count > 0">성인 {{ reservation.adult_count }}명</span>
-                <span v-if="reservation.child_count > 0" class="child-count">아동 {{ reservation.child_count }}명</span>
+              <td class="passenger-count">
+                <div v-if="reservation.adult_count > 0">성인 {{ reservation.adult_count }}명</div>
+                <div v-if="reservation.child_count > 0" class="child-count">아동 {{ reservation.child_count }}명</div>
               </td>
+              <td class="travelers-names" v-html="(formatTravelersNames(reservation.travelers_name) || '').replace(/\n/g, '<br>')"></td>
+              <td class="travelers-phones" v-html="(formatTravelersPhones(reservation.travelers_phone) || '').replace(/\n/g, '<br>')"></td>
+              <td>{{ reservation.emergency_contact }}</td>
+              <td>{{ reservation.depositor_name }}</td>
               <td class="amount">{{ formatCurrency(calculateTotal(reservation)) }}</td>
               <td>
                 <span :class="['status', `status-${reservation.status}`]">
@@ -260,7 +270,17 @@ const filteredReservations = computed(() => {
     filtered = filtered.filter(reservation => {
       const bookerName = (reservation.booker_name || '').toLowerCase()
       const productTitle = (reservation.product?.title || '').toLowerCase()
-      return bookerName.includes(query) || productTitle.includes(query)
+      const travelersNames = formatTravelersNames(reservation.travelers_name).toLowerCase()
+      const travelersPhones = formatTravelersPhones(reservation.travelers_phone).toLowerCase()
+      const bookerPhone = (reservation.booker_phone || '').toLowerCase()
+      const bookerEmail = (reservation.booker_email || '').toLowerCase()
+      
+      return bookerName.includes(query) || 
+             productTitle.includes(query) || 
+             travelersNames.includes(query) || 
+             travelersPhones.includes(query) ||
+             bookerPhone.includes(query) ||
+             bookerEmail.includes(query)
     })
   }
 
@@ -305,7 +325,6 @@ const loadReservations = async () => {
         totalPages: result.totalPages
       }
       
-      // 통계 업데이트
       updateStats()
     } else {
       console.error('예약 조회 실패:', result.error)
@@ -320,14 +339,14 @@ const loadReservations = async () => {
 }
 
 const updateStats = () => {
-  // 필터링된 데이터 기반으로 통계 계산
+  // 전체 데이터 기반으로 통계 계산 (필터링되지 않은 원본 데이터)
   const allReservations = reservations.value
   
   stats.value = {
-    total: allReservations.length,
-    confirmed: allReservations.filter(r => r.status === 'confirmed').length,
-    pending: allReservations.filter(r => r.status === 'pending').length,
-    cancelled: allReservations.filter(r => r.status === 'cancelled').length
+    total: allReservations?.length || 0,
+    confirmed: allReservations?.filter(r => r.status === 'confirmed').length || 0,
+    pending: allReservations?.filter(r => r.status === 'pending').length || 0,
+    cancelled: allReservations?.filter(r => r.status === 'cancelled').length || 0
   }
 }
 
@@ -378,6 +397,66 @@ const getStatusText = (status) => {
     'cancelled': '예약취소'
   }
   return statusMap[status] || status
+}
+
+const formatTravelersNames = (travelersName) => {
+  if (!travelersName) return ''
+  
+  try {
+    // 이미 배열인 경우
+    if (Array.isArray(travelersName)) {
+      return travelersName.map((name, index) => `${index + 1}. ${name}`).join('\n')
+    }
+    
+    // 문자열인 경우 JSON 파싱 시도
+    if (typeof travelersName === 'string') {
+      // JSON 배열 형태로 저장된 경우
+      if (travelersName.startsWith('[') && travelersName.endsWith(']')) {
+        const names = JSON.parse(travelersName)
+        return names.map((name, index) => `${index + 1}. ${name}`).join('\n')
+      }
+      
+      return `1. ${travelersName}`
+    }
+    
+    return ''
+  } catch (error) {
+    console.error('여행자명 파싱 오류:', error)
+    return ''
+  }
+}
+
+const formatTravelersPhones = (travelersPhone) => {
+  if (!travelersPhone) return ''
+  
+  try {
+    // 이미 배열인 경우
+    if (Array.isArray(travelersPhone)) {
+      return travelersPhone.map((phone, index) => `${index + 1}. ${phone}`).join('\n')
+    }
+    
+    // 문자열인 경우 JSON 파싱 시도
+    if (typeof travelersPhone === 'string') {
+      // JSON 배열 형태로 저장된 경우
+      if (travelersPhone.startsWith('[') && travelersPhone.endsWith(']')) {
+        const phones = JSON.parse(travelersPhone)
+        return phones.map((phone, index) => `${index + 1}. ${phone}`).join('\n')
+      }
+      
+      // 콤마로 구분된 문자열인 경우
+      if (travelersPhone.includes(',')) {
+        const phones = travelersPhone.split(',').map(phone => phone.trim())
+        return phones.map((phone, index) => `${index + 1}. ${phone}`).join('\n')
+      }
+      
+      return `1. ${travelersPhone}`
+    }
+    
+    return ''
+  } catch (error) {
+    console.error('여행자연락처 파싱 오류:', error)
+    return ''
+  }
 }
 
 // 검색 관련 메서드
@@ -715,6 +794,12 @@ mark {
 /* 예약 테이블 */
 .reservations-table {
   overflow-x: auto;
+  min-width: 100%;
+}
+
+.reservations-table table {
+  min-width: 2000px; /* 모든 컬럼이 표시될 수 있도록 최소 너비 설정 */
+  table-layout: fixed; /* 고정 테이블 레이아웃으로 컬럼 너비 제어 */
 }
 
 table {
@@ -726,32 +811,79 @@ th, td {
   padding: 0.75rem;
   text-align: left;
   border-bottom: 1px solid #e5e7eb;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
 }
+
+/* 컬럼별 너비 설정 */
+th:nth-child(1), td:nth-child(1) { width: 80px; } /* 예약번호 */
+th:nth-child(2), td:nth-child(2) { width: 100px; } /* 예약일 */
+th:nth-child(3), td:nth-child(3) { width: 100px; } /* 예약자 */
+th:nth-child(4), td:nth-child(4) { width: 120px; } /* 예약자연락처 */
+th:nth-child(5), td:nth-child(5) { width: 150px; } /* 예약자이메일 */
+th:nth-child(6), td:nth-child(6) { width: 200px; } /* 상품명 */
+th:nth-child(7), td:nth-child(7) { width: 100px; } /* 출발일 */
+th:nth-child(8), td:nth-child(8) { width: 120px; } /* 출발지 */
+th:nth-child(9), td:nth-child(9) { width: 100px; } /* 성인/아동 */
+th:nth-child(10), td:nth-child(10) { width: 200px; } /* 여행자명 */
+th:nth-child(11), td:nth-child(11) { width: 200px; } /* 여행자연락처 */
+th:nth-child(12), td:nth-child(12) { width: 120px; } /* 비상연락처 */
+th:nth-child(13), td:nth-child(13) { width: 100px; } /* 입금자명 */
+th:nth-child(14), td:nth-child(14) { width: 120px; } /* 총 금액 */
+th:nth-child(15), td:nth-child(15) { width: 100px; } /* 상태 */
+th:nth-child(16), td:nth-child(16) { width: 120px; } /* 관리 */
 
 th {
   background: #f9fafb;
   font-weight: 600;
   color: #374151;
-  font-size: 0.875rem;
+  font-size: 0.8rem;
+  white-space: nowrap;
+  position: sticky;
+  top: 0;
+  z-index: 10;
 }
 
 td {
-  font-size: 0.875rem;
+  font-size: 0.8rem;
   color: #1f2937;
 }
 
 .product-name {
-  max-width: 200px;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
-.child-count {
-  display: block;
+.travelers-names,
+.travelers-phones {
+  white-space: normal;
+  word-wrap: break-word;
   font-size: 0.75rem;
+  line-height: 1.4;
+  padding: 0.5rem 0.75rem;
+}
+
+.travelers-names br,
+.travelers-phones br {
+  margin-bottom: 0.2rem;
+}
+
+/* 긴 텍스트가 있는 셀들의 스타일 */
+td {
+  vertical-align: top;
+  line-height: 1.4;
+}
+
+.passenger-count {
+  font-size: 0.85rem;
+  line-height: 1.3;
+}
+
+.child-count {
+  font-size: 0.8rem;
   color: #6b7280;
-  margin-top: 0.25rem;
+  margin-top: 0.2rem;
 }
 
 .amount {

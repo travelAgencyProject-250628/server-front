@@ -229,6 +229,10 @@ export async function getAllReservations(options = {}) {
         child_count,
         departure_date,
         status,
+        emergency_contact,
+        travelers_name,
+        travelers_phone,
+        depositor_name,
         product:product_id(id, title, adult_price, child_price),
         starting_point:starting_point_id(id, name)
       `, { count: 'exact' })
@@ -240,7 +244,7 @@ export async function getAllReservations(options = {}) {
 
     // 검색 필터링
     if (search) {
-      query = query.or(`booker_name.ilike.%${search}%,product.title.ilike.%${search}%`)
+      query = query.or(`booker_name.ilike.%${search}%,product.title.ilike.%${search}%,booker_phone.ilike.%${search}%,booker_email.ilike.%${search}%,travelers_name.ilike.%${search}%,travelers_phone.ilike.%${search}%`)
     }
 
     // 페이지네이션 및 정렬
