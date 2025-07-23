@@ -78,13 +78,12 @@ export async function uploadDetailImage(file, productNumber) {
 }
 
 /**
- * 인기 투어 상품 리스트를 가져온다. -> 6개만
+ * 인기 투어 상품 리스트를 가져온다. -> 예약 개수 기준으로 6개만
  * @returns {Promise<{success: boolean, tours: Array, error?: string}>}
  */
 export async function getPopularTours() {
   try {
-    // Products에서 duration, location(id) 포함, location은 Locations 테이블과 조인
-    // status가 true인 활성 상품만 조회
+    // 모든 활성 상품을 가져와서 예약 개수와 함께 조회
     const { data, error } = await supabase
       .from('Products')
       .select(`
@@ -101,14 +100,33 @@ export async function getPopularTours() {
         badge:badge_id(id, name)
       `)
       .eq('status', true)
-      .order('created_at', { ascending: false })
-      .limit(6)
     if (error) throw error
 
-    console.log('getPopularTours raw data:', data)
+    // 각 상품의 예약 개수를 조회
+    const productsWithBookingCount = await Promise.all((data || []).map(async (product) => {
+      const { count, error: bookingError } = await supabase
+        .from('Bookings')
+        .select('*', { count: 'exact', head: true })
+        .eq('product_id', product.id)
+        .not('status', 'eq', 'canceled') // 취소된 예약 제외
+      
+      if (bookingError) {
+        console.error(`예약 개수 조회 오류 (상품 ${product.id}):`, bookingError)
+        return { ...product, bookingCount: 0 }
+      }
+      
+      return { ...product, bookingCount: count || 0 }
+    }))
+
+    // 예약 개수 기준으로 정렬하고 상위 6개 선택
+    const sortedProducts = productsWithBookingCount
+      .sort((a, b) => b.bookingCount - a.bookingCount)
+      .slice(0, 6)
+
+    console.log('getPopularTours sorted products:', sortedProducts)
 
     // 더미 데이터 형식에 맞게 매핑
-    const tours = (data || []).map((item, idx) => {
+    const tours = sortedProducts.map((item, idx) => {
       console.log(`Tour ${idx}:`, item)
       return {
         id: item.id,
@@ -118,7 +136,8 @@ export async function getPopularTours() {
         location: item.location?.name || '지역 미정',
         price: item.adult_price || 0,
         badge: item.badge?.name || '',
-        image: item.main_image_url || ''
+        image: item.main_image_url || '',
+        bookingCount: item.bookingCount
       }
     })
 
@@ -221,29 +240,49 @@ export async function getProductsByCategory(categoryId, tagId = null, sortBy = '
       query = query.eq('tag_id', tagId)
     }
     
-    // 정렬 처리
-    switch (sortBy) {
-      case 'latest':
-        query = query.order('created_at', { ascending: false })
-        break
-      case 'price-low':
-        query = query.order('adult_price', { ascending: true })
-        break
-      case 'price-high':
-        query = query.order('adult_price', { ascending: false })
-        break
-      case 'popular':
-        // 인기순은 조회수나 예약수 기준으로 정렬 (현재는 ID 기준)
-        query = query.order('id', { ascending: true })
-        break
-      default:
-        query = query.order('created_at', { ascending: false })
+    // 정렬 처리 (popular 제외하고는 DB에서 정렬)
+    if (sortBy !== 'popular') {
+      switch (sortBy) {
+        case 'latest':
+          query = query.order('created_at', { ascending: false })
+          break
+        case 'price-low':
+          query = query.order('adult_price', { ascending: true })
+          break
+        case 'price-high':
+          query = query.order('adult_price', { ascending: false })
+          break
+        default:
+          query = query.order('created_at', { ascending: false })
+      }
     }
     
     const { data, error } = await query
     if (error) throw error
 
-    const products = (data || []).map(item => ({
+    // 각 상품의 예약 개수를 조회
+    const productsWithBookingCount = await Promise.all((data || []).map(async (product) => {
+      const { count, error: bookingError } = await supabase
+        .from('Bookings')
+        .select('*', { count: 'exact', head: true })
+        .eq('product_id', product.id)
+        .not('status', 'eq', 'canceled') // 취소된 예약 제외
+      
+      if (bookingError) {
+        console.error(`예약 개수 조회 오류 (상품 ${product.id}):`, bookingError)
+        return { ...product, bookingCount: 0 }
+      }
+      
+      return { ...product, bookingCount: count || 0 }
+    }))
+
+    // 인기순 정렬이면 예약 개수 기준으로 정렬
+    let sortedProducts = productsWithBookingCount
+    if (sortBy === 'popular') {
+      sortedProducts = productsWithBookingCount.sort((a, b) => b.bookingCount - a.bookingCount)
+    }
+
+    const products = sortedProducts.map(item => ({
       id: item.id,
       title: item.title || '',
       description: item.subtitle || '',
@@ -252,7 +291,8 @@ export async function getProductsByCategory(categoryId, tagId = null, sortBy = '
       price: item.adult_price || 0,
       badge: item.badge?.name || '',
       image: item.main_image_url || '',
-      tagId: item.tag_id
+      tagId: item.tag_id,
+      bookingCount: item.bookingCount
     }))
 
     return { success: true, products }
