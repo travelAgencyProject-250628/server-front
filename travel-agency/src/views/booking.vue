@@ -35,7 +35,7 @@
             </div>
         </div>
 
-        <form @submit.prevent="handleSubmit" class="booking-form">
+        <form @submit.prevent="handleSubmit" class="booking-form" novalidate>
             <!-- 예약자 정보 -->
             <section class="form-section">
                 <h2>예약자 정보
@@ -50,7 +50,9 @@
                             <span class="required-icon">⦁</span>
                             예약자 이름
                         </label>
-                        <input type="text" id="bookerName" v-model="formData.bookerName" required>
+                        <input type="text" id="bookerName" v-model="formData.bookerName" 
+                               :class="{ 'error': validationErrors.bookerName }" required>
+                        <span v-if="validationErrors.bookerName" class="error-message">{{ validationErrors.bookerName }}</span>
                     </div>
                     <div class="form-group">
                         <label for="bookerPhone" class="form-label required">
@@ -58,7 +60,9 @@
                             휴대폰 번호
                         </label>
                         <input type="tel" id="bookerPhone" v-model="formData.bookerPhone" 
-                               placeholder="010-1234-5678" required>
+                               placeholder="010-1234-5678" 
+                               :class="{ 'error': validationErrors.bookerPhone }" required>
+                        <span v-if="validationErrors.bookerPhone" class="error-message">{{ validationErrors.bookerPhone }}</span>
                     </div>
                     <div class="form-group">
                         <label for="bookerEmail" class="form-label required">
@@ -66,12 +70,16 @@
                             이메일
                         </label>
                         <input type="email" id="bookerEmail" v-model="formData.bookerEmail" 
-                               placeholder="example@email.com" required>
+                               placeholder="example@email.com" 
+                               :class="{ 'error': validationErrors.bookerEmail }" required>
+                        <span v-if="validationErrors.bookerEmail" class="error-message">{{ validationErrors.bookerEmail }}</span>
                     </div>
                     <div class="form-group">
                         <label for="emergencyContact" class="form-label">비상연락처</label>
                         <input type="tel" id="emergencyContact" v-model="formData.emergencyContact" 
-                               placeholder="비상시 연락 가능한 번호">
+                               placeholder="비상시 연락 가능한 번호"
+                               :class="{ 'error': validationErrors.emergencyContact }">
+                        <span v-if="validationErrors.emergencyContact" class="error-message">{{ validationErrors.emergencyContact }}</span>
                     </div>
                 </div>
             </section>
@@ -95,38 +103,6 @@
                             <span class="departure-time">{{ formatTime(location.time) }}</span>
                         </span>
                     </label>
-                </div>
-            </section>
-
-            <!-- 여행자 정보 -->
-            <section class="form-section">
-                <h2>여행자 정보</h2>
-                <div class="traveler-info">
-                    <div class="info-notice">
-                        <p>※ 여행자 정보는 여행자보험 가입 및 예약 확인을 위해 필요합니다.</p>
-                    </div>
-                    <div class="form-group traveler-info-checkbox">
-                        <label>
-                            <input type="checkbox" v-model="formData.sameAsBooker" @change="handleSameAsBooker">
-                            예약자와 여행자가 동일합니다
-                        </label>
-                    </div>
-                    <div v-if="!formData.sameAsBooker" class="form-grid">
-                        <div class="form-group">
-                            <label for="travelerName" class="form-label required">
-                                <span class="required-icon">⦁</span>
-                                여행자 이름
-                            </label>
-                            <input type="text" id="travelerName" v-model="formData.travelerName" required>
-                        </div>
-                        <div class="form-group">
-                            <label for="travelerPhone" class="form-label required">
-                                <span class="required-icon">⦁</span>
-                                여행자 연락처
-                            </label>
-                            <input type="tel" id="travelerPhone" v-model="formData.travelerPhone" required>
-                        </div>
-                    </div>
                 </div>
             </section>
 
@@ -182,6 +158,70 @@
                 </div>
             </section>
 
+            <!-- 여행자 정보 -->
+            <section class="form-section" v-if="totalTravelers > 0">
+                <h2>실제여행자정보
+                    <span class="required-notice">
+                        <span class="required-icon">⦁</span>
+                        필수항목
+                    </span>
+                </h2>
+                <div class="traveler-info">
+                    <div class="info-notice">
+                        <p>※ 여행자 정보는 여행자보험 가입 및 예약 확인을 위해 필요합니다.</p>
+                        <p>※ 총 {{ totalTravelers }}명의 여행자 정보를 입력해 주세요.</p>
+                    </div>
+                    
+                    <div class="form-group traveler-info-checkbox">
+                        <label>
+                            <input type="checkbox" v-model="formData.bookerIsIncluded" @change="handleBookerIncluded">
+                            예약자도 여행에 참여합니다
+                        </label>
+                    </div>
+
+                    <div class="travelers-table">
+                        <table class="traveler-info-table">
+                            <thead>
+                                <tr>
+                                    <th class="traveler-number">번호</th>
+                                    <th class="traveler-name">이름</th>
+                                    <th class="traveler-contact">연락처</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr v-for="(traveler, index) in formData.travelers" :key="traveler.id" class="traveler-row">
+                                    <td class="traveler-number-cell">
+                                        {{ index + 1 }}
+                                        <span class="traveler-type">({{ traveler.type === 'adult' ? '대인' : '소인' }})</span>
+                                        <span v-if="formData.bookerIsIncluded && index === 0" class="booker-badge">예약자</span>
+                                    </td>
+                                    <td class="traveler-name-cell">
+                                        <input 
+                                            type="text" 
+                                            :id="`traveler-name-${index}`"
+                                            v-model="traveler.name"
+                                            :placeholder="formData.bookerIsIncluded && index === 0 ? '예약자 이름' : '이름'"
+                                            :readonly="formData.bookerIsIncluded && index === 0"
+                                            :class="{ 'table-input': true, 'error': validationErrors.travelers[index]?.name }"
+                                            required>
+                                    </td>
+                                    <td class="traveler-contact-cell">
+                                        <input 
+                                            type="tel" 
+                                            :id="`traveler-phone-${index}`"
+                                            v-model="traveler.phone"
+                                            :placeholder="formData.bookerIsIncluded && index === 0 ? '예약자 연락처' : '연락처'"
+                                            :readonly="formData.bookerIsIncluded && index === 0"
+                                            :class="{ 'table-input': true, 'error': validationErrors.travelers[index]?.phone }"
+                                            required>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+
             <!-- 결제 정보 -->
             <section class="form-section">
                 <h2>결제 정보
@@ -208,7 +248,9 @@
                                 입금자명
                             </label>
                             <input type="text" id="payerName" v-model="formData.payerName" 
-                                   placeholder="입금하실 분의 성함을 입력하세요" required>
+                                   placeholder="입금하실 분의 성함을 입력하세요" 
+                                   :class="{ 'error': validationErrors.payerName }" required>
+                            <span v-if="validationErrors.payerName" class="error-message">{{ validationErrors.payerName }}</span>
                         </div>
                         <div class="form-group full-width">
                             <label for="customerRequest" class="form-label">고객 요청사항</label>
@@ -303,7 +345,7 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { getProductDetail } from '../lib/products.js'
 import { getProductStartingPoints } from '../lib/startingpoints.js'
@@ -318,6 +360,23 @@ const isLoading = ref(true)
 const isSubmitting = ref(false)
 const product = ref({})
 const departureLocations = ref([])
+
+// === Validation 상태 ===
+const validationErrors = ref({
+    bookerName: '',
+    bookerPhone: '',
+    bookerEmail: '',
+    emergencyContact: '',
+    payerName: '',
+    travelers: {}
+})
+
+// === Validation 패턴 ===
+const validationPatterns = {
+    email: /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/,
+    phone: /^010-\d{4}-\d{4}$/,
+    name: /^[가-힣a-zA-Z]{2,10}$/
+}
 
 // 약관 데이터
 const terms = [
@@ -334,9 +393,8 @@ const formData = ref({
     bookerPhone: '',
     bookerEmail: '',
     emergencyContact: '',
-    sameAsBooker: false,
-    travelerName: '',
-    travelerPhone: '',
+    bookerIsIncluded: false,
+    travelers: [],
     departureLocation: '',
     adultCount: 0,
     childCount: 0,
@@ -346,30 +404,98 @@ const formData = ref({
     agreements: new Array(terms.length).fill(false),
 })
 
+// === Validation 함수들 ===
+const validateField = (field, value) => {
+    if (!value) {
+        // 선택 항목은 빈 값 허용
+        return field === 'emergencyContact' ? '' : '필수 항목입니다'
+    }
+    
+    const validationMap = {
+        bookerName: { pattern: validationPatterns.name, message: '한글/영문 2-10자로 입력해주세요' },
+        payerName: { pattern: validationPatterns.name, message: '한글/영문 2-10자로 입력해주세요' },
+        bookerEmail: { pattern: validationPatterns.email, message: '올바른 이메일 형식으로 입력해주세요' },
+        bookerPhone: { pattern: validationPatterns.phone, message: '010-0000-0000 형식으로 입력해주세요' },
+        emergencyContact: { pattern: validationPatterns.phone, message: '010-0000-0000 형식으로 입력해주세요' }
+    }
+    
+    const validation = validationMap[field]
+    return validation && !validation.pattern.test(value) ? validation.message : ''
+}
+
+const validateTraveler = (traveler) => {
+    const errors = {}
+    if (!traveler.name) {
+        errors.name = '필수 항목입니다'
+    } else if (!validationPatterns.name.test(traveler.name)) {
+        errors.name = '한글/영문 2-10자로 입력해주세요'
+    }
+    
+    if (!traveler.phone) {
+        errors.phone = '필수 항목입니다'
+    } else if (!validationPatterns.phone.test(traveler.phone)) {
+        errors.phone = '010-0000-0000 형식으로 입력해주세요'
+    }
+    
+    return errors
+}
+
+const formatPhoneNumber = (value) => {
+    const numbers = value.replace(/\D/g, '')
+    if (numbers.length <= 3) return numbers
+    if (numbers.length <= 7) return `${numbers.slice(0, 3)}-${numbers.slice(3)}`
+    return `${numbers.slice(0, 3)}-${numbers.slice(3, 7)}-${numbers.slice(7, 11)}`
+}
+
 // === 계산된 값들 ===
 const totalPrice = computed(() => {
     return (formData.value.adultCount * product.value.adultPrice) +
            (formData.value.childCount * product.value.childPrice)
 })
 
+const totalTravelers = computed(() => {
+    return formData.value.adultCount + formData.value.childCount
+})
+
 const isFormValid = computed(() => {
-    const requiredFields = [
-        formData.value.bookerName,
-        formData.value.bookerPhone,
-        formData.value.bookerEmail,
-        formData.value.departureLocation,
-        formData.value.payerName,
-        (formData.value.adultCount > 0 || formData.value.childCount > 0)
-    ]
+    // 필수 필드 검증
+    const bookerFieldsValid = [
+        'bookerName', 'bookerPhone', 'bookerEmail', 'payerName'
+    ].every(field => {
+        const value = formData.value[field]
+        const error = validateField(field, value)
+        return value && !error
+    })
     
-    const travelerInfoValid = formData.value.sameAsBooker || 
-        (formData.value.travelerName && formData.value.travelerPhone)
+    // 비상연락처 검증 (선택사항이지만 입력시 형식 검증)
+    const emergencyContactValid = !formData.value.emergencyContact || 
+        !validateField('emergencyContact', formData.value.emergencyContact)
     
+    // 출발지역 선택 검증
+    const departureValid = !!formData.value.departureLocation
+    
+    // 인원 선택 검증
+    const peopleCountValid = formData.value.adultCount > 0 || formData.value.childCount > 0
+    
+    // 여행자 정보 검증
+    const travelerInfoValid = formData.value.travelers.length === 0 || 
+        formData.value.travelers.every(traveler => {
+            const errors = validateTraveler(traveler)
+            return !errors.name && !errors.phone
+        })
+    
+    // 약관 동의 검증
     const requiredAgreements = terms
         .filter(term => term.required)
         .every((term, index) => formData.value.agreements[index])
     
-    return requiredFields.every(field => field) && travelerInfoValid && requiredAgreements
+    // 모든 validation 에러가 없는지 확인
+    const noValidationErrors = !Object.values(validationErrors.value).some(error => 
+        typeof error === 'string' ? error : Object.values(error).some(e => e)
+    )
+    
+    return bookerFieldsValid && emergencyContactValid && departureValid && 
+           peopleCountValid && travelerInfoValid && requiredAgreements && noValidationErrors
 })
 
 // === 초기 데이터 로드 ===
@@ -391,7 +517,7 @@ const loadInitialData = async () => {
 
         // 상품 정보 설정
         const selectedDate = route.query.selectedDate
-        const travelDate = selectedDate ? formatDateForDisplay(selectedDate) : '2025/08/01'
+        const travelDate = selectedDate ? formatDateForDisplay(selectedDate) : ''
         
         product.value = {
             id: productResult.product.id,
@@ -406,7 +532,7 @@ const loadInitialData = async () => {
         // 출발지역 설정
         departureLocations.value = startingPointsResult.success 
             ? startingPointsResult.startingPoints
-            : getDefaultDepartureLocations()
+            : []
 
         // 로그인된 사용자 정보 로드 및 폼에 미리 채우기
         await loadUserInfo()
@@ -439,11 +565,7 @@ const loadUserInfo = async () => {
                 formData.value.bookerPhone = user.phone_number
             }
             
-            console.log('사용자 정보가 폼에 미리 채워졌습니다:', {
-                name: formData.value.bookerName,
-                email: formData.value.bookerEmail,
-                phone: formData.value.bookerPhone
-            })
+
         }
     } catch (error) {
         console.error('사용자 정보 로드 오류:', error)
@@ -451,23 +573,9 @@ const loadUserInfo = async () => {
     }
 }
 
-// 기본 출발지역 데이터
-const getDefaultDepartureLocations = () => [
-    { id: 1, name: '영등포' },
-    { id: 2, name: '서울역' },
-    { id: 3, name: '잠실' },
-    { id: 4, name: '동천' },
-    { id: 5, name: '죽전' },
-    { id: 6, name: '신갈' },
-]
+
 
 // === 폼 핸들러들 ===
-const handleSameAsBooker = () => {
-    if (formData.value.sameAsBooker) {
-        formData.value.travelerName = ''
-        formData.value.travelerPhone = ''
-    }
-}
 
 const increaseCount = (type) => {
     if (type === 'adult') {
@@ -475,6 +583,7 @@ const increaseCount = (type) => {
     } else {
         formData.value.childCount++
     }
+    updateTravelersList()
 }
 
 const decreaseCount = (type) => {
@@ -482,6 +591,53 @@ const decreaseCount = (type) => {
         formData.value.adultCount--
     } else if (type === 'child' && formData.value.childCount > 0) {
         formData.value.childCount--
+    }
+    updateTravelersList()
+}
+
+// 여행자 목록 업데이트
+const updateTravelersList = () => {
+    const newTotal = totalTravelers.value
+    const currentLength = formData.value.travelers.length
+    
+    // 완전히 새로운 배열 생성
+    const newTravelers = []
+    
+         // 대인 먼저 추가
+     for (let i = 0; i < formData.value.adultCount; i++) {
+         const existingTraveler = formData.value.travelers[i]
+         newTravelers.push({
+             id: i + 1,
+             name: existingTraveler?.name || '',
+             phone: existingTraveler?.phone || '',
+             type: 'adult'
+         })
+     }
+     
+     // 소인 추가
+     for (let i = 0; i < formData.value.childCount; i++) {
+         const existingTraveler = formData.value.travelers[formData.value.adultCount + i]
+         newTravelers.push({
+             id: formData.value.adultCount + i + 1,
+             name: existingTraveler?.name || '',
+             phone: existingTraveler?.phone || '',
+             type: 'child'
+         })
+     }
+    
+    formData.value.travelers = newTravelers
+}
+
+// 예약자 포함 여부 처리
+const handleBookerIncluded = () => {
+    if (formData.value.bookerIsIncluded && formData.value.travelers.length > 0) {
+        // 첫 번째 여행자를 예약자 정보로 채움
+        formData.value.travelers[0].name = formData.value.bookerName
+        formData.value.travelers[0].phone = formData.value.bookerPhone
+    } else if (!formData.value.bookerIsIncluded && formData.value.travelers.length > 0) {
+        // 첫 번째 여행자 정보 초기화
+        formData.value.travelers[0].name = ''
+        formData.value.travelers[0].phone = ''
     }
 }
 
@@ -522,12 +678,10 @@ const formatTime = (timeString) => {
 
 // === 예약 신청 처리 ===
 const buildReservationData = () => {
-    const travelersName = formData.value.sameAsBooker 
-        ? formData.value.bookerName
-        : formData.value.travelerName
-    const travelersPhone = formData.value.sameAsBooker
-        ? formData.value.bookerPhone
-        : formData.value.travelerPhone
+    // 모든 여행자 정보를 JSON 배열로 변환
+    const validTravelers = formData.value.travelers.filter(traveler => traveler.name && traveler.phone)
+    const travelersName = validTravelers.map(traveler => traveler.name)
+    const travelersPhone = validTravelers.map(traveler => traveler.phone)
     
     return {
         productId: product.value.id,
@@ -541,14 +695,35 @@ const buildReservationData = () => {
         startingPointId: formData.value.departureLocation,
         departureDate: product.value.travelDate.replace(/\//g, '-'),
         agreeTerms: formData.value.agreements.every(agreed => agreed),
-        travelersName,
-        travelersPhone,
+        travelersName, // JSON 배열: ["이정원", "정용욱", "김민수"]
+        travelersPhone, // JSON 배열: ["01044444444", "01066666666", "01055555555"]
         status: 'pending'
     }
 }
 
 const handleSubmit = async () => {
     if (isSubmitting.value) return
+    
+    // 제출 전 최종 validation 체크
+    if (!isFormValid.value) {
+        // 모든 필드를 다시 검증해서 에러 메시지 표시
+        const fields = ['bookerName', 'bookerPhone', 'bookerEmail', 'emergencyContact', 'payerName']
+        fields.forEach(field => {
+            validationErrors.value[field] = validateField(field, formData.value[field])
+        })
+        
+        // 여행자 정보 검증 (에러 메시지는 표시 안함)
+        if (formData.value.travelers.length > 0) {
+            const travelerErrors = {}
+            formData.value.travelers.forEach((traveler, index) => {
+                travelerErrors[index] = validateTraveler(traveler)
+            })
+            validationErrors.value.travelers = travelerErrors
+        }
+        
+        alert('입력 정보를 다시 확인해주세요.')
+        return
+    }
     
     try {
         isSubmitting.value = true
@@ -568,6 +743,45 @@ const handleSubmit = async () => {
         isSubmitting.value = false
     }
 }
+
+// === Watchers (실시간 검증) ===
+watch(() => formData.value.bookerName, (newVal) => {
+    validationErrors.value.bookerName = validateField('bookerName', newVal)
+})
+
+watch(() => formData.value.bookerPhone, (newVal) => {
+    // 전화번호 자동 포맷팅
+    formData.value.bookerPhone = formatPhoneNumber(newVal)
+    validationErrors.value.bookerPhone = validateField('bookerPhone', formData.value.bookerPhone)
+})
+
+watch(() => formData.value.bookerEmail, (newVal) => {
+    validationErrors.value.bookerEmail = validateField('bookerEmail', newVal)
+})
+
+watch(() => formData.value.emergencyContact, (newVal) => {
+    // 비상연락처 자동 포맷팅
+    formData.value.emergencyContact = formatPhoneNumber(newVal)
+    validationErrors.value.emergencyContact = validateField('emergencyContact', formData.value.emergencyContact)
+})
+
+watch(() => formData.value.payerName, (newVal) => {
+    validationErrors.value.payerName = validateField('payerName', newVal)
+})
+
+// 여행자 정보 실시간 검증 (에러 메시지는 표시 안함)
+watch(() => formData.value.travelers, (newTravelers) => {
+    const travelerErrors = {}
+    newTravelers.forEach((traveler, index) => {
+        // 전화번호 자동 포맷팅
+        if (traveler.phone) {
+            traveler.phone = formatPhoneNumber(traveler.phone)
+        }
+        // 검증 (에러 메시지는 UI에 표시 안함)
+        travelerErrors[index] = validateTraveler(traveler)
+    })
+    validationErrors.value.travelers = travelerErrors
+}, { deep: true })
 
 // === 생명주기 ===
 onMounted(loadInitialData)
@@ -722,6 +936,26 @@ input:focus, textarea:focus, select:focus {
     border-color: var(--primary-color);
 }
 
+/* Validation 스타일 */
+input.error, textarea.error {
+    border-color: var(--error-color);
+    background-color: rgba(220, 38, 38, 0.05);
+}
+
+input.error:focus, textarea.error:focus {
+    box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.1);
+}
+
+.error-message {
+    color: var(--error-color);
+    font-size: 0.875rem;
+    margin-top: 0.25rem;
+    display: block;
+    line-height: 1.2;
+}
+
+
+
 textarea {
     resize: vertical;
 }
@@ -741,6 +975,94 @@ textarea {
 
 .traveler-info-checkbox {
     margin-bottom: 1rem;
+}
+
+.travelers-table {
+    margin-top: 0;
+}
+
+.traveler-info-table {
+    width: 100%;
+    border-collapse: collapse;
+    border: 1px solid var(--border-color);
+    border-radius: var(--border-radius);
+    overflow: hidden;
+}
+
+.traveler-info-table thead th {
+    background: var(--bg-light);
+    padding: 0.5rem;
+    text-align: center;
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--text-primary);
+    border-bottom: 1px solid var(--border-color);
+}
+
+.traveler-info-table tbody td {
+    padding: 0.75rem;
+    border-bottom: 1px solid var(--border-color);
+    vertical-align: middle;
+}
+
+.traveler-info-table tbody tr:last-child td {
+    border-bottom: none;
+}
+
+.traveler-number {
+    width: 20%;
+}
+
+.traveler-name {
+    width: 40%;
+}
+
+.traveler-contact {
+    width: 40%;
+}
+
+.traveler-number-cell {
+    text-align: center;
+    font-size: 0.85rem;
+    font-weight: 500;
+    color: var(--text-primary);
+}
+
+.traveler-type {
+    display: block;
+    font-size: 0.75rem;
+    color: var(--text-secondary);
+    margin-top: 0.2rem;
+}
+
+.booker-badge {
+    background: var(--primary-color);
+    color: white;
+    font-size: 0.6rem;
+    padding: 0.1rem 0.3rem;
+    border-radius: 3px;
+    font-weight: 500;
+    display: block;
+    margin-top: 0.3rem;
+}
+
+.table-input {
+    width: 100%;
+    padding: 0.5rem;
+    border: 1px solid var(--border-color);
+    border-radius: 4px;
+    font-size: 0.85rem;
+    transition: border-color 0.2s;
+}
+
+.table-input:focus {
+    outline: none;
+    border-color: var(--primary-color);
+}
+
+.table-input[readonly] {
+    background-color: var(--bg-light);
+    color: var(--text-secondary);
 }
 
 .payment-details {
@@ -1176,6 +1498,42 @@ textarea {
     
     .form-section h2 {
         font-size: 1rem;
+    }
+
+    .traveler-info-table thead th {
+        padding: 0.5rem;
+        font-size: 0.8rem;
+    }
+
+    .traveler-info-table tbody td {
+        padding: 0.5rem;
+    }
+
+    .traveler-number {
+        width: 25%;
+    }
+
+    .traveler-name {
+        width: 37.5%;
+    }
+
+    .traveler-contact {
+        width: 37.5%;
+    }
+
+    .traveler-type {
+        font-size: 0.7rem;
+    }
+
+    .booker-badge {
+        font-size: 0.55rem;
+        padding: 0.05rem 0.2rem;
+        margin-top: 0.2rem;
+    }
+
+    .table-input {
+        padding: 0.4rem;
+        font-size: 0.8rem;
     }
 }
 </style> 
