@@ -252,7 +252,7 @@
                                         {{ term.title }}
                                     </span>
                                 </label>
-                                <button type="button" class="btn-terms" @click="viewTerms(term.id)">약관보기</button>
+                                <a :href="term.url" target="_blank" class="btn-terms">약관보기</a>
                             </div>
                         </div>
                     </div>
@@ -321,11 +321,10 @@ const departureLocations = ref([])
 
 // 약관 데이터
 const terms = [
-    { id: 1, title: '여행약관 동의', required: true },
-    { id: 2, title: '개인정보 수집 및 이용 동의', required: true },
-    { id: 3, title: '개인정보 제3자 제공 동의', required: true },
-    { id: 4, title: '여행자보험 가입 동의', required: true },
-    { id: 5, title: '마케팅 활용 동의', required: false },
+    { id: 1, title: '여행약관 동의', required: true, url: 'https://naratour.notion.site/' },
+    { id: 2, title: '개인정보 수집 및 이용 동의', required: true, url: 'https://naratour.notion.site/2390fe2b4a0380d88f66dd592754e8bf' },
+    { id: 3, title: '나라투어 이용약관', required: true, url: 'https://naratour.notion.site/2390fe2b4a0380028b64e199dc914abe' },
+    { id: 5, title: '마케팅 활용 동의', required: false, url: 'https://naratour.notion.site/2390fe2b4a03800eba46ea75f0865198' },
 ]
 
 // 폼 데이터
@@ -493,9 +492,7 @@ const handleIndividualAgree = () => {
     formData.value.agreeAll = formData.value.agreements.every(agreed => agreed)
 }
 
-const viewTerms = (termId) => {
-    alert(`약관 ${termId} 내용을 표시합니다. (실제로는 모달이나 새 창으로 표시)`)
-}
+
 
 // === 유틸리티 함수들 ===
 const getSelectedDepartureLocation = () => {

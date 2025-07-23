@@ -178,8 +178,7 @@
                                             개인정보 수집 및 이용 동의
                                         </span>
                                     </label>
-                                    <button type="button" class="btn-terms"
-                                        @click="showTerms('privacy')">약관보기</button>
+                                    <a href="https://naratour.notion.site/2390fe2b4a0380d88f66dd592754e8bf" target="_blank" class="btn-terms">약관보기</a>
                                 </div>
                             </div>
 
@@ -190,11 +189,10 @@
                                             required>
                                         <span class="checkbox-text">
                                             <span class="required-mark">[필수]</span>
-                                            개인정보 취급위탁 내용에 동의
+                                            나라투어 이용약관에 동의
                                         </span>
                                     </label>
-                                    <button type="button" class="btn-terms"
-                                        @click="showTerms('policy')">약관보기</button>
+                                    <a href="https://naratour.notion.site/2390fe2b4a0380028b64e199dc914abe" target="_blank" class="btn-terms">약관보기</a>
                                 </div>
                             </div>
 
@@ -205,11 +203,10 @@
                                             class="checkbox-input" required>
                                         <span class="checkbox-text">
                                             <span class="required-mark">[필수]</span>
-                                            이용약관 내용에 동의
+                                            국내여행 표준약관에 동의
                                         </span>
                                     </label>
-                                    <button type="button" class="btn-terms"
-                                        @click="showTerms('service')">약관보기</button>
+                                    <a href="https://naratour.notion.site/" target="_blank" class="btn-terms">약관보기</a>
                                 </div>
                             </div>
                         </div>
@@ -456,15 +453,7 @@ const findAddress = () => {
   }
 }
 
-const showTerms = (type) => {
-    const termsContent = {
-        privacy: '개인정보수집 및 이용에 관한 안내 내용...',
-        policy: '개인정보 취급위탁 내용...',
-        service: '이용약관 내용...'
-    }
 
-    alert(termsContent[type])
-}
 
 const toggleAllTerms = () => {
     if (agreeAll.value) {
@@ -892,7 +881,8 @@ watch(() => formData.phone, () => {
     transition: var(--transition);
     white-space: nowrap;
     font-weight: 500;
-    
+    text-decoration: none;
+    display: inline-block;
 }
 
 .btn-terms:hover {
