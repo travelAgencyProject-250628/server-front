@@ -326,41 +326,19 @@ const handleSubmit = async () => {
   }
 
   try {
-    // 비밀번호 변경이 있는 경우 먼저 처리
-    if (formData.value.password) {
-      const passwordResult = await authService.updatePassword(formData.value.password)
-      if (!passwordResult.success) {
-        alert(passwordResult.message)
-        return
-      }
-    }
-
     // 수정할 데이터 준비
     const updateData = {
       name: formData.value.name,
-      phone_number: formData.value.phone1 && formData.value.phone2 && formData.value.phone3 
+      phone: formData.value.phone1 && formData.value.phone2 && formData.value.phone3 
         ? `${formData.value.phone1}-${formData.value.phone2}-${formData.value.phone3}` 
         : null,
-      mobile_number: `${formData.value.mobile1}-${formData.value.mobile2}-${formData.value.mobile3}`,
+      mobile: `${formData.value.mobile1}-${formData.value.mobile2}-${formData.value.mobile3}`,
       email: formData.value.email,
-      postal_code: formData.value.zipcode,
-      address: formData.value.address1,
-      address_detail: formData.value.address2,
-      receive_sms: formData.value.smsReceive === 'Y'
-    }
-
-    // Users 테이블 업데이트
-    const currentUserResult = await authService.getCurrentUser()
-    if (currentUserResult.success && currentUserResult.user && currentUserResult.user.auth_id) {
-      const { error: updateError } = await authService.supabase
-        .from('Users')
-        .update(updateData)
-        .eq('auth_id', currentUserResult.user.auth_id)
-
-      if (updateError) {
-        console.error('Users 테이블 업데이트 실패:', updateError)
-        throw new Error('회원정보 수정에 실패했습니다.')
-      }
+      zipcode: formData.value.zipcode,
+      address1: formData.value.address1,
+      address2: formData.value.address2,
+      smsReceive: formData.value.smsReceive === 'Y' ? 'Y' : 'N',
+      password: formData.value.password || undefined
     }
 
     // users.js API를 사용하여 회원정보 수정
