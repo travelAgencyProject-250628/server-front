@@ -493,6 +493,7 @@ const requestQuote = async () => {
 
 .datetime-group .field-input {
   flex: 1;
+  width: 100px;
 }
 
 /* 경유지 섹션 */
@@ -640,7 +641,7 @@ const requestQuote = async () => {
   }
 
   .input-fields {
-    grid-template-columns: 1fr;
+    /* grid-template-columns: 1fr; */
     gap: 1rem;
   }
 
