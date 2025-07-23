@@ -461,8 +461,15 @@ onBeforeUnmount(() => {
 
 .tour-image {
   position: relative;
-  height: 200px;
+  height: 130px;
   overflow: hidden;
+}
+
+/* PC에서 200px로 설정 */
+@media (min-width: 768px) {
+  .tour-image {
+    height: 200px;
+  }
 }
 
 .tour-image img {
@@ -474,8 +481,8 @@ onBeforeUnmount(() => {
 
 .tour-badge {
   position: absolute;
-  top: 1rem;
-  left: 1rem;
+  top: 0.5rem;
+  left: 0.5rem;
   background: var(--accent-color);
   color: white;
   padding: 0.25rem 0.75rem;
@@ -614,11 +621,11 @@ onBeforeUnmount(() => {
   
   .tours-grid {
     grid-template-columns: repeat(2, 1fr);
-    gap: 1rem;
+    gap: 0.5rem;
   }
   
   .container {
-    padding: 0 15px;
+    padding: 0 8px;
   }
 
   .popular-tours {
@@ -627,7 +634,7 @@ onBeforeUnmount(() => {
   
   /* 모바일에서 투어 카드 조정 */
   .tour-content {
-    padding: 1rem;
+    padding: 0.3rem;
   }
   
   .tour-title {
