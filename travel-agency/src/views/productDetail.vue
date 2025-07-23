@@ -276,7 +276,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted, onBeforeUnmount } from 'vue'
+import { ref, onMounted, onBeforeUnmount, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import TravelCalendar from '@/components/TravelCalendar.vue'
 import { getProductDetail, getProductBookingData } from '@/lib/products.js'
@@ -285,6 +285,59 @@ import { getProductStartingPoints } from '@/lib/startingpoints.js'
 const route = useRoute()
 const router = useRouter()
 const activeTab = ref('basic')
+
+// SEO 메타 태그 설정
+const setMetaTags = (product) => {
+  if (!product) return
+  
+  const currentUrl = window.location.href
+  let imageUrl = product.mainImage || product.images?.[0] || '/images/default-product.jpg'
+  
+  // 이미지 URL을 절대 경로로 변환
+  if (imageUrl && !imageUrl.startsWith('http')) {
+    imageUrl = `${window.location.origin}${imageUrl}`
+  }
+  
+  // 페이지 제목 설정
+  document.title = `${product.title} - 나라투어`
+  
+  // 기존 메타 태그 제거
+  const existingMetaTags = document.querySelectorAll('meta[property^="og:"], meta[name^="twitter:"], meta[name="description"], meta[name="keywords"]')
+  existingMetaTags.forEach(tag => tag.remove())
+  
+  // Open Graph 태그 추가
+  const ogTags = [
+    { property: 'og:title', content: product.title },
+    { property: 'og:description', content: product.subtitle || product.title },
+    { property: 'og:image', content: imageUrl },
+    { property: 'og:url', content: currentUrl },
+    { property: 'og:type', content: 'website' },
+    { property: 'og:site_name', content: '나라투어' }
+  ]
+  
+  // Twitter Card 태그 추가
+  const twitterTags = [
+    { name: 'twitter:card', content: 'summary_large_image' },
+    { name: 'twitter:title', content: product.title },
+    { name: 'twitter:description', content: product.subtitle || product.title },
+    { name: 'twitter:image', content: imageUrl }
+  ]
+  
+  // 기본 메타 태그 추가
+  const basicTags = [
+    { name: 'description', content: product.subtitle || product.title },
+    { name: 'keywords', content: `${product.title}, 여행, 투어, ${product.category || ''}` }
+  ]
+  
+  // 모든 태그를 head에 추가
+  ;[...ogTags, ...twitterTags, ...basicTags].forEach(tag => {
+    const meta = document.createElement('meta')
+    Object.entries(tag).forEach(([key, value]) => {
+      meta.setAttribute(key, value)
+    })
+    document.head.appendChild(meta)
+  })
+}
 
 // 상태 관리
 const isLoading = ref(false)
@@ -312,6 +365,13 @@ const formatTime = (timeString) => {
     // 'HH:MM:SS' 형식을 'HH:MM' 형식으로 변환
     return timeString.substring(0, 5)
 }
+
+// productDetail 변경 시 메타 태그 업데이트
+watch(productDetail, (newProduct) => {
+  if (newProduct) {
+    setMetaTags(newProduct)
+  }
+}, { immediate: true })
 
 // 출발지점 데이터 가져오기
 const fetchStartingPoints = async (productId) => {
