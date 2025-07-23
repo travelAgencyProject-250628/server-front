@@ -446,7 +446,7 @@ onBeforeUnmount(() => {
   background: white;
   border-radius: var(--border-radius);
   overflow: hidden;
-  border: 1px solid var(--border-color);
+  /* border: 1px solid var(--border-color); */
   transition: var(--transition);
   cursor: pointer;
   display: flex;

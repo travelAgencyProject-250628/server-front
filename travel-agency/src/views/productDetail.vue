@@ -278,7 +278,6 @@
 <script setup>
 import { ref, onMounted, onBeforeUnmount, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { useHead } from '@unhead/vue'
 import TravelCalendar from '@/components/TravelCalendar.vue'
 import { getProductDetail, getProductBookingData } from '@/lib/products.js'
 import { getProductStartingPoints } from '@/lib/startingpoints.js'
@@ -293,8 +292,16 @@ const setMetaTags = (product) => {
   
   const currentUrl = window.location.href
   
+  console.log('setMetaTags 호출됨 - 상품 데이터:', {
+    mainImage: product.mainImage,
+    images: product.images,
+    title: product.title
+  })
+  
   // 이미지 URL 결정 (우선순위: mainImage > images[0] > 기본 이미지)
   let imageUrl = product.mainImage || product.images?.[0] || '/logo.png'
+  
+  console.log('선택된 이미지 URL:', imageUrl)
   
   // 이미지 URL이 이미 절대 경로인지 확인 (Supabase Storage URL)
   if (imageUrl && !imageUrl.startsWith('http')) {
@@ -311,36 +318,52 @@ const setMetaTags = (product) => {
     imageUrl = `${window.location.origin}/logo.png` // 기본 로고 이미지 사용
   }
   
-  console.log('메타 태그 설정:', {
+  console.log('최종 메타 태그 설정:', {
     title: product.title,
     imageUrl: imageUrl,
     description: product.subtitle || product.title
   })
   
-  // useHead를 사용하여 메타 태그 설정
-  useHead({
-    title: `${product.title} - 나라투어`,
-    meta: [
-      // Open Graph 태그
-      { property: 'og:title', content: product.title },
-      { property: 'og:description', content: product.subtitle || product.title },
-      { property: 'og:image', content: imageUrl },
-      { property: 'og:url', content: currentUrl },
-      { property: 'og:type', content: 'website' },
-      { property: 'og:site_name', content: '나라투어' },
-      { property: 'og:image:width', content: '1200' },
-      { property: 'og:image:height', content: '630' },
-      
-      // Twitter Card 태그
-      { name: 'twitter:card', content: 'summary_large_image' },
-      { name: 'twitter:title', content: product.title },
-      { name: 'twitter:description', content: product.subtitle || product.title },
-      { name: 'twitter:image', content: imageUrl },
-      
-      // 기본 메타 태그
-      { name: 'description', content: product.subtitle || product.title },
-      { name: 'keywords', content: `${product.title}, 여행, 투어, ${product.category || ''}` }
-    ]
+  // 페이지 제목 설정
+  document.title = `${product.title} - 나라투어`
+  
+  // 기존 메타 태그 제거
+  const existingMetaTags = document.querySelectorAll('meta[property^="og:"], meta[name^="twitter:"], meta[name="description"], meta[name="keywords"]')
+  existingMetaTags.forEach(tag => tag.remove())
+  
+  // Open Graph 태그 추가
+  const ogTags = [
+    { property: 'og:title', content: product.title },
+    { property: 'og:description', content: product.subtitle || product.title },
+    { property: 'og:image', content: imageUrl },
+    { property: 'og:url', content: currentUrl },
+    { property: 'og:type', content: 'website' },
+    { property: 'og:site_name', content: '나라투어' },
+    { property: 'og:image:width', content: '1200' },
+    { property: 'og:image:height', content: '630' }
+  ]
+  
+  // Twitter Card 태그 추가
+  const twitterTags = [
+    { name: 'twitter:card', content: 'summary_large_image' },
+    { name: 'twitter:title', content: product.title },
+    { name: 'twitter:description', content: product.subtitle || product.title },
+    { name: 'twitter:image', content: imageUrl }
+  ]
+  
+  // 기본 메타 태그 추가
+  const basicTags = [
+    { name: 'description', content: product.subtitle || product.title },
+    { name: 'keywords', content: `${product.title}, 여행, 투어, ${product.category || ''}` }
+  ]
+  
+  // 모든 태그를 head에 추가
+  ;[...ogTags, ...twitterTags, ...basicTags].forEach(tag => {
+    const meta = document.createElement('meta')
+    Object.entries(tag).forEach(([key, value]) => {
+      meta.setAttribute(key, value)
+    })
+    document.head.appendChild(meta)
   })
 }
 
@@ -406,6 +429,9 @@ const fetchProductDetail = async (productId) => {
         if (response.success) {
             // API 응답 데이터를 화면에 맞게 매핑
             const product = response.product
+            
+            console.log('API에서 받아온 상품 데이터:', product)
+            
             productDetail.value = {
                 id: product.id,
                 category: product.category,
@@ -426,6 +452,8 @@ const fetchProductDetail = async (productId) => {
                 confirmedDepartureThreshold: product.confirmedDepartureThreshold,
                 images: product.images.length > 0 ? product.images : ['/images/default-product.jpg']
             }
+            
+            console.log('매핑된 productDetail:', productDetail.value)
             
             // 예약 데이터 로드 (실제 데이터)
             await loadBookingData(productId)
