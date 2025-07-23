@@ -33,23 +33,19 @@
         <div class="input-fields">
           <div class="field-group">
             <label class="field-label">출발지</label>
-            <div class="address-input-group">
-              <input 
-                type="text" 
-                v-model="formData.departure" 
-                placeholder="출발지 입력" 
-                class="field-input"
-                readonly
-              >
-              <button type="button" class="address-search-btn" @click="searchAddress('departure')">
-                주소검색
-              </button>
-            </div>
+            <input 
+              type="text" 
+              v-model="formData.departure" 
+              placeholder="출발지를 클릭하여 검색하세요" 
+              class="field-input address-clickable"
+              readonly
+              @click="searchAddress('departure')"
+            >
           </div>
 
           <!-- 경유지 추가 버튼 -->
-          <div class="stopover-section">
-            <button class="stopover-button" @click="addStopover">
+          <div class="field-group">
+            <button class="add-stopover-btn" @click="addStopover">
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                 <line x1="12" y1="5" x2="12" y2="19"></line>
                 <line x1="5" y1="12" x2="19" y2="12"></line>
@@ -64,17 +60,15 @@
             <div v-for="(stopover, index) in formData.stopovers" :key="index" class="stopover-item">
               <div class="field-group">
                 <label class="field-label">경유지 {{ index + 1 }}</label>
-                <div class="address-input-group">
+                <div class="stopover-input-group">
                   <input 
                     type="text" 
                     v-model="formData.stopovers[index]" 
-                    :placeholder="`경유지 ${index + 1} 입력`" 
-                    class="field-input"
+                    :placeholder="`경유지 ${index + 1}을 클릭하여 검색하세요`" 
+                    class="field-input address-clickable"
                     readonly
+                    @click="searchStopoverAddress(index)"
                   >
-                  <button type="button" class="address-search-btn" @click="searchStopoverAddress(index)">
-                    주소검색
-                  </button>
                   <button type="button" class="remove-stopover-btn" @click="removeStopover(index)">
                     삭제
                   </button>
@@ -85,50 +79,32 @@
 
           <div class="field-group">
             <label class="field-label">도착지</label>
-            <div class="address-input-group">
-              <input 
-                type="text" 
-                v-model="formData.arrival" 
-                placeholder="도착지 입력" 
-                class="field-input"
-                readonly
-              >
-              <button type="button" class="address-search-btn" @click="searchAddress('arrival')">
-                주소검색
-              </button>
-            </div>
+            <input 
+              type="text" 
+              v-model="formData.arrival" 
+              placeholder="도착지를 클릭하여 검색하세요" 
+              class="field-input address-clickable"
+              readonly
+              @click="searchAddress('arrival')"
+            >
           </div>
 
           <div class="field-group">
-            <label class="field-label">가는날</label>
-            <div class="datetime-group">
-              <input 
-                type="date" 
-                v-model="formData.departureDate" 
-                class="field-input"
-              >
-              <input 
-                type="time" 
-                v-model="formData.departureTime" 
-                class="field-input"
-              >
-            </div>
+            <label class="field-label">가는 날짜 및 시간</label>
+            <DateTimePicker 
+              v-model="formData.departureDateTime" 
+              placeholder="가는 날짜와 시간을 선택해주세요"
+              label="가는 날짜 및 시간 선택"
+            />
           </div>
 
           <div class="field-group" v-if="tripType === 'round'">
-            <label class="field-label">오는날</label>
-            <div class="datetime-group">
-              <input 
-                type="date" 
-                v-model="formData.returnDate" 
-                class="field-input"
-              >
-              <input 
-                type="time" 
-                v-model="formData.returnTime" 
-                class="field-input"
-              >
-            </div>
+            <label class="field-label">오는 날짜 및 시간</label>
+            <DateTimePicker 
+              v-model="formData.returnDateTime" 
+              placeholder="오는 날짜와 시간을 선택해주세요"
+              label="오는 날짜 및 시간 선택"
+            />
           </div>
 
           <div class="field-group">
@@ -164,6 +140,7 @@
 <script setup>
 import { ref, reactive, onMounted } from 'vue'
 import { createBusRental } from '@/lib/busRentals.js'
+import DateTimePicker from '@/components/DateTimePicker.vue'
 
 // 여행 타입 (왕복/편도)
 const tripType = ref('round')
@@ -175,10 +152,8 @@ const isSubmitting = ref(false)
 const formData = reactive({
   departure: '',
   arrival: '',
-  departureDate: '',
-  departureTime: '',
-  returnDate: '',
-  returnTime: '',
+  departureDateTime: '',
+  returnDateTime: '',
   passengers: '',
   phone: '',
   stopovers: []
@@ -252,23 +227,13 @@ const removeStopover = (index) => {
 // 견적 신청
 const requestQuote = async () => {
   // 필수 필드 검증
-  if (!formData.departure || !formData.arrival || !formData.departureDate) {
-    alert('출발지, 도착지, 가는날을 입력해주세요.')
+  if (!formData.departure || !formData.arrival || !formData.departureDateTime) {
+    alert('출발지, 도착지, 가는 날짜 및 시간을 입력해주세요.')
     return
   }
 
-  if (!formData.departureTime) {
-    alert('가는 시간을 입력해주세요.')
-    return
-  }
-
-  if (tripType.value === 'round' && !formData.returnDate) {
-    alert('오는날을 입력해주세요.')
-    return
-  }
-
-  if (tripType.value === 'round' && !formData.returnTime) {
-    alert('오는 시간을 입력해주세요.')
+  if (tripType.value === 'round' && !formData.returnDateTime) {
+    alert('오는 날짜 및 시간을 입력해주세요.')
     return
   }
 
@@ -292,15 +257,19 @@ const requestQuote = async () => {
   isSubmitting.value = true
 
   try {
+    // 날짜 시간 파싱
+    const departureDate = new Date(formData.departureDateTime)
+    const returnDate = formData.returnDateTime ? new Date(formData.returnDateTime) : null
+
     // JSON 형태로 데이터 구성
     const rentalData = {
       tripType: tripType.value,
       departure: formData.departure,
       arrival: formData.arrival,
-      departureDate: formData.departureDate,
-      departureTime: formData.departureTime,
-      returnDate: formData.returnDate,
-      returnTime: formData.returnTime,
+      departureDate: departureDate.toISOString().split('T')[0],
+      departureTime: `${departureDate.getHours().toString().padStart(2, '0')}:${departureDate.getMinutes().toString().padStart(2, '0')}`,
+      returnDate: returnDate ? returnDate.toISOString().split('T')[0] : null,
+      returnTime: returnDate ? `${returnDate.getHours().toString().padStart(2, '0')}:${returnDate.getMinutes().toString().padStart(2, '0')}` : null,
       passengers: formData.passengers,
       phone: formData.phone,
       stopovers: formData.stopovers.filter(stopover => stopover.trim() !== ''),
@@ -316,10 +285,8 @@ const requestQuote = async () => {
       // 폼 초기화
       formData.departure = ''
       formData.arrival = ''
-      formData.departureDate = ''
-      formData.departureTime = ''
-      formData.returnDate = ''
-      formData.returnTime = ''
+      formData.departureDateTime = ''
+      formData.returnDateTime = ''
       formData.passengers = ''
       formData.phone = ''
       formData.stopovers = []
@@ -457,76 +424,79 @@ const requestQuote = async () => {
   color: #a0aec0;
 }
 
-/* 주소 입력 그룹 */
-.address-input-group {
-  display: flex;
-  gap: 0.5rem;
-}
-
-.address-input-group .field-input {
-  flex: 1;
-}
-
-.address-search-btn {
-  padding: 0.75rem 1rem;
-  background: var(--primary-color);
-  color: white;
-  border: none;
-  border-radius: 8px;
-  font-size: 0.9rem;
-  font-weight: 500;
+/* 클릭 가능한 주소 입력 필드 */
+.address-clickable {
   cursor: pointer;
-  transition: all 0.3s ease;
-  white-space: nowrap;
+  position: relative;
 }
 
-.address-search-btn:hover {
-  background: var(--primary-color);
-  transform: translateY(-1px);
+.address-clickable:hover {
+  border-color: var(--primary-color);
+  box-shadow: 0 0 0 3px rgba(49, 130, 206, 0.1);
 }
 
-/* 날짜/시간 입력 그룹 */
-.datetime-group {
+.address-clickable::after {
+  content: "📍";
+  position: absolute;
+  right: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  pointer-events: none;
+  opacity: 0.6;
+}
+
+/* 경유지 입력 그룹 */
+.stopover-input-group {
   display: flex;
   gap: 0.5rem;
+  align-items: center;
 }
 
-.datetime-group .field-input {
+.stopover-input-group .field-input {
   flex: 1;
-  width: 100px;
 }
+
+
 
 /* 경유지 섹션 */
 .stopovers-section {
-  margin: 1.5rem 0;
+  margin: 1rem 0;
   padding: 1.5rem;
-  background: #f8fafc;
+  background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
   border-radius: 12px;
-  border: 2px solid #e2e8f0;
+  border: 1px solid #e2e8f0;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
   max-width: 100%;
 }
 
 .stopovers-title {
   font-size: 1.1rem;
   font-weight: 600;
-  color: #333;
-  margin-bottom: 1rem;
+  color: #2d3748;
+  margin-bottom: 1.5rem;
   display: flex;
   align-items: center;
-  gap: 0.5rem;
+  gap: 0.75rem;
+  padding-bottom: 0.75rem;
+  border-bottom: 2px solid #e2e8f0;
 }
 
-.stopovers-title::before {
-  content: '';
-  width: 4px;
-  height: 20px;
-  background: #3182ce;
-  border-radius: 2px;
-}
+
 
 .stopover-item {
-  margin-bottom: 1rem;
+  margin-bottom: 1.25rem;
+  padding: 1rem;
+  background: white;
+  border-radius: 8px;
+  border: 1px solid #e2e8f0;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
   max-width: 100%;
+  transition: all 0.3s ease;
+}
+
+.stopover-item:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
 }
 
 .stopover-item:last-child {
@@ -535,11 +505,38 @@ const requestQuote = async () => {
 
 .stopover-item .field-group {
   width: 100%;
+  margin-bottom: 0;
 }
 
+/* 경유지 추가 버튼 */
+.add-stopover-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  width: 100%;
+  padding: 0.75rem 1rem;
+  background: #f8fafc;
+  border: 2px dashed var(--primary-color);
+  color: var(--primary-color);
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 0.95rem;
+  font-weight: 500;
+  transition: all 0.3s ease;
+}
+
+.add-stopover-btn:hover {
+  background: var(--primary-color);
+  color: white;
+  border-style: solid;
+  transform: translateY(-1px);
+}
+
+/* 경유지 삭제 버튼 */
 .remove-stopover-btn {
   padding: 0.75rem 1rem;
-  background: #e53e3e;
+  background: var(--secondary-color);
   color: white;
   border: none;
   border-radius: 8px;
@@ -548,35 +545,13 @@ const requestQuote = async () => {
   cursor: pointer;
   transition: all 0.3s ease;
   white-space: nowrap;
+  min-width: 70px;
 }
 
 .remove-stopover-btn:hover {
-  background: #c53030;
+  background: #e53e3e;
   transform: translateY(-1px);
-}
-
-/* 경유지 추가 버튼 */
-.stopover-section {
-  margin-bottom: 2rem;
-}
-
-.stopover-button {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  padding: 0.5rem 1rem;
-  background: none;
-  border: 2px solid var(--primary-color);
-  color: var(--primary-color);
-  border-radius: 6px;
-  cursor: pointer;
-  font-size: 0.9rem;
-  transition: all 0.3s ease;
-}
-
-.stopover-button:hover {
-  background: var(--primary-color);
-  color: white;
+  box-shadow: 0 2px 8px rgba(245, 101, 101, 0.3);
 }
 
 /* 견적 신청 버튼 */
@@ -656,6 +631,56 @@ const requestQuote = async () => {
   .submit-button {
     width: 100%;
     padding: 1rem;
+  }
+
+  /* 모바일에서 주소 입력 반응형 처리 */
+  .address-clickable::after {
+    right: 8px;
+    font-size: 0.9rem;
+  }
+
+  /* 경유지 추가 버튼 모바일 */
+  .add-stopover-btn {
+    padding: 1rem;
+    font-size: 1rem;
+  }
+
+  /* 경유지 입력 그룹 모바일 처리 */
+  .stopover-input-group {
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+
+  .stopover-input-group .field-input {
+    width: 100%;
+    margin-bottom: 0;
+  }
+
+  .remove-stopover-btn {
+    width: 100%;
+    padding: 0.8rem;
+    font-size: 1rem;
+  }
+
+  /* 경유지 섹션 모바일 최적화 */
+  .stopovers-section {
+    padding: 1rem;
+    margin: 0.75rem 0;
+  }
+
+  .stopovers-title {
+    font-size: 1rem;
+    margin-bottom: 1rem;
+    padding-bottom: 0.5rem;
+  }
+
+  .stopover-item {
+    margin-bottom: 1rem;
+    padding: 0.75rem;
+  }
+
+  .stopover-item:hover {
+    transform: none;
   }
 }
 </style> 
