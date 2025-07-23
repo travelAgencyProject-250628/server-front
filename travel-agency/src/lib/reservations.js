@@ -50,11 +50,21 @@ export async function getReservationDetail(reservationId) {
       }
     }
 
-    // travelers_name, travelers_phone: 콤마로 구분된 문자열일 경우 배열로 변환
+    // travelers_name, travelers_phone: 콤마로 구분된 문자열 or 배열일 수 있음
+    let names = []
+    let phones = []
+    if (Array.isArray(data.travelers_name)) {
+      names = data.travelers_name
+    } else if (typeof data.travelers_name === 'string') {
+      names = data.travelers_name.split(',').map(s => s.trim())
+    }
+    if (Array.isArray(data.travelers_phone)) {
+      phones = data.travelers_phone
+    } else if (typeof data.travelers_phone === 'string') {
+      phones = data.travelers_phone.split(',').map(s => s.trim())
+    }
     let travelers = []
-    if (data.travelers_name || data.travelers_phone) {
-      const names = (data.travelers_name || '').split(',').map(s => s.trim())
-      const phones = (data.travelers_phone || '').split(',').map(s => s.trim())
+    if (names.length > 0 || phones.length > 0) {
       travelers = names.map((name, idx) => ({
         name,
         phone: phones[idx] || '',
