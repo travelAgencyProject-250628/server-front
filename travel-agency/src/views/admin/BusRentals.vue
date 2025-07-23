@@ -449,8 +449,8 @@ onMounted(loadBusRentals)
 }
 
 .rental-details {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  display: flex;
+  flex-direction: column;
   gap: 0.75rem;
   margin-bottom: 1rem;
 }

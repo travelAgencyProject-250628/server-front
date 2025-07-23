@@ -346,7 +346,7 @@ const requestQuote = async () => {
 
 /* 상단 파란색 헤더 */
 .header-section {
-  background: #3182ce;
+  background: var(--primary-color);
   color: white;
   padding: 4rem 2rem;
   text-align: center;
@@ -408,7 +408,7 @@ const requestQuote = async () => {
 }
 
 .tab-button.active {
-  background: #3182ce;
+  background: var(--primary-color);
   color: white;
 }
 
@@ -423,7 +423,7 @@ const requestQuote = async () => {
 /* 입력 필드 */
 .input-fields {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  /* grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); */
   gap: 1.5rem;
   margin-bottom: 2rem;
 }
@@ -469,7 +469,7 @@ const requestQuote = async () => {
 
 .address-search-btn {
   padding: 0.75rem 1rem;
-  background: #3182ce;
+  background: var(--primary-color);
   color: white;
   border: none;
   border-radius: 8px;
@@ -481,7 +481,7 @@ const requestQuote = async () => {
 }
 
 .address-search-btn:hover {
-  background: #2c5282;
+  background: var(--primary-color);
   transform: translateY(-1px);
 }
 
@@ -566,8 +566,8 @@ const requestQuote = async () => {
   gap: 0.5rem;
   padding: 0.5rem 1rem;
   background: none;
-  border: 2px solid #3182ce;
-  color: #3182ce;
+  border: 2px solid var(--primary-color);
+  color: var(--primary-color);
   border-radius: 6px;
   cursor: pointer;
   font-size: 0.9rem;
@@ -575,7 +575,7 @@ const requestQuote = async () => {
 }
 
 .stopover-button:hover {
-  background: #3182ce;
+  background: var(--primary-color);
   color: white;
 }
 
@@ -608,9 +608,9 @@ const requestQuote = async () => {
     max-width: 1000px;
   }
   
-  .input-fields {
+  /* .input-fields {
     grid-template-columns: repeat(2, 1fr);
-  }
+  } */
   
   .stopovers-section {
     grid-column: 1 / -1;

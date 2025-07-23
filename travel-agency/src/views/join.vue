@@ -178,7 +178,8 @@
                                             개인정보 수집 및 이용 동의
                                         </span>
                                     </label>
-                                    <a href="https://naratour.notion.site/2390fe2b4a0380d88f66dd592754e8bf" target="_blank" class="btn-terms">약관보기</a>
+                                    <button type="button" class="btn-terms"
+                                        @click="showTerms('privacy')">약관보기</button>
                                 </div>
                             </div>
 
@@ -189,10 +190,11 @@
                                             required>
                                         <span class="checkbox-text">
                                             <span class="required-mark">[필수]</span>
-                                            나라투어 이용약관에 동의
+                                            개인정보 취급위탁 내용에 동의
                                         </span>
                                     </label>
-                                    <a href="https://naratour.notion.site/2390fe2b4a0380028b64e199dc914abe" target="_blank" class="btn-terms">약관보기</a>
+                                    <button type="button" class="btn-terms"
+                                        @click="showTerms('policy')">약관보기</button>
                                 </div>
                             </div>
 
@@ -203,10 +205,11 @@
                                             class="checkbox-input" required>
                                         <span class="checkbox-text">
                                             <span class="required-mark">[필수]</span>
-                                            국내여행 표준약관에 동의
+                                            이용약관 내용에 동의
                                         </span>
                                     </label>
-                                    <a href="https://naratour.notion.site/" target="_blank" class="btn-terms">약관보기</a>
+                                    <button type="button" class="btn-terms"
+                                        @click="showTerms('service')">약관보기</button>
                                 </div>
                             </div>
                         </div>
@@ -453,7 +456,15 @@ const findAddress = () => {
   }
 }
 
+const showTerms = (type) => {
+    const termsContent = {
+        privacy: '개인정보수집 및 이용에 관한 안내 내용...',
+        policy: '개인정보 취급위탁 내용...',
+        service: '이용약관 내용...'
+    }
 
+    alert(termsContent[type])
+}
 
 const toggleAllTerms = () => {
     if (agreeAll.value) {
@@ -881,8 +892,7 @@ watch(() => formData.phone, () => {
     transition: var(--transition);
     white-space: nowrap;
     font-weight: 500;
-    text-decoration: none;
-    display: inline-block;
+    
 }
 
 .btn-terms:hover {
@@ -933,171 +943,7 @@ watch(() => formData.phone, () => {
 }
 
 
-/* PC 뷰 개선 (768px 이상) */
-@media (min-width: 769px) {
-    .container {
-        max-width: 900px;
-        padding: 0 2rem;
-    }
-
-    .main-content {
-        padding: 4rem 0 3rem 0;
-    }
-
-    .page-header {
-        margin-bottom: 3rem;
-    }
-
-    .page-title {
-        font-size: 2.5rem;
-        margin-bottom: 1rem;
-    }
-
-    .page-subtitle {
-        font-size: 1.1rem;
-    }
-
-    .form-section {
-        padding: 2rem;
-        margin-bottom: 2rem;
-        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-    }
-
-    .section-title {
-        font-size: 1.25rem;
-        margin-bottom: 2rem;
-        padding-bottom: 1rem;
-    }
-
-    .form-grid {
-        grid-template-columns: 1fr;
-        gap: 1.5rem;
-    }
-
-    .form-group.full-width {
-        grid-column: 1 / -1;
-    }
-
-    .form-label {
-        font-size: 0.9rem;
-        margin-bottom: 0.5rem;
-    }
-
-    .form-input {
-        padding: 1rem;
-        font-size: 1rem;
-        border-radius: 8px;
-    }
-
-    .form-input:focus {
-        box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.15);
-    }
-
-    /* 입력 필드와 버튼 조합 */
-    .input-with-button {
-        gap: 1rem;
-    }
-
-    .btn-check {
-        padding: 1rem 1.5rem;
-        font-size: 0.95rem;
-        border-radius: 8px;
-        min-width: 120px;
-    }
-
-    /* 라디오 버튼 */
-    .radio-group {
-        gap: 2rem;
-    }
-
-    .radio-label {
-        font-size: 1rem;
-        padding: 0.5rem 0;
-    }
-
-    /* 약관 섹션 */
-    .terms-section {
-        padding: 2rem;
-        margin-bottom: 2rem;
-        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-    }
-
-    .terms-all-agree {
-        padding: 1.5rem;
-    }
-
-    .all-agree-label {
-        font-size: 1.1rem;
-    }
-
-    .terms-item {
-        padding: 1rem 1.5rem;
-    }
-
-    .terms-header {
-        gap: 1.5rem;
-    }
-
-    .btn-terms {
-        padding: 0.75rem 1rem;
-        font-size: 0.85rem;
-        border-radius: 6px;
-        min-width: 80px;
-    }
-
-    /* 제출 버튼 */
-    .form-actions {
-        gap: 1.5rem;
-        padding: 2rem 0;
-    }
-
-    .btn-submit,
-    .btn-cancel {
-        padding: 1rem 2rem;
-        font-size: 1.1rem;
-        border-radius: 8px;
-        min-width: 150px;
-    }
-
-    /* 체크박스 개선 */
-    .checkbox-label {
-        font-size: 1rem;
-        gap: 0.75rem;
-    }
-
-    .checkbox-input {
-        width: 18px;
-        height: 18px;
-    }
-
-    .checkbox-text {
-        font-size: 1rem;
-        line-height: 1.5;
-    }
-}
-
-/* 태블릿 뷰 (768px - 1024px) */
-@media (min-width: 769px) and (max-width: 1024px) {
-    .container {
-        max-width: 800px;
-        padding: 0 1.5rem;
-    }
-
-    .form-section {
-        padding: 1.5rem;
-    }
-
-    .form-grid {
-        gap: 1.25rem;
-    }
-
-    .btn-submit,
-    .btn-cancel {
-        min-width: 130px;
-    }
-}
-
-/* 모바일 뷰 (768px 이하) */
+/* 반응형 디자인 */
 @media (max-width: 768px) {
     .container {
         padding: 0 1rem;
