@@ -28,12 +28,10 @@
         <div class="filter-info">
           <div class="product-count">
             총 <strong>{{ totalProducts }}</strong>개의 상품이 있습니다.
-            ({{ currentPage }}/{{ totalPages }} 페이지)
           </div>
           <div class="sort-group">
             <label>정렬:</label>
             <select v-model="sortBy" @change="sortProducts">
-              <option value="latest">최신순</option>
               <option value="price-low">가격 낮은순</option>
               <option value="price-high">가격 높은순</option>
               <option value="popular">인기순</option>
@@ -66,32 +64,6 @@
         <div v-if="products.length === 0 && !loading" class="no-products">
           <p>조건에 맞는 상품이 없습니다.</p>
         </div>
-
-        <!-- 페이지네이션 -->
-        <div v-if="totalProducts > 0" class="pagination" >
-          <button 
-            class="page-btn" 
-            :disabled="currentPage === 1"
-            @click="changePage(currentPage - 1)"
-          >
-            이전
-          </button>
-          <button 
-            v-for="page in visiblePages" 
-            :key="page"
-            :class="['page-btn', { active: page === currentPage }]"
-            @click="changePage(page)"
-          >
-            {{ page }}
-          </button>
-          <button 
-            class="page-btn" 
-            :disabled="currentPage >= totalPages || totalPages === 0"
-            @click="changePage(currentPage + 1)"
-          >
-            다음
-          </button>
-        </div>
       </div>
     </main>
   </div>
@@ -109,8 +81,7 @@ const router = useRouter()
 
 // 반응형 데이터
 const products = ref([])
-const sortBy = ref('latest')
-const currentPage = ref(1)
+const sortBy = ref('popular')
 const itemsPerPage = 12
 const menuData = ref(null)
 const loading = ref(true)
@@ -142,21 +113,6 @@ const pageTitle = computed(() => {
     return subCategoryName.value
   }
   return categoryName.value
-})
-
-const totalPages = computed(() => {
-  return Math.ceil(totalProducts.value / itemsPerPage)
-})
-
-const visiblePages = computed(() => {
-  const pages = []
-  const start = Math.max(1, currentPage.value - 2)
-  const end = Math.min(totalPages.value, start + 4)
-  
-  for (let i = start; i <= end; i++) {
-    pages.push(i)
-  }
-  return pages
 })
 
 
@@ -235,7 +191,6 @@ const loadProducts = async () => {
 }
 
 const sortProducts = async () => {
-  currentPage.value = 1 // 정렬 변경 시 첫 페이지로 리셋
   await loadProducts() // 서버에서 정렬된 데이터 요청
 }
 
@@ -247,15 +202,8 @@ const goToProduct = (productId) => {
   router.push(`/product/${productId}`)
 }
 
-const changePage = async (page) => {
-  currentPage.value = page
-  await loadProducts()
-  window.scrollTo({ top: 0, behavior: 'smooth' })
-}
-
 // 라우트 변경 감지
 watch(() => route.query, async () => {
-  currentPage.value = 1 // 라우트 변경 시 첫 페이지로 리셋
   loading.value = true
   
   try {

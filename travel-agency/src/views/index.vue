@@ -476,7 +476,7 @@ onBeforeUnmount(() => {
   position: absolute;
   top: 1rem;
   left: 1rem;
-  background: var(--accent-color);
+  background: var(--primary-color);
   color: white;
   padding: 0.25rem 0.75rem;
   border-radius: 20px;
