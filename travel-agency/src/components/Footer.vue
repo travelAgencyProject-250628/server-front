@@ -4,7 +4,7 @@
       <div class="footer-content">
         <div class="footer-section">
           <h4>회사정보</h4>
-          <p>나라투어</p>
+          <p>더쉼투어</p>
           <p>경기도 오산시 궐리사로 38, 201-h35호(궐동, 하나)</p>
           <p>사업자등록번호: 348-32-01197</p>
         </div>
@@ -38,7 +38,7 @@
       </div>
       
       <div class="footer-bottom">
-        <p>&copy; 2024 나라투어. All Rights Reserved.</p>
+        <p>&copy; 2024 더쉼투어. All Rights Reserved.</p>
       </div>
     </div>
   </footer>

@@ -325,7 +325,7 @@ const setMetaTags = (product) => {
   })
   
   // 페이지 제목 설정
-  document.title = `${product.title} - 나라투어`
+  document.title = `${product.title} - 더쉼투어`
   
   // 기존 메타 태그 제거
   const existingMetaTags = document.querySelectorAll('meta[property^="og:"], meta[name^="twitter:"], meta[name="description"], meta[name="keywords"]')
@@ -338,7 +338,7 @@ const setMetaTags = (product) => {
     { property: 'og:image', content: imageUrl },
     { property: 'og:url', content: currentUrl },
     { property: 'og:type', content: 'website' },
-    { property: 'og:site_name', content: '나라투어' },
+    { property: 'og:site_name', content: '더쉼투어' },
     { property: 'og:image:width', content: '1200' },
     { property: 'og:image:height', content: '630' }
   ]

@@ -7,7 +7,7 @@
                 <!-- 페이지 제목 -->
                 <div class="page-header">
                     <h1 class="page-title">예약/결제현황</h1>
-                    <p class="page-subtitle">나라투어와 함께하는 특별한 여행의 예약 현황을 확인하세요</p>
+                    <p class="page-subtitle">더쉼투어와 함께하는 특별한 여행의 예약 현황을 확인하세요</p>
                 </div>
 
                 <!-- 로딩 상태 -->

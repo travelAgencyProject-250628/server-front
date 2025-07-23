@@ -33,8 +33,8 @@
         <!-- 로고 -->
         <div class="logo">
           <router-link to="/">
-            <img src="/logo.png" alt="나라투어 로고" class="logo-image">
-            <h1>나라투어</h1>
+            <img src="/logo.png" alt="더쉼투어 로고" class="logo-image">
+            <h1>더쉼투어</h1>
           </router-link>
         </div>
 
@@ -232,8 +232,8 @@
     <nav class="nav-mobile" :class="{ active: mobileMenuOpen }">
       <div class="mobile-header">
         <div class="mobile-logo" @click="goHome">
-          <img src="/logo.png" alt="나라투어 로고" class="logo-image">
-          <h1>나라투어</h1>
+          <img src="/logo.png" alt="더쉼투어 로고" class="logo-image">
+          <h1>더쉼투어</h1>
         </div>
         <button class="mobile-close-btn" @click="closeMobileMenu">
           <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">

@@ -7,7 +7,7 @@
                 <!-- 페이지 제목 -->
                 <div class="page-header">
                     <h1 class="page-title">여행 예약하기</h1>
-                    <p class="page-subtitle">나라투어와 함께 특별한 여행을 시작하세요</p>
+                    <p class="page-subtitle">더쉼투어와 함께 특별한 여행을 시작하세요</p>
                 </div>
                 
                 <!-- 로딩 인디케이터 -->
@@ -238,7 +238,7 @@
                         </div>
                         <div class="payment-row">
                             <span class="payment-label">입금 계좌</span>
-                            <span class="payment-value">국민은행 123456-78-901234 (예금주: 나라투어)</span>
+                            <span class="payment-value">국민은행 123456-78-901234 (예금주: 더쉼투어)</span>
                         </div>
                     </div>
                     <div class="form-grid">
@@ -382,7 +382,7 @@ const validationPatterns = {
 const terms = [
     { id: 1, title: '여행약관 동의', required: true, url: 'https://naratour.notion.site/' },
     { id: 2, title: '개인정보 수집 및 이용 동의', required: true, url: 'https://naratour.notion.site/2390fe2b4a0380d88f66dd592754e8bf' },
-    { id: 3, title: '나라투어 이용약관', required: true, url: 'https://naratour.notion.site/2390fe2b4a0380028b64e199dc914abe' },
+    { id: 3, title: '더쉼투어 이용약관', required: true, url: 'https://naratour.notion.site/2390fe2b4a0380028b64e199dc914abe' },
     { id: 5, title: '마케팅 활용 동의', required: false, url: 'https://naratour.notion.site/2390fe2b4a03800eba46ea75f0865198' },
 ]
 
