@@ -23,7 +23,7 @@
                         <button @click="loadUserProfile" class="retry-button">다시 시도</button>
                     </div>
 
-                    <form v-else @submit.prevent="handleSubmit" class="join-form">
+                    <form v-else @submit.prevent="handleSubmit" class="join-form" novalidate>
                         <!-- 기본 회원정보 -->
                         <div class="form-section">
                             <h2 class="section-title">
@@ -42,8 +42,7 @@
                                         성명
                                     </label>
                                     <input type="text" v-model="formData.name" class="form-input"
-                                        placeholder="성명을 입력하세요" :class="{ error: errors.name }" required>
-                                    <div v-if="errors.name" class="error-message">{{ errors.name }}</div>
+                                        placeholder="성명" readonly>
                                 </div>
 
                                 <div class="form-group">
@@ -61,7 +60,10 @@
                                         비밀번호
                                     </label>
                                     <input type="password" v-model="formData.password" class="form-input"
-                                        placeholder="새 비밀번호를 입력하세요" :class="{ error: errors.password }">
+                                        placeholder="새 비밀번호를 입력하세요" 
+                                        :class="{ error: errors.password }"
+                                        @blur="validateField('password')"
+                                        @input="validateField('password')">
                                     <div v-if="errors.password" class="error-message">{{ errors.password }}</div>
                                 </div>
 
@@ -70,25 +72,11 @@
                                         비밀번호 확인
                                     </label>
                                     <input type="password" v-model="formData.passwordConfirm" class="form-input"
-                                        placeholder="새 비밀번호를 다시 입력하세요" :class="{ error: errors.passwordConfirm }">
+                                        placeholder="새 비밀번호를 다시 입력하세요" 
+                                        :class="{ error: errors.passwordConfirm }"
+                                        @blur="validateField('passwordConfirm')"
+                                        @input="validateField('passwordConfirm')">
                                     <div v-if="errors.passwordConfirm" class="error-message">{{ errors.passwordConfirm }}</div>
-                                </div>
-
-                                <div class="form-group">
-                                    <label class="form-label">
-                                        전화번호
-                                    </label>
-                                    <div class="phone-group">
-                                        <input type="text" v-model="formData.phone1" class="form-input phone-input"
-                                            placeholder="02" maxlength="3">
-                                        <span class="phone-dash">-</span>
-                                        <input type="text" v-model="formData.phone2" class="form-input phone-input"
-                                            placeholder="1234" maxlength="4">
-                                        <span class="phone-dash">-</span>
-                                        <input type="text" v-model="formData.phone3" class="form-input phone-input"
-                                            placeholder="5678" maxlength="4">
-                                    </div>
-                                    <div v-if="errors.phone" class="error-message">{{ errors.phone }}</div>
                                 </div>
 
                                 <div class="form-group">
@@ -96,17 +84,26 @@
                                         <span class="required-icon">⦁</span>
                                         휴대전화번호
                                     </label>
-                                    <div class="phone-group">
-                                        <input type="text" v-model="formData.mobile1" class="form-input phone-input"
-                                            placeholder="010" maxlength="3">
-                                        <span class="phone-dash">-</span>
-                                        <input type="text" v-model="formData.mobile2" class="form-input phone-input"
-                                            placeholder="1234" maxlength="4">
-                                        <span class="phone-dash">-</span>
-                                        <input type="text" v-model="formData.mobile3" class="form-input phone-input"
-                                            placeholder="5678" maxlength="4">
-                                    </div>
+                                    <input type="tel" v-model="formData.mobile" class="form-input"
+                                        placeholder=""
+                                        maxlength="13"
+                                        :class="{ error: errors.mobile }"
+                                        @blur="validateField('mobile')"
+                                        @input="handleMobileInput">
                                     <div v-if="errors.mobile" class="error-message">{{ errors.mobile }}</div>
+                                </div>
+
+                                <div class="form-group">
+                                    <label class="form-label">
+                                        전화번호 (선택사항)
+                                    </label>
+                                    <input type="tel" v-model="formData.phone" class="form-input"
+                                        placeholder=""
+                                        maxlength="13"
+                                        :class="{ error: errors.phone }"
+                                        @blur="validateField('phone')"
+                                        @input="handlePhoneInput">
+                                    <div v-if="errors.phone" class="error-message">{{ errors.phone }}</div>
                                 </div>
 
                                 <div class="form-group full-width">
@@ -123,7 +120,9 @@
                                         <input type="text" v-model="formData.address1" class="form-input"
                                             placeholder="기본주소" readonly>
                                         <input type="text" v-model="formData.address2" class="form-input"
-                                            placeholder="상세주소를 입력하세요">
+                                            placeholder="상세주소를 입력하세요"
+                                            @blur="validateField('address')"
+                                            @input="validateField('address')">
                                     </div>
                                     <div v-if="errors.address" class="error-message">{{ errors.address }}</div>
                                 </div>
@@ -167,7 +166,7 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, reactive, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { getCurrentUserInfo, updateUserInfo } from '../lib/users.js'
 import { authService } from '../lib/auth.js'
@@ -179,18 +178,14 @@ const isLoading = ref(true)
 const isSubmitting = ref(false)
 const error = ref(null)
 
-// 폼 데이터 (초기값은 빈 상태)
-const formData = ref({
+// 폼 데이터
+const formData = reactive({
   userId: '',
   password: '',
   passwordConfirm: '',
   name: '',
-  phone1: '',
-  phone2: '',
-  phone3: '',
-  mobile1: '',
-  mobile2: '',
-  mobile3: '',
+  phone: '',
+  mobile: '',
   email: '',
   zipcode: '',
   address1: '',
@@ -198,14 +193,145 @@ const formData = ref({
   smsReceive: 'Y'
 })
 
-// 에러 메시지
+// 반응형 데이터
 const errors = ref({})
+const fieldTouched = ref({})
+
+// Validation 패턴들 (심플한 버전)
+const patterns = {
+    email: /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/,
+    password: /^(?=.*[a-zA-Z])(?=.*[0-9])[a-zA-Z0-9!@#$%^&*]{8,20}$/,
+    name: /^[가-힣a-zA-Z\s]{2,20}$/,
+    phoneNumber: /^[0-9]{3,4}$/,
+    mobile: /^010-[0-9]{4}-[0-9]{4}$/
+}
+
+// 개별 필드 검증 함수들
+const validatePassword = (password) => {
+    if (!password) return null // 비밀번호는 선택사항
+    if (password.length < 8) return '비밀번호는 8자 이상이어야 합니다.'
+    if (password.length > 20) return '비밀번호는 20자 이하여야 합니다.'
+    if (!patterns.password.test(password)) {
+        return '비밀번호는 영문과 숫자를 포함해야 합니다.'
+    }
+    return null
+}
+
+const validatePasswordConfirm = (password, passwordConfirm) => {
+    if (!password) return null // 비밀번호가 없으면 확인도 필요없음
+    if (!passwordConfirm) return '비밀번호 확인을 입력해주세요.'
+    if (password !== passwordConfirm) return '비밀번호가 일치하지 않습니다.'
+    return null
+}
+
+const validateMobile = (mobile) => {
+    if (!mobile) return '휴대전화번호를 입력해주세요.'
+    const cleanMobile = mobile.replace(/-/g, '')
+    if (cleanMobile.length !== 11) return '휴대전화번호는 11자리여야 합니다.'
+    if (!cleanMobile.startsWith('010')) return '010으로 시작하는 번호만 입력 가능합니다.'
+    if (!/^[0-9]+$/.test(cleanMobile)) return '숫자만 입력해주세요.'
+    return null
+}
+
+const validatePhone = (phone) => {
+    // 선택사항이므로 비어있으면 통과
+    if (!phone) return null
+    const cleanPhone = phone.replace(/-/g, '')
+    if (cleanPhone.length < 9 || cleanPhone.length > 11) return '올바른 전화번호 형식이 아닙니다.'
+    if (!/^[0-9]+$/.test(cleanPhone)) return '숫자만 입력해주세요.'
+    return null
+}
+
+// 휴대폰 번호 자동 포맷팅 함수
+const formatMobileNumber = (value) => {
+    // 숫자만 추출
+    const numbers = value.replace(/[^0-9]/g, '')
+    
+    if (numbers.length <= 3) {
+        return numbers
+    } else if (numbers.length <= 7) {
+        return `${numbers.slice(0, 3)}-${numbers.slice(3)}`
+    } else {
+        return `${numbers.slice(0, 3)}-${numbers.slice(3, 7)}-${numbers.slice(7, 11)}`
+    }
+}
+
+// 전화번호 자동 포맷팅 함수
+const formatPhoneNumber = (value) => {
+    // 숫자만 추출
+    const numbers = value.replace(/[^0-9]/g, '')
+    
+    if (numbers.length <= 2) {
+        return numbers
+    } else if (numbers.startsWith('02')) {
+        // 서울 지역번호 (02)
+        if (numbers.length <= 2) {
+            return numbers
+        } else if (numbers.length <= 6) {
+            return `${numbers.slice(0, 2)}-${numbers.slice(2)}`
+        } else {
+            return `${numbers.slice(0, 2)}-${numbers.slice(2, 6)}-${numbers.slice(6, 10)}`
+        }
+    } else {
+        // 기타 지역번호 (3자리)
+        if (numbers.length <= 3) {
+            return numbers
+        } else if (numbers.length <= 7) {
+            return `${numbers.slice(0, 3)}-${numbers.slice(3)}`
+        } else {
+            return `${numbers.slice(0, 3)}-${numbers.slice(3, 7)}-${numbers.slice(7, 11)}`
+        }
+    }
+}
+
+// 휴대폰 번호 입력 처리
+const handleMobileInput = (event) => {
+    const value = event.target.value
+    const formatted = formatMobileNumber(value)
+    formData.mobile = formatted
+    validateField('mobile')
+}
+
+// 전화번호 입력 처리
+const handlePhoneInput = (event) => {
+    const value = event.target.value
+    const formatted = formatPhoneNumber(value)
+    formData.phone = formatted
+    validateField('phone')
+}
+
+// 실시간 개별 필드 검증
+const validateField = (fieldName) => {
+    fieldTouched.value[fieldName] = true
+    
+    switch (fieldName) {
+        case 'password':
+            errors.value.password = validatePassword(formData.password)
+            // 비밀번호가 변경되면 비밀번호 확인도 재검증
+            if (fieldTouched.value.passwordConfirm) {
+                errors.value.passwordConfirm = validatePasswordConfirm(formData.password, formData.passwordConfirm)
+            }
+            break
+        case 'passwordConfirm':
+            errors.value.passwordConfirm = validatePasswordConfirm(formData.password, formData.passwordConfirm)
+            break
+        case 'mobile':
+            errors.value.mobile = validateMobile(formData.mobile)
+            break
+        case 'phone':
+            errors.value.phone = validatePhone(formData.phone)
+            break
+        case 'address':
+            errors.value.address = !formData.zipcode || !formData.address1 ? '주소를 입력해주세요.' : null
+            break
+    }
+}
 
 // 폼 유효성 검사
 const isFormValid = computed(() => {
-  return formData.value.name && 
-         formData.value.mobile1 && formData.value.mobile2 && formData.value.mobile3 &&
-         (!formData.value.password || (formData.value.password === formData.value.passwordConfirm))
+  return formData.name && 
+         formData.mobile &&
+         (!formData.password || (formData.password === formData.passwordConfirm))
 })
 
 // 사용자 정보 로드
@@ -223,28 +349,18 @@ const loadUserProfile = async () => {
 
     const userData = result.user
 
-    // 전화번호 분리
-    const phoneParts = userData.phone ? userData.phone.split('-') : ['', '', '']
-    const mobileParts = userData.mobile ? userData.mobile.split('-') : ['', '', '']
-
     // 폼 데이터 설정
-    formData.value = {
-      userId: userData.email,
-      password: '',
-      passwordConfirm: '',
-      name: userData.name || '',
-      phone1: phoneParts[0] || '',
-      phone2: phoneParts[1] || '',
-      phone3: phoneParts[2] || '',
-      mobile1: mobileParts[0] || '',
-      mobile2: mobileParts[1] || '',
-      mobile3: mobileParts[2] || '',
-      email: userData.email,
-      zipcode: userData.zipcode || '',
-      address1: userData.address1 || '',
-      address2: userData.address2 || '',
-      smsReceive: userData.smsReceive || 'Y'
-    }
+    formData.userId = userData.email
+    formData.password = ''
+    formData.passwordConfirm = ''
+    formData.name = userData.name || ''
+    formData.phone = userData.phone || ''
+    formData.mobile = userData.mobile || ''
+    formData.email = userData.email
+    formData.zipcode = userData.zipcode || ''
+    formData.address1 = userData.address1 || ''
+    formData.address2 = userData.address2 || ''
+    formData.smsReceive = userData.smsReceive || 'Y'
 
   } catch (err) {
     console.error('사용자 정보 로드 실패:', err)
@@ -270,10 +386,10 @@ const findAddress = () => {
         }
         
         // Vue.js 방식으로 데이터 업데이트
-        formData.value.zipcode = data.zonecode;
-        formData.value.address1 = addr;
-        formData.value.address2 = ''; // 상세주소 초기화
-        errors.value.address = ''; // 에러 메시지 제거
+        formData.zipcode = data.zonecode;
+        formData.address1 = addr;
+        formData.address2 = ''; // 상세주소 초기화
+        validateField('address'); // 주소 검증
         
         // 콘솔에 로그 출력 (디버깅용)
         console.log('주소 검색 결과:', data);
@@ -288,82 +404,39 @@ const findAddress = () => {
 const handleSubmit = async () => {
   if (isSubmitting.value) return
 
-  errors.value = {}
-  
-  // 유효성 검사
-  if (!formData.value.name) {
-    errors.value.name = '성명을 입력해주세요.'
-  }
-  
-  // 휴대폰번호 검증
-  if (!formData.value.mobile1 || !formData.value.mobile2 || !formData.value.mobile3) {
-    errors.value.mobile = '휴대폰번호를 모두 입력해주세요.'
-  }
-  
-  // 전화번호 검증 (선택사항)
-  if (formData.value.phone1 || formData.value.phone2 || formData.value.phone3) {
-    if (!formData.value.phone1 || !formData.value.phone2 || !formData.value.phone3) {
-      errors.value.phone = '전화번호를 입력하시려면 모두 입력해주세요.'
-    }
-  }
-  
-  // 비밀번호 검증 (변경하는 경우에만)
-  if (formData.value.password) {
-    if (formData.value.password.length < 6) {
-      errors.value.password = '비밀번호는 6글자 이상 입력해주세요.'
-    } else if (formData.value.password !== formData.value.passwordConfirm) {
-      errors.value.passwordConfirm = '비밀번호가 일치하지 않습니다.'
-    }
-  }
-  
-  // 주소 검증
-  if (!formData.value.zipcode || !formData.value.address1) {
-    errors.value.address = '주소를 입력해주세요.'
-  }
-  
-  if (Object.keys(errors.value).length > 0) {
+  // 전체 폼 검증
+  validateField('password')
+  validateField('passwordConfirm')
+  validateField('mobile')
+  validateField('phone')
+  validateField('address')
+
+  // 에러가 있는지 확인
+  const hasErrors = Object.values(errors.value).some(error => error !== null)
+  if (hasErrors) {
+    alert('입력 정보를 다시 확인해주세요.')
     return
   }
 
+  isSubmitting.value = true
+  
   try {
-    // 비밀번호 변경이 있는 경우 먼저 처리
-    if (formData.value.password) {
-      const passwordResult = await authService.updatePassword(formData.value.password)
-      if (!passwordResult.success) {
-        alert(passwordResult.message)
-        return
-      }
-    }
-
-    // 수정할 데이터 준비
+    // 수정할 데이터 준비 (비밀번호 포함하여 API에 맡김)
     const updateData = {
-      name: formData.value.name,
-      phone_number: formData.value.phone1 && formData.value.phone2 && formData.value.phone3 
-        ? `${formData.value.phone1}-${formData.value.phone2}-${formData.value.phone3}` 
-        : null,
-      mobile_number: `${formData.value.mobile1}-${formData.value.mobile2}-${formData.value.mobile3}`,
-      email: formData.value.email,
-      postal_code: formData.value.zipcode,
-      address: formData.value.address1,
-      address_detail: formData.value.address2,
-      receive_sms: formData.value.smsReceive === 'Y'
+      name: formData.name,
+      phone: formData.phone ? formData.phone.trim() : null,
+      mobile: formData.mobile.trim(),
+      zipcode: formData.zipcode,
+      address1: formData.address1,
+      address2: formData.address2,
+      smsReceive: formData.smsReceive
     }
 
-    // Users 테이블 업데이트
-    const currentUserResult = await authService.getCurrentUser()
-    if (currentUserResult.success && currentUserResult.user && currentUserResult.user.auth_id) {
-      const { error: updateError } = await authService.supabase
-        .from('Users')
-        .update(updateData)
-        .eq('auth_id', currentUserResult.user.auth_id)
-
-      if (updateError) {
-        console.error('Users 테이블 업데이트 실패:', updateError)
-        throw new Error('회원정보 수정에 실패했습니다.')
-      }
+    // 비밀번호가 있으면 API가 처리하도록 포함
+    if (formData.password) {
+      updateData.password = formData.password
     }
 
-    // users.js API를 사용하여 회원정보 수정
     const result = await updateUserInfo(updateData)
     
     if (!result.success) {
@@ -372,9 +445,10 @@ const handleSubmit = async () => {
 
     alert('회원정보가 성공적으로 수정되었습니다.')
     router.push('/mypage')
+    
   } catch (error) {
     console.error('회원정보 수정 실패:', error)
-    alert(error.message || '회원정보 수정 중 오류가 발생했습니다. 다시 시도해주세요.')
+    alert(error.message || '회원정보 수정 중 오류가 발생했습니다.')
   } finally {
     isSubmitting.value = false
   }
@@ -399,6 +473,31 @@ onMounted(async () => {
 
   // 사용자 정보 로드
   await loadUserProfile()
+})
+
+// 실시간 validation을 위한 watch
+watch(() => formData.password, () => {
+    if (fieldTouched.value.password) {
+        validateField('password')
+    }
+})
+
+watch(() => formData.passwordConfirm, () => {
+    if (fieldTouched.value.passwordConfirm) {
+        validateField('passwordConfirm')
+    }
+})
+
+watch(() => formData.mobile, () => {
+    if (fieldTouched.value.mobile) {
+        validateField('mobile')
+    }
+})
+
+watch(() => formData.phone, () => {
+    if (fieldTouched.value.phone) {
+        validateField('phone')
+    }
 })
 </script>
 
@@ -554,10 +653,7 @@ onMounted(async () => {
   box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
 }
 
-.form-input.error {
-  border-color: var(--error-color);
-  background-color: #fef2f2;
-}
+
 
 .form-input[readonly] {
   background-color: var(--bg-light);
@@ -568,6 +664,16 @@ onMounted(async () => {
   color: var(--error-color);
   font-size: 0.875rem;
   margin-top: 0.25rem;
+}
+
+/* 입력 필드 에러 상태 */
+.form-input.error {
+  border-color: var(--error-color);
+  background-color: rgba(220, 38, 38, 0.05);
+}
+
+.form-input.error:focus {
+  box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.1);
 }
 
 /* 입력 필드와 버튼 조합 */

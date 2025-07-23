@@ -33,7 +33,7 @@
 
                     <!-- 회원 로그인 -->
                     <div v-if="activeTab === 'member'" class="login-form">
-                        <form @submit.prevent="handleLogin" class="form">
+                        <form @submit.prevent="handleLogin" class="form" novalidate>
                             <div class="input-group">
                                 <div class="input-wrapper">
                                     <div class="input-icon">
@@ -85,7 +85,7 @@
 
                     <!-- 비회원 예약조회 -->
                     <div v-if="activeTab === 'guest'" class="guest-form">
-                        <form @submit.prevent="handleGuestReservation" class="form">
+                        <form @submit.prevent="handleGuestReservation" class="form" novalidate>
                             <div class="input-group">
                                 <div class="input-wrapper">
                                     <div class="input-icon">
