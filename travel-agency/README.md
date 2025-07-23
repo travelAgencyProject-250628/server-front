@@ -40,4 +40,8 @@ npm install @supabase/supabase-js
 brew install supabase/tap/supabase
 ```
 
-# UserRoles 는 read only
+```sh
+npm install @unhead/vue
+```
+
+
