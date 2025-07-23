@@ -333,7 +333,7 @@
                 <p class="submit-notice">
                     위 내용을 확인하였으며, 예약 신청에 동의합니다.
                 </p>
-                <button type="submit" class="submit-btn" :disabled="!isFormValid || isSubmitting">
+                <button type="submit" class="submit-btn" :disabled="isSubmitting">
                     {{ isSubmitting ? '예약 처리 중...' : '예약 신청하기' }}
                 </button>
             </div>
@@ -478,7 +478,7 @@ const isFormValid = computed(() => {
     const peopleCountValid = formData.value.adultCount > 0 || formData.value.childCount > 0
     
     // 여행자 정보 검증
-    const travelerInfoValid = formData.value.travelers.length === 0 || 
+    const travelerInfoValid = formData.value.travelers.length > 0 && 
         formData.value.travelers.every(traveler => {
             const errors = validateTraveler(traveler)
             return !errors.name && !errors.phone
@@ -705,23 +705,65 @@ const handleSubmit = async () => {
     if (isSubmitting.value) return
     
     // 제출 전 최종 validation 체크
-    if (!isFormValid.value) {
-        // 모든 필드를 다시 검증해서 에러 메시지 표시
-        const fields = ['bookerName', 'bookerPhone', 'bookerEmail', 'emergencyContact', 'payerName']
-        fields.forEach(field => {
-            validationErrors.value[field] = validateField(field, formData.value[field])
-        })
-        
-        // 여행자 정보 검증 (에러 메시지는 표시 안함)
-        if (formData.value.travelers.length > 0) {
-            const travelerErrors = {}
-            formData.value.travelers.forEach((traveler, index) => {
-                travelerErrors[index] = validateTraveler(traveler)
-            })
-            validationErrors.value.travelers = travelerErrors
+    const validationMessages = []
+    
+    // 예약자 정보 검증
+    const bookerFields = ['bookerName', 'bookerPhone', 'bookerEmail', 'payerName']
+    bookerFields.forEach(field => {
+        const error = validateField(field, formData.value[field])
+        if (error) {
+            const fieldNames = {
+                bookerName: '예약자 이름',
+                bookerPhone: '휴대폰 번호',
+                bookerEmail: '이메일',
+                payerName: '입금자명'
+            }
+            validationMessages.push(`• ${fieldNames[field]}: ${error}`)
         }
-        
-        alert('입력 정보를 다시 확인해주세요.')
+    })
+    
+    // 비상연락처 검증 (선택사항이지만 입력시 형식 검증)
+    if (formData.value.emergencyContact) {
+        const error = validateField('emergencyContact', formData.value.emergencyContact)
+        if (error) {
+            validationMessages.push(`• 비상연락처: ${error}`)
+        }
+    }
+    
+    // 출발지역 선택 검증
+    if (!formData.value.departureLocation) {
+        validationMessages.push('• 출발지역을 선택해주세요')
+    }
+    
+    // 인원 선택 검증
+    if (formData.value.adultCount === 0 && formData.value.childCount === 0) {
+        validationMessages.push('• 대인 또는 소인을 1명 이상 선택해주세요')
+    }
+    
+    // 여행자 정보 검증
+    if (formData.value.travelers.length > 0) {
+        formData.value.travelers.forEach((traveler, index) => {
+            const errors = validateTraveler(traveler)
+            if (errors.name) {
+                validationMessages.push(`• ${index + 1}번 여행자 이름: ${errors.name}`)
+            }
+            if (errors.phone) {
+                validationMessages.push(`• ${index + 1}번 여행자 연락처: ${errors.phone}`)
+            }
+        })
+    }
+    
+    // 약관 동의 검증
+    const requiredTerms = terms.filter(term => term.required)
+    requiredTerms.forEach((term, index) => {
+        if (!formData.value.agreements[index]) {
+            validationMessages.push(`• ${term.title}에 동의해주세요`)
+        }
+    })
+    
+    // validation 에러가 있으면 상세 메시지 표시
+    if (validationMessages.length > 0) {
+        alert('다음 항목을 확인해주세요:\n\n' + validationMessages.join('\n'))
         return
     }
     
