@@ -530,6 +530,7 @@ onMounted(() => {
 }
 
 .form-actions {
+  padding: 1.5rem;
   display: flex;
   gap: 1rem;
   justify-content: flex-end;
@@ -587,6 +588,12 @@ onMounted(() => {
 .delete-confirm-btn {
   background: #dc2626;
   color: white;
+  padding: 0.75rem 1.5rem;
+  border-radius: 6px;
+  font-size: 0.875rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background-color 0.2s;
 }
 
 .delete-confirm-btn:hover:not(:disabled) {
