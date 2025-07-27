@@ -63,6 +63,14 @@
           </svg>
           <span>예약관리</span>
         </router-link>
+
+        <router-link to="/admin/starting-points" class="nav-item">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+            <path stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/>
+            <path stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/>
+          </svg>
+          <span>출발지관리</span>
+        </router-link>
         
         <router-link to="/admin/bus-rentals" class="nav-item">
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
@@ -110,7 +118,8 @@ const pageTitle = computed(() => {
     '/admin/customers': '고객정보 관리',
     '/admin/reservations': '예약 관리',
     '/admin/tags': '태그 관리',
-    '/admin/bus-rentals': '버스 대절 관리'
+    '/admin/bus-rentals': '버스 대절 관리',
+    '/admin/starting-points': '출발지 관리'
   }
   return routeMap[route.path] || '관리자 페이지'
 })

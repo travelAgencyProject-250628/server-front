@@ -164,6 +164,12 @@ const router = createRouter({
           name: 'adminBusRentals',
           component: () => import('@/views/admin/BusRentals.vue'),
           meta: { requiresAuth: true, requiresAdmin: true }
+        },
+        {
+          path: 'starting-points',
+          name: 'adminStartingPoints',
+          component: () => import('@/views/admin/StartingPoints.vue'),
+          meta: { requiresAuth: true, requiresAdmin: true }
         }
       ]
     }
