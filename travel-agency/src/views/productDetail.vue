@@ -16,7 +16,7 @@
                 <!-- 상품 정보 표시 -->
                 <template v-else-if="productDetail">
 
-
+                    <!-- 상품 헤더 이후 섹션 수정 -->
                     <!-- 상품 헤더 -->
                     <div class="product-header">
                         <div class="product-category">{{ productDetail.category }}</div>
@@ -24,68 +24,88 @@
                         <p class="product-subtitle">{{ productDetail.subtitle }}</p>
                     </div>
 
-                    <!-- 상품 이미지 섹션 -->
-                    <div class="product-image-section">
-                        <div class="image-slider">
-                            <button class="slider-btn prev" @click="prevImage" :disabled="currentImageIndex === 0">
-                                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"
-                                    fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
-                                    stroke-linejoin="round">
-                                    <polyline points="15 18 9 12 15 6"></polyline>
-                                </svg>
-                            </button>
-                            <div class="image-container">
-                                <img :src="productDetail.images[currentImageIndex]"
-                                    :alt="'상품 이미지 ' + (currentImageIndex + 1)" class="product-image">
+                    <!-- 이미지와 요약정보를 감싸는 flex 컨테이너 추가 -->
+                    <div class="product-main-info">
+                        <!-- 상품 이미지 섹션 -->
+                        <div class="product-image-section">
+                            <div class="image-slider">
+                                <button class="slider-btn prev" @click="prevImage" :disabled="currentImageIndex === 0">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"
+                                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                                        stroke-linejoin="round">
+                                        <polyline points="15 18 9 12 15 6"></polyline>
+                                    </svg>
+                                </button>
+                                <div class="image-container">
+                                    <img :src="productDetail.images[currentImageIndex]"
+                                        :alt="'상품 이미지 ' + (currentImageIndex + 1)" class="product-image">
+                                </div>
+                                <button class="slider-btn next" @click="nextImage"
+                                    :disabled="currentImageIndex === productDetail.images.length - 1">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"
+                                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                                        stroke-linejoin="round">
+                                        <polyline points="9 18 15 12 9 6"></polyline>
+                                    </svg>
+                                </button>
+                                <div class="image-pagination">
+                                    <span v-for="(_, index) in productDetail.images" :key="index"
+                                        :class="['dot', { active: index === currentImageIndex }]" @click="setImage(index)">
+                                    </span>
+                                </div>
                             </div>
-                            <button class="slider-btn next" @click="nextImage"
-                                :disabled="currentImageIndex === productDetail.images.length - 1">
-                                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"
-                                    fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
-                                    stroke-linejoin="round">
-                                    <polyline points="9 18 15 12 9 6"></polyline>
-                                </svg>
-                            </button>
-                            <div class="image-pagination">
-                                <span v-for="(_, index) in productDetail.images" :key="index"
-                                    :class="['dot', { active: index === currentImageIndex }]" @click="setImage(index)">
-                                </span>
+                        </div>
+
+                        <!-- 상품 요약 정보 -->
+                        <div class="product-summary">
+                            <div class="summary-content">
+                                <div class="summary-item">
+                                    <span class="summary-label">여행 기간</span>
+                                    <span class="summary-value">{{ productDetail.travelDuration }}</span>
+                                </div>
+                                <div class="summary-item">
+                                    <span class="summary-label">포함 내역</span>
+                                    <span class="summary-value">{{ productDetail.includedItems }}</span>
+                                </div>
+                                <div class="summary-item">
+                                    <span class="summary-label">불포함 내역</span>
+                                    <span class="summary-value">{{ productDetail.excludedItems }}</span>
+                                </div>
+                                <div class="summary-item">
+                                    <span class="summary-label">출발 날짜</span>
+                                    <span class="summary-value">2024.03.15 (금)</span>
+                                </div>
+                            </div>
+                            <div class="share-buttons">
+                                <button @click="shareToKakao" class="share-btn kakao-btn" title="카카오톡 공유">
+                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                                        <path d="M12 3C6.477 3 2 6.477 2 10.5c0 2.442 1.492 4.625 3.77 6.056L5 20l3.925-1.965C9.835 18.35 10.892 18.5 12 18.5c5.523 0 10-3.477 10-7.5S17.523 3 12 3z"/>
+                                    </svg>
+                                    <span>카카오톡공유</span>
+                                </button>
+                                <button @click="copyCurrentUrl" class="share-btn url-btn" title="URL 복사">
+                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path>
+                                        <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path>
+                                    </svg>
+                                    <span>URL공유하기</span>
+                                </button>
                             </div>
                         </div>
                     </div>
 
-                    <!-- 상품 요약 정보 -->
-                    <div class="product-summary">
-                        <div class="summary-item">
-                            <span class="summary-label">상품 번호</span>
-                            <span class="summary-value">{{ productDetail.productNumber }}</span>
-                        </div>
-                        <div class="summary-item">
-                            <span class="summary-label">여행 기간</span>
-                            <span class="summary-value">{{ productDetail.travelDuration }}</span>
-                        </div>
-                        <div class="summary-item">
-                            <span class="summary-label">행사 내용</span>
-                            <span class="summary-value">{{ productDetail.eventContent }}</span>
-                        </div>
-                        <div class="share-buttons">
-                            <button @click="copyCurrentUrl" class="share-btn copy-btn" title="링크 복사">
-                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                                    stroke-width="2">
-                                    <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path>
-                                    <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path>
-                                </svg>
-                            </button>
-                            <button @click="shareToKakao" class="share-btn kakao-btn" title="카카오톡 공유">
-                                <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
-                                    <path
-                                        d="M12 3C6.477 3 2 6.477 2 10.5c0 2.442 1.492 4.625 3.77 6.056L5 20l3.925-1.965C9.835 18.35 10.892 18.5 12 18.5c5.523 0 10-3.477 10-7.5S17.523 3 12 3z" />
-                                </svg>
-                            </button>
-                        </div>
+
+                    <!-- 일정 선택 -->
+                    <div class="schedule-selection">
+                        <TravelCalendar 
+                            v-model="selectedDate" 
+                            :booking-data="bookingData" 
+                            :min-required-booking="productDetail.likelyDepartureThreshold || 10"
+                            :confirmed-threshold="confirmedThreshold"
+                            @date-select="handleDateSelect" 
+                        />
                     </div>
 
-                    <!-- 기본 가격표 추가 -->
                     <div class="base-price-section">
                         <h3 class="price-title">기본 가격</h3>
                         <div class="price-table">
@@ -110,19 +130,6 @@
                                 </tbody>
                             </table>
                         </div>
-                    </div>
-
-
-                    <!-- 일정 선택 -->
-                    <div class="schedule-selection">
-                        <TravelCalendar 
-                            v-model="selectedDate" 
-                            :booking-data="bookingData" 
-                            :min-required-booking="productDetail.likelyDepartureThreshold || 10"
-                            :confirmed-threshold="confirmedThreshold"
-                            :closing-threshold="productDetail.closingThreshold || 44"
-                                @date-select="handleDateSelect" 
-                        />
                     </div>
 
                     <!-- 탭 메뉴 -->
@@ -613,7 +620,7 @@ const shareToKakao = () => {
             alert('링크가 복사되었습니다. 카카오톡에서 붙여넣기 해주세요.')
         })
     } else {
-        // 데스크톱이거나 Web Share API 미지원시 링크 복사
+        // 데스크탑이거나 Web Share API 미지원시 링크 복사
         copyCurrentUrl()
         alert('링크가 복사되었습니다. 카카오톡에서 붙여넣기 해주세요.')
     }
@@ -672,7 +679,7 @@ const handleImageError = (event) => {
 }
 
 .container {
-    max-width: 700px;
+    max-width: 960px;
     margin: 0 auto;
     padding: 0 20px;
 }
@@ -717,45 +724,51 @@ const handleImageError = (event) => {
     margin: 0;
 }
 
-/* 공유 버튼 */
-.product-summary .share-buttons {
-    position: absolute;
-    bottom: 1.25rem;
-    right: 1.25rem;
+/* 공유 버튼 스타일 */
+.share-buttons {
     display: flex;
-    gap: 0.5rem;
+    gap: 0.75rem;
+    margin-top: 1rem;
+    justify-content: flex-end;
 }
 
 .share-btn {
-    width: 36px;
-    height: 36px;
-    border: 1px solid var(--border-color);
-    border-radius: 50%;
-    background: white;
-    cursor: pointer;
-    transition: all 0.3s ease;
     display: flex;
     align-items: center;
+    gap: 0.5rem;
+    padding: 0.75rem 1rem;
+    border-radius: 8px;
+    border: none;
+    font-size: 0.875rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    text-decoration: none;
+    min-width: 140px;
     justify-content: center;
 }
 
-.share-btn:hover {
-    box-shadow: var(--shadow-sm);
-}
-
-.copy-btn {
-    color: var(--text-secondary);
-}
-
-.copy-btn:hover {
-    color: var(--text-primary);
-    border-color: var(--text-primary);
-}
-
 .kakao-btn {
+    background-color: #FEE500;
     color: #3C1E1E;
-    background: #FEE500;
-    border-color: #FEE500;
+}
+
+.kakao-btn:hover {
+    background-color: #FDD835;
+}
+
+.url-btn {
+    background-color: white;
+    color: #0D9488;
+    border: 1px solid #0D9488;
+}
+
+.url-btn:hover {
+    background-color: #F0FDFA;
+}
+
+.share-btn svg {
+    flex-shrink: 0;
 }
 
 /* 상품 이미지 섹션 */
@@ -774,7 +787,8 @@ const handleImageError = (event) => {
     width: 100%;
     aspect-ratio: 16/9;
     overflow: hidden;
-    border-radius: var(--border-radius);
+    border-top-left-radius: var(--border-radius);
+    border-bottom-left-radius: var(--border-radius);
 }
 
 .product-image {
@@ -849,14 +863,22 @@ const handleImageError = (event) => {
 /* 상품 요약 정보 */
 .product-summary {
     position: relative;
-    display: grid;
-    grid-template-columns: repeat(2, 1fr);
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
     gap: 0.8rem;
     background: white;
     padding: 1.25rem;
     border: 1px solid var(--border-color);
-    border-radius: var(--border-radius);
+    border-top-right-radius: var(--border-radius);
+    border-bottom-right-radius: var(--border-radius);
     margin-bottom: 1.5rem;
+}
+
+.summary-content {
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
 }
 
 .summary-item {
@@ -1345,15 +1367,6 @@ const handleImageError = (event) => {
         padding: 1rem;
     }
 
-    .product-summary .share-buttons {
-        position: static;
-        justify-content: flex-end;
-        margin-top: 1rem;
-        bottom: auto;
-        right: auto;
-        grid-column: 1 / -1;
-    }
-
     .share-btn {
         width: 32px;
         height: 32px;
@@ -1540,5 +1553,57 @@ const handleImageError = (event) => {
     font-size: 0.9rem;
     color: var(--text-secondary);
     min-width: 40px;
+}
+
+/* 이미지와 요약정보를 감싸는 컨테이너 스타일 */
+.product-main-info {
+    display: flex;
+    flex-direction: column;
+    gap: 0rem;
+    margin-bottom: 1.5rem;
+}
+
+/* 데스크탑 레이아웃 */
+@media (min-width: 769px) {
+    .product-main-info {
+        flex-direction: row;
+        align-items: flex-start;
+        gap: 0rem;
+    }
+
+    .product-image-section {
+        width: calc(100% * 4/7); /* 7분의 4 */
+        margin: 0;
+    }
+
+    .product-summary {
+        width: calc(100% * 3/7);
+        flex-shrink: 0;
+        margin: 0;
+        align-self: stretch;
+        display: flex;
+        flex-direction: column;
+    }
+}
+
+/* 모바일 레이아웃 유지 */
+@media (max-width: 768px) {
+    .product-main-info {
+        flex-direction: column;
+        margin-bottom: 0rem;
+    }
+
+    .image-container {
+        border-radius: var(--border-radius);
+    }
+
+    .product-image-section {
+        width: 100%;
+    }
+
+    .product-summary {
+        border-radius: var(--border-radius);
+        width: 100%;
+    }
 }
 </style>

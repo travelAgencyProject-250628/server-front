@@ -36,7 +36,7 @@ const mypageMenu = ref({
 /* 전체 레이아웃 - ProductList와 동일 */
 .mypage-layout {
   display: grid;
-  grid-template-columns: 1fr 220px 740px 1fr;
+  grid-template-columns: 1fr 220px 900px 1fr;
   min-height: 100vh;
   font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
   line-height: 1.6;
