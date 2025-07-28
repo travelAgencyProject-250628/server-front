@@ -471,7 +471,8 @@ const fetchProductDetail = async (productId) => {
                 likelyDepartureThreshold: product.likelyDepartureThreshold,
                 confirmedDepartureThreshold: product.confirmedDepartureThreshold,
                 closingThreshold: product.closingThreshold,
-                images: product.images.length > 0 ? product.images : ['/images/default-product.jpg']
+                images: product.images.length > 0 ? product.images : ['/images/default-product.jpg'],
+                main_image_url: product.main_image_url // 새로 추가된 필드
             }
             
             console.log('매핑된 productDetail:', productDetail.value)
@@ -625,7 +626,7 @@ const shareToKakao = () => {
     content: {
       title,
       description: '함께 볼까요?',
-      imageUrl: 'https://example.com/og-img.jpg',   // 미리보기 썸네일
+      imageUrl: productDetail.value?.main_image_url,   // 상품 이미지
       link: {
         mobileWebUrl: url,
         webUrl:       url
@@ -633,7 +634,7 @@ const shareToKakao = () => {
     },
     buttons: [
       {
-        title: '웹으로 보기',
+        title: '여행상품 보러가기',
         link: { mobileWebUrl: url, webUrl: url }
       }
     ]
