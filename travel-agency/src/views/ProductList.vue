@@ -21,7 +21,7 @@
       <div class="content-container">
         <!-- 인기 상품 섹션 -->
         <section class="popular-products">
-          <h2 class="popular-title">인기 상품</h2>
+          <h2 class="popular-title">인기 여행</h2>
           <div class="popular-grid">
             <div 
               v-for="product in popularProducts" 
@@ -76,27 +76,31 @@
           <div 
             v-for="product in products" 
             :key="product.id"
-            class="product-card"
+            class="product-card horizontal-card"
             @click="goToProduct(product.id)"
           >
-            <div class="product-image">
-              <img :src="product.image" :alt="product.title" />
+            <div class="product-image-container">
+              <img :src="product.image" :alt="product.title" class="product-image" />
             </div>
-            <div class="product-info">
-              <div class="product-number">상품번호 {{ product.id }}</div>
+            <div class="product-content">
               <h3 class="product-title">{{ product.title }}</h3>
-              <div class="product-details">
-                <div class="detail-item">
-                  <span class="detail-label">포함내용:</span>
-                  <span class="detail-value">{{ product.includedItems }}</span>
-                </div>
-                <div class="detail-item">
-                  <span class="detail-label">출발날짜:</span>
-                  <span class="detail-value">2024.03.15 (금)</span>
+              
+              <div class="product-badges">
+                <span class="badge departure-badge">출발일</span>
+                <span class="badge-content">{{ product.departureDate }}</span>
+              </div>
+              
+              <div class="product-badges">
+                <span class="badge include-badge">포함내역</span>
+                <div class="badge-content include-content">
+                  <div v-if="product.includedItems" v-html="formatIncludedItems(product.includedItems)"></div>
+                  <div v-else class="no-included-items">포함내역 정보가 없습니다.</div>
                 </div>
               </div>
-              <div class="product-price">
-                <span class="current-price">{{ formatPrice(product.price) }}원</span>
+              
+              <div class="product-price-section">
+                <span class="price-badge">상품가</span>
+                <span class="product-price">{{ formatPrice(product.price) }}원~</span>
               </div>
             </div>
           </div>
@@ -309,6 +313,17 @@ const formatPrice = (price) => {
   return price.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',')
 }
 
+const formatIncludedItems = (includedItems) => {
+  if (!includedItems) return ''
+  
+  // 줄바꿈을 기준으로 분리하고 각 항목을 div로 감싸기
+  return includedItems
+    .split(/\n|\r\n/)
+    .filter(item => item.trim() !== '')
+    .map(item => `<div>${item.trim()}</div>`)
+    .join('')
+}
+
 const goToProduct = (productId) => {
   router.push(`/product/${productId}`)
 }
@@ -356,7 +371,7 @@ onMounted(async () => {
 
 <style scoped>
 /* CSS 변수 정의 */
-:root {
+/* :root {
   --primary-color: #2563eb;
   --primary-dark: #1e40af;
   --secondary-color: #64748b;
@@ -373,7 +388,7 @@ onMounted(async () => {
   --error-color: #dc2626;
   --success-color: #059669;
   --warning-color: #d97706;
-}
+} */
 
 /* 전체 레이아웃 */
 .product-list-page {
@@ -489,7 +504,6 @@ onMounted(async () => {
 .product-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
-  gap: 1.3rem;
   margin-bottom: 2rem;
 }
 
@@ -499,81 +513,230 @@ onMounted(async () => {
 
 .product-card {
   background: white;
-  border: 1px solid var(--border-color);
-  border-radius: var(--border-radius);
+  border: none;
+  border-bottom: 1px solid #e5e7eb;
+  border-radius: 0;
   overflow: hidden;
   cursor: pointer;
   transition: var(--transition);
+  padding-bottom: 2.5rem;
+  margin-bottom: 2.5rem;
 }
 
-.product-card:hover {
+.product-card:last-child {
+  border-bottom: none;
+}
+
+/* .product-card:hover {
   border-color: var(--primary-color);
-  box-shadow: var(--shadow-sm);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+} */
+
+/* 가로형 레이아웃 */
+.horizontal-card {
+  display: flex;
+  min-height: 280px;
 }
 
-.product-image img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-}
-
-/* 상품 정보 */
-.product-info {
-  padding: 0.5rem 1.25rem;
-}
-
-.product-number {
-  font-size: 0.8rem;
-  color: var(--text-secondary);
-  margin-bottom: 0.5rem;
-}
-
-.product-title {
-  font-size: 1rem;
-  font-weight: 600;
-  color: var(--text-primary);
-  line-height: 1.4;
-  margin-bottom: 0.75rem;
-  display: -webkit-box;
-  -webkit-line-clamp: 2;
-  -webkit-box-orient: vertical;
+.product-image-container {
+  flex: 0 0 300px;
+  height: 280px;
   overflow: hidden;
 }
 
-.product-details {
-  margin-bottom: 0.75rem;
-  background-color: none;
+.product-image {
+  width: 100%;
+  height: 75%;
+  object-fit: cover;
+  border-radius: 8px;
 }
 
-.detail-item {
+.product-content {
+  flex: 1;
+  padding: 0rem 2rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.product-title {
+  font-size: 1.4rem;
+  font-weight: 700;
+  color: #333;
+  line-height: 1.4;
+  margin: 0;
+}
+
+.product-badges {
   display: flex;
   align-items: flex-start;
-  gap: 0.5rem;
-  margin-bottom: 0.25rem;
-  font-size: 0.85rem;
-  line-height: 1.3;
+  gap: 1rem;
 }
 
-.detail-label {
-  color: var(--text-secondary);
-  font-weight: 500;
-  min-width: 60px;
+.badge {
+  background: #4285f4;
+  color: white;
+  padding: 0.3rem 0.3rem;
+  border-radius: 6px;
+  font-size: 0.8rem;
+  font-weight: 600;
   flex-shrink: 0;
+  min-width: 64px;
+  text-align: center;
 }
 
-.detail-value {
-  color: var(--text-primary);
-  flex: 1;
+.departure-badge {
+  background: var(--primary-color);
+}
+
+.include-badge {
+  background: var(--primary-color);
+}
+
+.badge-content {
+  color: #333;
+  font-size: 0.95rem;
+  line-height: 1.5;
+}
+
+.include-content {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+}
+
+.include-content div {
+  color: #666;
+  font-size: 0.9rem;
+}
+
+.product-price-section {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-top: auto;
+}
+
+.price-badge {
+  background: var(--primary-color);
+  color: white;
+  padding: 0.3rem 0.3rem;
+  border-radius: 6px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  min-width: 64px;
+  text-align: center;
 }
 
 .product-price {
-  margin-bottom: 0.75rem;
+  font-size: 1.4rem;
+  font-weight: 700;
+  color: #e53e3e;
 }
 
-.current-price {
-  font-size: 1.1rem;
-  font-weight: 700;
-  color: var(--error-color);
+.no-included-items {
+  color: #999;
+  font-style: italic;
+}
+
+/* 반응형 디자인 - 태블릿 */
+@media (max-width: 1024px) {
+  .product-image-container {
+    flex: 0 0 250px;
+    height: 240px;
+  }
+  
+  .product-content {
+    padding: 1.2rem 1.5rem;
+  }
+  
+  .product-title {
+    font-size: 1.2rem;
+  }
+  
+  .product-price {
+    font-size: 1.5rem;
+  }
+}
+
+/* 반응형 디자인 - 모바일 */
+@media (max-width: 768px) {
+  .horizontal-card {
+    flex-direction: column;
+    min-height: auto;
+  }
+  
+  .product-image-container {
+    flex: none;
+    width: 100%;
+    height: 200px;
+  }
+  
+  .product-content {
+    padding: 1rem;
+    gap: 0.8rem;
+  }
+  
+  .product-title {
+    font-size: 1.1rem;
+    line-height: 1.3;
+  }
+  
+  .product-badges {
+    flex-direction: column;
+    gap: 0.8rem;
+  }
+  
+  .badge {
+    font-size: 0.8rem;
+    padding: 0.4rem 0.8rem;
+    min-width: 70px;
+  }
+  
+  .badge-content {
+    font-size: 0.85rem;
+  }
+  
+  .include-content div {
+    font-size: 0.8rem;
+  }
+  
+  .product-price-section {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.5rem;
+    margin-top: 0.5rem;
+  }
+  
+  .price-badge {
+    font-size: 0.8rem;
+    padding: 0.4rem 0.8rem;
+    min-width: 70px;
+  }
+  
+  .product-price {
+    font-size: 1.4rem;
+  }
+}
+
+/* 반응형 디자인 - 작은 모바일 */
+@media (max-width: 480px) {
+  .product-content {
+    padding: 0.8rem;
+  }
+  
+  .product-title {
+    font-size: 1rem;
+  }
+  
+  .include-content div {
+    font-size: 0.75rem;
+    line-height: 1.3;
+  }
+  
+  .product-price {
+    font-size: 1.2rem;
+  }
 }
 
 /* 상품 없음 */
@@ -617,15 +780,10 @@ onMounted(async () => {
   cursor: not-allowed;
 }
 
-/* 리스트 뷰 스타일 */
-.product-grid.list-view .product-card {
-  display: flex;
-  height: 210px;
-}
 
 .product-grid.list-view .product-image {
-  width: 250px;
-  height: 210px;
+  /* width: 250px;
+  height: 210px; */
   flex-shrink: 0;
 }
 
