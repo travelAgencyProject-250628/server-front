@@ -8,6 +8,96 @@
           <h1 class="page-title">"{{ searchQuery }}" 검색 결과</h1>
         </div>
 
+        <!-- 상세 검색 필터 (PC 전용) -->
+        <div class="srh_dtabox desktop-only">
+          <form @submit.prevent="handleSearch" name="fmSearch">
+            <table class="tbl_srhdta" cellpadding="0" cellspacing="0" summary="여행상세검색">
+              <caption>여행상세검색</caption>
+              <colgroup>
+                <col width="20%">
+                <col width="20%">
+                <col width="20%">
+                <col width="20%">
+                <col width="20%">
+              </colgroup>
+              <tbody>
+                <tr>
+                  <td>
+                    <select v-model="searchFilters.category" class="srh_select" style="width:100%;">
+                      <option value="">상품분류</option>
+                      <option 
+                        v-for="category in availableCategories" 
+                        :key="category.id" 
+                        :value="category.id"
+                      >
+                        {{ category.name }}
+                      </option>
+                    </select>
+                  </td>
+                  <td>
+                    <select v-model="searchFilters.duration" class="srh_select" style="width:100%;"> 
+                      <option value="">여행기간</option>
+                      <option 
+                        v-for="duration in availableDurations" 
+                        :key="duration" 
+                        :value="duration"
+                      >
+                        {{ duration }}
+                      </option>
+                    </select>
+                  </td>
+                  <td>
+                    <input 
+                      type="text" 
+                      v-model="searchFilters.tourDate" 
+                      class="srh_date dateinput" 
+                      maxlength="10" 
+                      style="width:100%" 
+                      placeholder="출발일"
+                      disabled
+                    >
+                  </td>
+                  <td>
+                    <select v-model="searchFilters.sortType" class="srh_select" style="width:100%;">
+                      <option value="popular">인기순</option>
+                      <option value="price-high">높은가격순</option>
+                      <option value="price-low">낮은가격순</option>
+                    </select>
+                  </td>
+                  <td rowspan="2" class="srh_last hand">
+                    <div class="btnsrh">
+                      <button type="submit" class="search-btn">상품검색</button>
+                    </div>
+                  </td>
+                </tr>
+                <tr>
+                  <td colspan="3">
+                    <input 
+                      type="text" 
+                      v-model="searchFilters.keyword" 
+                      class="srh_input keyword_find" 
+                      maxlength="20" 
+                      style="width:100%" 
+                      placeholder="상품명, 부제목으로 검색"
+                    >
+                  </td>
+                  <td>
+                    <div class="checkbox-container">
+                      <input 
+                        type="checkbox" 
+                        id="fixtour" 
+                        v-model="searchFilters.fixTour" 
+                        value="1"
+                      > 
+                      <label for="fixtour">출발확정</label>
+                    </div>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </form>
+        </div>
+
         <!-- 로딩 상태 -->
         <div v-if="loading" class="loading-container">
           <div class="loading-spinner"></div>
@@ -30,10 +120,10 @@
             </div>
             <div class="sort-group">
               <label>정렬:</label>
-              <select v-model="sortBy" @change="sortProducts">
-                <option value="recent">최신순</option>
-                <option value="price-low">가격 낮은순</option>
+              <select v-model="searchFilters.sortType" @change="handleSortChange">
+                <option value="popular">인기순</option>
                 <option value="price-high">가격 높은순</option>
+                <option value="price-low">가격 낮은순</option>
               </select>
             </div>
           </div>
@@ -41,7 +131,7 @@
           <!-- 상품 리스트 -->
           <div class="product-grid list-view">
             <div 
-              v-for="product in sortedProducts" 
+              v-for="product in products" 
               :key="product.id"
               class="product-card"
               @click="goToProduct(product.id)"
@@ -102,7 +192,7 @@
 <script setup>
 import { ref, computed, onMounted, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { searchProducts } from '@/lib/search.js'
+import { searchProducts, searchProductsWithFilters, getUniqueDurations, getCategories } from '@/lib/search.js'
 
 const route = useRoute()
 const router = useRouter()
@@ -113,7 +203,30 @@ const error = ref('')
 const products = ref([])
 const totalResults = ref(0)
 const currentPage = ref(1)
-const sortBy = ref('recent')
+const availableDurations = ref([])
+const availableCategories = ref([])
+
+// 검색 필터 데이터
+const searchFilters = ref({
+  category: '',
+  duration: '',
+  tourDate: '',
+  sortType: 'popular',
+  keyword: '',
+  fixTour: false
+})
+
+// 필터 초기값 설정
+const initializeFilters = () => {
+  searchFilters.value = {
+    category: '',
+    duration: '',
+    tourDate: '',
+    sortType: 'popular',
+    keyword: '',
+    fixTour: false
+  }
+}
 
 // 검색어
 const searchQuery = computed(() => route.query.q || '')
@@ -131,44 +244,33 @@ const visiblePages = computed(() => {
   return pages
 })
 
-// 정렬된 상품 목록
-const sortedProducts = computed(() => {
-  const sorted = [...products.value]
-  
-  switch (sortBy.value) {
-    case 'price-low':
-      return sorted.sort((a, b) => (a.adult_price || 0) - (b.adult_price || 0))
-    case 'price-high':
-      return sorted.sort((a, b) => (b.adult_price || 0) - (a.adult_price || 0))
-    case 'recent':
-    default:
-      return sorted.sort((a, b) => new Date(b.created_at) - new Date(a.created_at))
-  }
-})
+// 정렬은 서버에서 처리되므로 클라이언트 정렬 제거
 
 // 메서드들
 const performSearch = async () => {
   console.log('🚀 performSearch 함수 호출됨')
+  
+  // URL의 검색어 사용
+  const searchTerm = searchQuery.value?.trim() || ''
+  
   console.log('🔍 검색 조건:', { 
+    searchTerm: searchTerm,
     searchQuery: searchQuery.value, 
-    currentPage: currentPage.value,
-    trimmed: searchQuery.value?.trim()
+    filterKeyword: searchFilters.value.keyword,
+    currentPage: currentPage.value
   })
   
-  if (!searchQuery.value.trim()) {
-    console.log('❌ 검색어가 비어있음')
-    error.value = '검색어를 입력해주세요.'
-    return
-  }
+  // 검색어가 비어있어도 필터만으로 검색 가능하도록 허용
+  console.log('🔍 검색 시작 (검색어 없어도 필터로 검색 가능)')
 
   console.log('🔄 검색 시작...')
   loading.value = true
   error.value = ''
 
   try {
-    console.log('📡 searchProducts API 호출 중...')
-    const result = await searchProducts(searchQuery.value, currentPage.value, 12)
-    console.log('📡 searchProducts API 응답:', result)
+    console.log('📡 searchProductsWithFilters API 호출 중...')
+    const result = await searchProductsWithFilters(searchTerm, searchFilters.value, currentPage.value, 12)
+    console.log('📡 searchProductsWithFilters API 응답:', result)
     
     if (result.success) {
       products.value = result.products
@@ -195,9 +297,54 @@ const retrySearch = () => {
   performSearch()
 }
 
-const sortProducts = () => {
-  // 정렬은 computed property에서 자동으로 처리됨
-  console.log('정렬 변경:', sortBy.value)
+const handleSortChange = () => {
+  console.log('정렬 변경:', searchFilters.value.sortType)
+  currentPage.value = 1 // 정렬 변경 시 첫 페이지로 리셋
+  performSearch()
+}
+
+const handleSearch = async () => {
+  console.log('🔍 검색 필터:', searchFilters.value)
+  console.log('🔍 여행기간 값:', { 
+    value: searchFilters.value.duration, 
+    type: typeof searchFilters.value.duration 
+  })
+  
+  // 상품 검색 버튼 클릭 시 필터의 검색어로 URL 파라미터 변경
+  const searchTerm = searchFilters.value.keyword?.trim() || ''
+  console.log('🔍 필터 검색어:', searchTerm)
+  
+  // URL 파라미터 변경
+  router.push({
+    query: { 
+      q: searchTerm,
+      page: '1'
+    }
+  })
+}
+
+// 여행기간 데이터 로드
+const loadDurations = async () => {
+  try {
+    const result = await getUniqueDurations()
+    if (result.success) {
+      availableDurations.value = result.durations
+    }
+  } catch (error) {
+    console.error('여행기간 로드 오류:', error)
+  }
+}
+
+// 카테고리 데이터 로드
+const loadCategories = async () => {
+  try {
+    const result = await getCategories()
+    if (result.success) {
+      availableCategories.value = result.categories
+    }
+  } catch (error) {
+    console.error('카테고리 로드 오류:', error)
+  }
 }
 
 const changePage = (page) => {
@@ -251,17 +398,26 @@ watch(() => route.query, (newQuery) => {
   
   console.log('🔍 검색 조건:', { query, page })
   
-  // 검색어가 있으면 무조건 검색 실행
-  if (query) {
-    console.log('🔄 검색 실행!')
-    currentPage.value = page
-    performSearch()
-  }
+  // URL에 검색어가 있으면 검색 실행 (헤더 검색) - 빈 검색어도 허용
+  console.log('🔄 URL 검색어로 검색 실행!')
+  currentPage.value = page
+  performSearch()
 }, { immediate: true, deep: true })
 
+// 필터 변경 감지
+watch(searchFilters, () => {
+  console.log('🔍 필터 변경 감지:', searchFilters.value)
+  currentPage.value = 1
+  performSearch()
+}, { deep: true })
+
 // 컴포넌트 마운트 시 초기화
-onMounted(() => {
+onMounted(async () => {
   console.log('SearchResults 컴포넌트 마운트됨')
+  // 여행기간 데이터 로드
+  await loadDurations()
+  // 카테고리 데이터 로드
+  await loadCategories()
   // watch의 immediate: true 옵션으로 인해 자동으로 검색이 실행됨
 })
 </script>
@@ -313,6 +469,115 @@ onMounted(() => {
   font-weight: 600;
   color: var(--text-primary);
   margin: 0;
+}
+
+/* 상세 검색 필터 */
+.srh_dtabox {
+  padding: 0.5rem;
+  background: #f8f9ff;
+  /* border: 1px solid var(--border-color); */
+  border-radius: var(--border-radius);
+  margin-bottom: 1.5rem;
+  overflow: hidden;
+}
+
+/* PC 전용 클래스 */
+.desktop-only {
+  display: block;
+}
+
+.tbl_srhdta {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.tbl_srhdta caption {
+  display: none;
+}
+
+.tbl_srhdta td {
+  padding: 0.5rem;
+}
+
+.srh_select,
+.srh_date,
+.srh_input {
+  width: 100%;
+  padding: 0.5rem;
+  border: 1px solid #dadeec;
+  border-radius: 4px;
+  font-size: 0.875rem;
+  background: white;
+  transition: var(--transition);
+}
+
+.srh_select:focus,
+.srh_date:focus,
+.srh_input:focus {
+  outline: none;
+  border-color: var(--primary-color);
+  box-shadow: 0 0 0 2px rgba(16, 185, 129, 0.1);
+}
+
+.srh_last {
+  text-align: center;
+  padding: 0.5rem;
+  vertical-align: middle;
+}
+
+.btnsrh {
+  padding: 0.5rem;
+  height: 100%;
+  display: flex;
+  align-items: center;
+}
+
+.search-btn {
+  background: var(--primary-color);
+  border: none;
+  color: white;
+  font-size: 0.875rem;
+  font-weight: 600;
+  cursor: pointer;
+  padding: 1rem 2rem;
+  border-radius: 8px;
+  width: 100%;
+  height: 100%;
+  min-height: 80px;
+  transition: all 0.2s ease;
+  box-shadow: 0 2px 4px rgba(37, 99, 235, 0.2);
+}
+
+.search-btn:hover {
+  background: var(--primary-dark);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 8px rgba(37, 99, 235, 0.3);
+}
+
+.search-btn:active {
+  transform: translateY(0);
+  box-shadow: 0 2px 4px rgba(37, 99, 235, 0.2);
+}
+
+.checkbox-container {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem;
+}
+
+.checkbox-container input[type="checkbox"] {
+  width: 16px;
+  height: 16px;
+  accent-color: var(--primary-color);
+  cursor: pointer;
+}
+
+.checkbox-container label {
+  font-size: 0.875rem;
+  color: var(--text-primary);
+  cursor: pointer;
+  user-select: none;
 }
 
 /* 필터 정보 섹션 */
@@ -561,6 +826,11 @@ onMounted(() => {
     padding: 0;
   }
   
+  /* 모바일에서 상세 검색 필터 숨기기 */
+  .desktop-only {
+    display: none;
+  }
+
   .filter-section {
     font-size: 1.125rem;
     padding-bottom: 0.5rem;

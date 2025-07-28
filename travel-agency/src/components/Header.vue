@@ -1,7 +1,7 @@
 <template>
   <header class="header">
-    <!-- 광고 배너 -->
-    <div v-if="showAdBanner" class="ad-banner">
+              <!-- 광고 배너 (PC 전용) -->
+          <div v-if="showAdBanner" class="ad-banner desktop-only">
       <div class="ad-banner-content">
         <div class="ad-banner-images">
           <img 
@@ -658,11 +658,10 @@ const handleGuestReservation = () => {
 }
 
 const handleSearch = () => {
-  if (searchQuery.value.trim()) {
-    console.log('검색어:', searchQuery.value)
-    // 검색 결과 페이지로 이동
-    router.push(`/search?q=${encodeURIComponent(searchQuery.value.trim())}`)
-  }
+  console.log('검색어:', searchQuery.value)
+  // 검색어가 있으면 해당 검색어로, 없으면 빈 검색어로 검색 페이지로 이동
+  const searchTerm = searchQuery.value.trim()
+  router.push(`/search?q=${encodeURIComponent(searchTerm)}`)
 }
 
 const toggleMobileSearch = () => {
@@ -691,12 +690,11 @@ const closeMobileSearch = () => {
 }
 
 const handleMobileSearch = () => {
-  if (mobileSearchQuery.value.trim()) {
-    console.log('모바일 검색어:', mobileSearchQuery.value)
-    // 검색 결과 페이지로 이동
-    router.push(`/search?q=${encodeURIComponent(mobileSearchQuery.value.trim())}`)
-    closeMobileSearch()
-  }
+  console.log('모바일 검색어:', mobileSearchQuery.value)
+  // 검색어가 있으면 해당 검색어로, 없으면 빈 검색어로 검색 페이지로 이동
+  const searchTerm = mobileSearchQuery.value.trim()
+  router.push(`/search?q=${encodeURIComponent(searchTerm)}`)
+  closeMobileSearch()
 }
 
 // 광고 배너 닫기
@@ -761,6 +759,11 @@ onMounted(async () => {
 .header {
   background: white;
   position: relative;
+}
+
+/* PC 전용 클래스 */
+.desktop-only {
+  display: block;
 }
 
 
@@ -1642,6 +1645,11 @@ onMounted(async () => {
 
 /* 반응형 디자인 */
 @media (max-width: 768px) {
+  /* 모바일에서 PC 전용 요소 숨기기 */
+  .desktop-only {
+    display: none;
+  }
+  
   /* 모바일에서 헤더 고정 */
   .header {
     position: fixed !important;

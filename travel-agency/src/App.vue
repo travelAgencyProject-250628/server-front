@@ -35,7 +35,7 @@ onMounted(async () => {
 
 <style>
 /* CSS 변수 전역 정의 */
-:root {
+/* :root {
   --primary-color: #2563eb;
   --primary-dark: #1e40af;
   --secondary-color: #64748b;
@@ -49,7 +49,7 @@ onMounted(async () => {
   --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
   --border-radius: 8px;
   --transition: all 0.3s ease;
-}
+} */
 
 /* 모바일에서 고정 헤더를 위한 body padding */
 @media (max-width: 768px) {
