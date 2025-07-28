@@ -311,8 +311,14 @@ const setMetaTags = (product) => {
   
   console.log('선택된 이미지 URL:', imageUrl)
   
-  // 이미지 URL이 이미 절대 경로인지 확인 (Supabase Storage URL)
-  if (imageUrl && !imageUrl.startsWith('http')) {
+  // 이미지 URL 처리
+  if (imageUrl && imageUrl.startsWith('http')) {
+    // 절대 URL - Supabase Storage URL 확장자 처리
+    if (imageUrl.includes('supabase.co/storage') && !imageUrl.match(/\.(jpg|jpeg|png|gif|webp)$/i)) {
+      imageUrl = `${imageUrl}.jpg`; // 기본 확장자 추가
+      console.log('메타태그 - Supabase URL 확장자 추가:', imageUrl);
+    }
+  } else if (imageUrl && !imageUrl.startsWith('http')) {
     // 상대 경로인 경우 절대 경로로 변환
     if (imageUrl.startsWith('/')) {
       imageUrl = `${window.location.origin}${imageUrl}`
