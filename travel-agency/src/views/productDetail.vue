@@ -606,27 +606,52 @@ const copyCurrentUrl = async () => {
 
 // 카카오톡 공유 함수
 const shareToKakao = () => {
-    const url   = location.href;          // 현재 페이지
-  const title = document.title || '링크 공유';
+    const url = location.href;          // 현재 페이지
+    const title = productDetail.value?.name || document.title || '여행상품';
+    
+    // 메인 이미지 URL 처리 (절대 URL로 변환, fallback은 로고)
+    let imageUrl = `${window.location.origin}/logo.png`; // 기본값: 로고
+    
+    if (productDetail.value?.main_image_url) {
+        const mainImageUrl = productDetail.value.main_image_url;
+        
+        // 절대 URL인지 확인
+        if (mainImageUrl.startsWith('http://') || mainImageUrl.startsWith('https://')) {
+            imageUrl = mainImageUrl;
+        } else if (mainImageUrl.startsWith('/')) {
+            // 상대 URL을 절대 URL로 변환
+            imageUrl = `${window.location.origin}${mainImageUrl}`;
+        } else {
+            // 파일명만 있는 경우
+            imageUrl = `${window.location.origin}/${mainImageUrl}`;
+        }
+    }
+    
+    console.log('카카오톡 공유 이미지 URL:', imageUrl);
 
-  Kakao.Share.sendDefault({
-    objectType: 'feed',                 // 가장 단순한 카드형
-    content: {
-      title,
-      description: '함께 볼까요?',
-      imageUrl: productDetail.value?.main_image_url,   // 상품 이미지
-      link: {
-        mobileWebUrl: url,
-        webUrl:       url
-      }
-    },
-    buttons: [
-      {
-        title: '여행상품 보러가기',
-        link: { mobileWebUrl: url, webUrl: url }
-      }
-    ]
-  });
+    try {
+        Kakao.Share.sendDefault({
+            objectType: 'feed',                 // 가장 단순한 카드형
+            content: {
+                title,
+                description: productDetail.value?.description || '함께 여행해요!',
+                imageUrl: imageUrl,   // 메인 이미지 (또는 로고)
+                link: {
+                    mobileWebUrl: url,
+                    webUrl: url
+                }
+            },
+            buttons: [
+                {
+                    title: '여행상품 보러가기',
+                    link: { mobileWebUrl: url, webUrl: url }
+                }
+            ]
+        });
+    } catch (error) {
+        console.error('카카오톡 공유 오류:', error);
+        alert('카카오톡 공유 중 오류가 발생했습니다.');
+    }
 }
 
 // 컴포넌트 마운트 시 데이터 로드
