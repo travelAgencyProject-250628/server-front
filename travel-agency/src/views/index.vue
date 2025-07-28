@@ -81,27 +81,12 @@
             <div class="product-slider" ref="productSlider" 
                  @touchstart="handleTouchStart" 
                  @touchend="handleTouchEnd">
-              <div 
+              <ProductCard 
                 v-for="product in bannerProducts" 
                 :key="product.id"
-                class="product-card"
-                :class="{ 'dummy-product': product.isDummy }"
-                @click="!product.isDummy && goToProductDetail(product.id)"
-              >
-              <div class="product-image">
-                <img :src="product.image" :alt="product.title" />
-                <div class="product-badge red">{{ product.badge }}</div>
-                <div v-if="product.tag" class="product-tag green">{{ product.tag }}</div>
-              </div>
-              <div class="product-info">
-                <p class="product-category">{{ product.category }}</p>
-                <h3 class="product-title">{{ product.title }}</h3>
-                <div class="product-price">
-                  <span class="product-number">상품번호 {{ product.isDummy ? product.id : product.id }}</span>
-                  <span class="price">{{ formatPrice(product.price) }}원~</span>
-                </div>
-              </div>
-            </div>
+                :product="product"
+                @click="handleProductClick"
+              />
             </div>
           </div>
         </div>
@@ -162,6 +147,7 @@ import { ref, onMounted, onBeforeUnmount, computed} from 'vue'
 import { useRouter } from 'vue-router'
 import { getBannerImages } from '../lib/banners.js'
 import { getPopularTours } from '../lib/products.js'
+import ProductCard from '@/components/ProductCard.vue'
 
 // 라우터 초기화
 const router = useRouter()
@@ -370,13 +356,7 @@ const setSlide = (index) => {
 
 
 
-// 가격 포맷팅 함수
-const formatPrice = (price) => {
-  if (!price || price === null || price === undefined) {
-    return '0'
-  }
-  return price.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',')
-}
+
 
 // 카테고리 아이콘 가져오기
 const getCategoryIcon = (index) => {
@@ -387,6 +367,13 @@ const getCategoryIcon = (index) => {
 // 상품 상세 페이지로 이동
 const goToProductDetail = (productId) => {
   router.push(`/product/${productId}`)
+}
+
+// ProductCard 컴포넌트에서 발생하는 클릭 이벤트 처리
+const handleProductClick = (product) => {
+  if (!product.isDummy) {
+    goToProductDetail(product.id)
+  }
 }
 
 // 라이프사이클 훅
@@ -805,44 +792,7 @@ onBeforeUnmount(() => {
   display: contents; /* PC에서는 일반 그리드 */
 }
 
-.banner-products .product-card {
-  background: white;
-  border-radius: 12px;
-  overflow: hidden;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-  transition: all 0.3s ease;
-  cursor: pointer;
-  display: flex;
-  flex-direction: column;
-  height: 100%;
-}
 
-.banner-products .product-card:hover {
-  transform: translateY(-4px);
-  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
-}
-
-.banner-products .product-card.dummy-product {
-  opacity: 0.7;
-  cursor: default;
-}
-
-.banner-products .product-card.dummy-product:hover {
-  transform: none;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-}
-
-.banner-products .product-image {
-  position: relative;
-  height: 200px;
-  overflow: hidden;
-}
-
-.banner-products .product-image img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-}
 
 .product-badge {
   position: absolute;
@@ -874,48 +824,7 @@ onBeforeUnmount(() => {
   background: #10b981;
 }
 
-.banner-products .product-info {
-  padding: 1rem;
-  display: flex;
-  flex-direction: column;
-  justify-content: space-between;
-  flex: 1;
-}
 
-.product-category {
-  font-size: 0.85rem;
-  color: #6b7280;
-  margin: 0 0 0.5rem 0;
-}
-
-.banner-products .product-title {
-  font-size: 1.2rem;
-  font-weight: 600;
-  color: #1f2937;
-  margin: 0 0 1rem 0;
-  line-height: 1.3;
-  display: -webkit-box;
-  -webkit-line-clamp: 3;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
-}
-
-.banner-products .product-price {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-
-.product-number {
-  font-size: 0.75rem;
-  color: #9ca3af;
-}
-
-.banner-products .price {
-  font-size: 1.2rem;
-  font-weight: 700;
-  color: #ef4444;
-}
 
 /* 인기 상품 섹션 */
 .popular-tours {
@@ -1175,10 +1084,6 @@ onBeforeUnmount(() => {
   .product-slider .product-card {
     flex: 0 0 280px; /* 고정 너비로 변경 */
     max-width: 280px;
-  }
-  
-  .banner-products .product-image {
-    height: 180px;
   }
   
   .section-title {
