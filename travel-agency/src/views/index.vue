@@ -47,7 +47,7 @@
                   class="banner-btn" 
                   :class="{ primary: selectedCategoryIndex === index }"
                   @click="changeCategory(index)"
-                >{{ getCategoryIcon(index) }} {{ category.name }}</button>
+                                  >{{ getCategoryIcon(index) }} {{ category.description || category.name }}</button>
               </template>
               
               <!-- 모바일 버전: 2줄로 나누어서 -->
@@ -60,7 +60,7 @@
                     class="banner-btn" 
                     :class="{ primary: selectedCategoryIndex === index }"
                     @click="changeCategory(index)"
-                  >{{ getCategoryIcon(index) }} {{ category.name }}</button>
+                  >{{ getCategoryIcon(index) }} {{ category.description || category.name }}</button>
                 </div>
                 <!-- 두 번째 줄: 3개 -->
                 <div class="banner-row">
@@ -70,7 +70,7 @@
                     class="banner-btn" 
                     :class="{ primary: selectedCategoryIndex === (index + 2) }"
                     @click="changeCategory(index + 2)"
-                  >{{ getCategoryIcon(index + 2) }} {{ category.name }}</button>
+                                      >{{ getCategoryIcon(index + 2) }} {{ category.description || category.name }}</button>
                 </div>
               </template>
             </div>
