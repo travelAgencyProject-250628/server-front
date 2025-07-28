@@ -33,14 +33,6 @@ const router = createRouter({
       component: () => import('@/views/resetPassword.vue')
     },
     {
-      path: '/supabase-test',
-      component: () => import('@/views/SupabaseTestView.vue')
-    },
-    {
-      path: '/email-test',
-      component: () => import('@/views/EmailTest.vue')
-    },
-    {
       path: '/products',
       name: 'ProductList',
       component: () => import('@/views/ProductList.vue')

@@ -78,6 +78,11 @@ const props = defineProps({
     type: Number,
     default: 20
   },
+  // 예약마감 기준 인원
+  closingThreshold: {
+    type: Number,
+    default: 44
+  },
   // 선택된 날짜 (v-model)
   modelValue: {
     type: Date,
@@ -164,15 +169,15 @@ const disabledDates = computed(() => {
     { start: new Date(maxSelectableDate.value.getTime() + 24 * 60 * 60 * 1000), end: null }
   ]
   
-  // 예약마감 날짜들 추가 (15명 이상)
+  // 예약마감 날짜들 추가 (closingThreshold 이상)
   for (let i = 1; i <= 21; i++) {
     const date = new Date(today)
     date.setDate(today.getDate() + i)
     const dateKey = formatDateKey(date)
     const bookingInfo = bookingMap.value.get(dateKey)
     
-    // 예약마감 조건: 15명 이상 20명 미만
-    if (bookingInfo && bookingInfo.bookingCount >= 15 && bookingInfo.bookingCount < 20) {
+    // 예약마감 조건: closingThreshold 이상
+    if (bookingInfo && bookingInfo.bookingCount >= props.closingThreshold) {
       disabled.push(date)
     }
   }
@@ -212,26 +217,31 @@ const calendarAttributes = computed(() => {
       let order = 0
       
       if (bookingInfo) {
-        if (bookingInfo.bookingCount >= props.confirmedThreshold) {
+        
+        if (bookingInfo.bookingCount >= props.closingThreshold) {
+          // 예약마감 (closingThreshold 이상) - 청록색
+          dotColor = 'teal'
+          attributeKey = 'closed'
+          order = 4
+          console.log(`→ ${dateKey}: 예약마감`)
+        } else if (bookingInfo.bookingCount >= props.confirmedThreshold) {
           // 출발확정 (confirmedThreshold 이상) - 빨간색
           dotColor = 'red'
           attributeKey = 'guaranteed'
-          order = 4
-        } else if (bookingInfo.bookingCount >= 15) {
-          // 예약마감 (15명 이상) - 청록색
-          dotColor = null
-          attributeKey = 'closed'
           order = 3
+          console.log(`→ ${dateKey}: 출발확정`)
         } else if (bookingInfo.bookingCount >= props.minRequiredBooking) {
           // 출발유력 (minRequiredBooking 이상) - 파란색
           dotColor = 'blue'
           attributeKey = 'confirmed'
           order = 2
+          console.log(`→ ${dateKey}: 출발유력`)
         } else {
           // 예약가능 (기본) - 속성 표시 안함
           dotColor = null
           attributeKey = 'available'
           order = 1
+          console.log(`→ ${dateKey}: 예약가능`)
         }
       } else {
         // 예약가능 (기본) - 속성 표시 안함
@@ -240,7 +250,7 @@ const calendarAttributes = computed(() => {
         order = 1
       }
       
-      // 각 날짜별 속성 추가 (예약가능 제외)
+      // 각 날짜별 속성 추가 (dotColor가 있는 경우만)
       if (dotColor) {
         attributes.push({
           key: `${attributeKey}-${dateKey}`,
@@ -330,10 +340,10 @@ const getStatusClass = (date) => {
   const bookingInfo = bookingMap.value.get(dateKey)
   
   if (bookingInfo) {
-    if (bookingInfo.bookingCount >= props.confirmedThreshold) {
-      return 'guaranteed'
-    } else if (bookingInfo.bookingCount >= 15) {
+    if (bookingInfo.bookingCount >= props.closingThreshold) {
       return 'closed'
+    } else if (bookingInfo.bookingCount >= props.confirmedThreshold) {
+      return 'guaranteed'
     } else if (bookingInfo.bookingCount >= props.minRequiredBooking) {
       return 'confirmed'
     } else {
@@ -351,7 +361,7 @@ const getStatusText = (date) => {
   const bookingInfo = bookingMap.value.get(dateKey)
   
   if (bookingInfo) {
-    if (bookingInfo.bookingCount >= 45) {
+    if (bookingInfo.bookingCount >= props.closingThreshold) {
       return '예약마감'
     } else if (bookingInfo.bookingCount >= props.confirmedThreshold) {
       return '출발확정'

@@ -120,7 +120,8 @@
                             :booking-data="bookingData" 
                             :min-required-booking="productDetail.likelyDepartureThreshold || 10"
                             :confirmed-threshold="confirmedThreshold"
-                            @date-select="handleDateSelect" 
+                            :closing-threshold="productDetail.closingThreshold || 44"
+                                @date-select="handleDateSelect" 
                         />
                     </div>
 
@@ -450,6 +451,7 @@ const fetchProductDetail = async (productId) => {
                 meetingPoint: product.meetingPoint,
                 likelyDepartureThreshold: product.likelyDepartureThreshold,
                 confirmedDepartureThreshold: product.confirmedDepartureThreshold,
+                closingThreshold: product.closingThreshold,
                 images: product.images.length > 0 ? product.images : ['/images/default-product.jpg']
             }
             
