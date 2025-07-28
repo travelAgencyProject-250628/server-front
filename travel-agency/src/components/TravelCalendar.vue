@@ -66,14 +66,14 @@
 <script setup>
 import { ref, computed, onMounted, onBeforeUnmount, watch } from 'vue'
 import 'v-calendar/style.css'
+import { supabase } from '@/lib/supabase.js'
 
 // Props 정의
 const props = defineProps({
-  // 예약 인원 데이터 (날짜별)
-  bookingData: {
-    type: Array,
-    default: () => []
-    // 예시: [{ date: '2024-03-15', bookingCount: 8, minRequired: 10 }]
+  // 상품 ID
+  productId: {
+    type: Number,
+    required: true
   },
   // 출발유력 기준 인원
   minRequiredBooking: {
@@ -106,6 +106,7 @@ const selectedDate = ref(props.modelValue)
 const today = new Date()
 today.setHours(0, 0, 0, 0)
 const windowWidth = ref(window.innerWidth)
+const bookingData = ref([]) // View에서 가져온 예약 데이터
 
 // 반응형 columns와 rows 계산
 const calendarColumns = computed(() => {
@@ -179,10 +180,64 @@ const disabledDates = computed(() => {
   return disabled
 })
 
+// View에서 예약 데이터 가져오기
+const loadBookingData = async () => {
+  if (!props.productId) return
+  
+  try {
+    console.log('🔍 예약 데이터 로드 시작 - productId:', props.productId)
+    
+    // 현재 시점으로부터 3주간의 날짜 범위 계산
+    const startDate = formatDateKey(minSelectableDate.value) // 내일
+    const endDate = formatDateKey(maxSelectableDate.value)   // 3주 후
+    
+    console.log('🔍 조회 날짜 범위:', { startDate, endDate })
+    
+    const { data, error } = await supabase
+      .from('public_booking_products')
+      .select('*')
+      .eq('product_id', props.productId)
+      .gte('departure_date', startDate)  // 내일부터
+      .lte('departure_date', endDate)    // 3주까지
+    
+    if (error) throw error
+    
+    console.log('🔍 View에서 가져온 예약 데이터 (3주간):', data)
+    
+    // 날짜별로 예약 인원 수 계산 (성인 + 아동)
+    const bookingCountMap = new Map()
+    
+    data?.forEach(booking => {
+      const dateKey = booking.departure_date
+      const adultCount = booking.adult_count || 0
+      const childCount = booking.child_count || 0
+      const totalCount = adultCount + childCount
+      
+      const currentCount = bookingCountMap.get(dateKey) || 0
+      bookingCountMap.set(dateKey, currentCount + totalCount)
+    })
+    
+    // bookingData 형식으로 변환
+    const formattedData = []
+    bookingCountMap.forEach((count, date) => {
+      formattedData.push({
+        date: date,
+        bookingCount: count
+      })
+    })
+    
+    bookingData.value = formattedData
+    console.log('🔍 최종 예약 데이터:', formattedData)
+    
+  } catch (error) {
+    console.error('예약 데이터 로드 오류:', error)
+  }
+}
+
 // 예약 데이터를 날짜별로 매핑
 const bookingMap = computed(() => {
   const map = new Map()
-  props.bookingData.forEach(item => {
+  bookingData.value.forEach(item => {
     // 시간대 문제 방지를 위해 로컬 시간대로 날짜 생성
     const dateKey = item.date // 이미 'YYYY-MM-DD' 형식이므로 그대로 사용
     map.set(dateKey, item)
@@ -363,7 +418,7 @@ const getDayLabel = (date) => {
   const bookingInfo = bookingMap.value.get(dateKey)
 
   if (bookingInfo) {
-    if (bookingInfo.bookingCount >= 45) {
+    if (bookingInfo.bookingCount >= props.closingThreshold) {
       return '예약마감'
     } else if (bookingInfo.bookingCount >= props.confirmedThreshold) {
       return '출발확정'
@@ -406,6 +461,11 @@ watch(selectedDate, (newValue) => {
   emit('update:modelValue', newValue)
 })
 
+// productId 변경 시 예약 데이터 다시 로드
+watch(() => props.productId, () => {
+  loadBookingData()
+}, { immediate: true })
+
 onMounted(() => {
   // 윈도우 리사이즈 이벤트 리스너 추가
   const handleResize = () => {
@@ -413,6 +473,9 @@ onMounted(() => {
   }
 
   window.addEventListener('resize', handleResize)
+  
+  // 예약 데이터 로드
+  loadBookingData()
 
   // 컴포넌트 언마운트 시 이벤트 리스너 제거
   onBeforeUnmount(() => {

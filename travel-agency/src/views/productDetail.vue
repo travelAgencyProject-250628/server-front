@@ -99,9 +99,10 @@
                     <div class="schedule-selection">
                         <TravelCalendar 
                             v-model="selectedDate" 
-                            :booking-data="bookingData" 
+                            :product-id="parseInt(route.params.id)"
                             :min-required-booking="productDetail.likelyDepartureThreshold || 10"
                             :confirmed-threshold="confirmedThreshold"
+                            :closing-threshold="productDetail.closingThreshold || 44"
                             @date-select="handleDateSelect" 
                         />
                     </div>
