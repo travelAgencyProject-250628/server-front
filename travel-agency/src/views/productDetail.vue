@@ -132,6 +132,18 @@
                         </div>
                     </div>
 
+
+                    <!-- 일정 선택 -->
+                    <div class="schedule-selection">
+                        <TravelCalendar 
+                            v-model="selectedDate" 
+                            :booking-data="bookingData" 
+                            :min-required-booking="productDetail.likelyDepartureThreshold || 10"
+                            :confirmed-threshold="confirmedThreshold"
+                            @date-select="handleDateSelect" 
+                        />
+                    </div>
+
                     <!-- 탭 메뉴 -->
                     <div class="tab-section">
                         <div class="tab-menu">
@@ -141,7 +153,7 @@
                             </button>
                             <button type="button" class="tab-button" :class="{ active: activeTab === 'detail' }"
                                 @click="scrollToSection('detail')">
-                                여행지소개
+                                상세정보
                             </button>
                             <button type="button" class="tab-button" :class="{ active: activeTab === 'notice' }"
                                 @click="scrollToSection('notice')">
@@ -605,25 +617,27 @@ const copyCurrentUrl = async () => {
 
 // 카카오톡 공유 함수
 const shareToKakao = () => {
-    const url = window.location.href
-    const title = productDetail.value?.title || '여행 상품'
-    const text = `${title}\n${url}`
+    const url   = location.href;          // 현재 페이지
+  const title = document.title || '링크 공유';
 
-    // 모바일에서 Web Share API 시도
-    if (navigator.share && /iPhone|iPad|iPod|Android/i.test(navigator.userAgent)) {
-        navigator.share({
-            title: title,
-            url: url
-        }).catch(() => {
-            // 실패하면 링크 복사
-            copyCurrentUrl()
-            alert('링크가 복사되었습니다. 카카오톡에서 붙여넣기 해주세요.')
-        })
-    } else {
-        // 데스크탑이거나 Web Share API 미지원시 링크 복사
-        copyCurrentUrl()
-        alert('링크가 복사되었습니다. 카카오톡에서 붙여넣기 해주세요.')
-    }
+  Kakao.Share.sendDefault({
+    objectType: 'feed',                 // 가장 단순한 카드형
+    content: {
+      title,
+      description: '함께 볼까요?',
+      imageUrl: 'https://example.com/og-img.jpg',   // 미리보기 썸네일
+      link: {
+        mobileWebUrl: url,
+        webUrl:       url
+      }
+    },
+    buttons: [
+      {
+        title: '웹으로 보기',
+        link: { mobileWebUrl: url, webUrl: url }
+      }
+    ]
+  });
 }
 
 // 컴포넌트 마운트 시 데이터 로드
