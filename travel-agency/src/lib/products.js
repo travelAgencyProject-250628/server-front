@@ -182,15 +182,6 @@ export async function getProductDetail(productId) {
       .single()
     if (error) throw error
 
-    // 디버깅: 조회된 데이터 확인
-    console.log('getProductDetail - 조회된 raw 데이터:', {
-      id: data.id,
-      title: data.title,
-      closing_threshold: data.closing_threshold,
-      likely_departure_threshold: data.likely_departure_threshold,
-      confirmed_departure_threshold: data.confirmed_departure_threshold
-    })
-
     // ProductImages에서 해당 product_id의 이미지 가져오기
     const { data: imagesData, error: imagesError } = await supabase
       .from('ProductImages')
@@ -219,20 +210,11 @@ export async function getProductDetail(productId) {
       includedItems: data.included_items || '',
       excludedItems: data.excluded_items || '',
       likelyDepartureThreshold: data.likely_departure_threshold || 30,
-      confirmedDepartureThreshold: data.confirmed_departure_threshold || 50,
+      confirmedDepartureThreshold: data.confirmed_departure_threshold || 40,
       closingThreshold: data.closing_threshold || 44,
       meetingPoint: '', // Products 테이블에 meeting_point 없음. 필요시 location 조인 등으로 확장 가능
       images
     }
-
-    // 디버깅: 최종 product 객체 확인
-    console.log('getProductDetail - 최종 product 객체:', {
-      id: product.id,
-      title: product.title,
-      closingThreshold: product.closingThreshold,
-      likelyDepartureThreshold: product.likelyDepartureThreshold,
-      confirmedDepartureThreshold: product.confirmedDepartureThreshold
-    })
 
     return { success: true, product }
   } catch (error) {
@@ -602,6 +584,7 @@ export async function getAllProducts() {
         excluded_items,
         likely_departure_threshold,
         confirmed_departure_threshold,
+        closing_threshold,
         status,
         created_at,
         category_id,
@@ -676,7 +659,7 @@ export async function getProductBookingData(productId) {
     if (productError) throw productError
     
     const minRequired = productData?.likely_departure_threshold || 10
-    const confirmedThreshold = productData?.confirmed_departure_threshold || 20
+    const confirmedThreshold = productData?.confirmed_departure_threshold || 40
     
     // 오늘부터 3주간의 날짜 범위 설정
     const today = new Date()

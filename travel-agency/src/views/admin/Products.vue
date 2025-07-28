@@ -296,6 +296,19 @@
                   class="form-input"
                 >
               </div>
+              
+              <div class="form-group">
+                <label for="closingThreshold">예약 마감 인원수</label>
+                <input 
+                  type="number" 
+                  id="closingThreshold"
+                  v-model="formData.closing_threshold"
+                  placeholder="45"
+                  min="1"
+                  max="100"
+                  class="form-input"
+                >
+              </div>
             </div>
             
             <!-- 가격 정보 -->
@@ -574,7 +587,8 @@ const formData = ref({
   included_items: '',
   excluded_items: '',
   likely_departure_threshold: 30,
-  confirmed_departure_threshold: 50,
+  confirmed_departure_threshold: 40,
+  closing_threshold: 44,
   status: true,
   images: [],
   detailImage: null,
@@ -688,7 +702,8 @@ const openCreateModal = () => {
     included_items: '',
     excluded_items: '',
     likely_departure_threshold: 30,
-    confirmed_departure_threshold: 50,
+    confirmed_departure_threshold: 40,
+    closing_threshold: 45,
     status: true,
     images: [],
     detailImage: null,
@@ -715,7 +730,8 @@ const openEditModal = (product) => {
     included_items: product.included_items,
     excluded_items: product.excluded_items,
     likely_departure_threshold: product.likely_departure_threshold || 30,
-    confirmed_departure_threshold: product.confirmed_departure_threshold || 50,
+    confirmed_departure_threshold: product.confirmed_departure_threshold || 40,
+    closing_threshold: product.closing_threshold || 44,
     status: product.status,
     images: [...product.images],
     detailImage: product.detail_image_url ? {
