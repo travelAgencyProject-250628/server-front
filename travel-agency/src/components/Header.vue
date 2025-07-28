@@ -763,30 +763,24 @@ onMounted(async () => {
   position: relative;
 }
 
-/* 광고 배너 */
-.ad-banner {
-  background: #f8f9fa;
-  /* border-bottom: 1px solid var(--border-color); */
-  position: relative;
-  overflow: hidden;
-}
 
 .ad-banner-content {
   display: flex;
   align-items: center;
   justify-content: space-between;
   position: relative;
-  height: 60px;
+  width: 100%;
 }
 
 .ad-banner-images {
   display: flex;
   width: 100%;
-  height: 100%;
 }
 
 .ad-banner-image {
   flex: 1;
+  object-fit: cover;
+  object-position: center;
 }
 
 .ad-banner-close {
@@ -834,6 +828,7 @@ onMounted(async () => {
 }
 
 .top-link {
+  padding: 0;
   text-decoration: none;
   color: var(--text-secondary);
   font-size: 0.8rem;
