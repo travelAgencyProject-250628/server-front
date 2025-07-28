@@ -132,18 +132,6 @@
                         </div>
                     </div>
 
-
-                    <!-- 일정 선택 -->
-                    <div class="schedule-selection">
-                        <TravelCalendar 
-                            v-model="selectedDate" 
-                            :booking-data="bookingData" 
-                            :min-required-booking="productDetail.likelyDepartureThreshold || 10"
-                            :confirmed-threshold="confirmedThreshold"
-                            @date-select="handleDateSelect" 
-                        />
-                    </div>
-
                     <!-- 탭 메뉴 -->
                     <div class="tab-section">
                         <div class="tab-menu">
