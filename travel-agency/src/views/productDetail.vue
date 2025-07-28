@@ -616,14 +616,15 @@ const shareToKakao = () => {
         const mainImageUrl = productDetail.value.main_image_url;
         console.log('원본 메인 이미지 URL:', mainImageUrl);
         
-        // Supabase Storage URL 처리 - 확장자가 없는 경우 .jpg 추가
-        if (mainImageUrl.includes('supabase.co/storage') && !mainImageUrl.match(/\.(jpg|jpeg|png|gif|webp)$/i)) {
-            imageUrl = `${mainImageUrl}.jpg`; // 기본 확장자 추가
-            console.log('확장자 추가된 URL:', imageUrl);
-        }
-        // 절대 URL인지 확인
-        else if (mainImageUrl.startsWith('http://') || mainImageUrl.startsWith('https://')) {
-            imageUrl = mainImageUrl;
+        // URL 형태별 처리
+        if (mainImageUrl.startsWith('http://') || mainImageUrl.startsWith('https://')) {
+            // 절대 URL - Supabase Storage URL 확장자 처리
+            if (mainImageUrl.includes('supabase.co/storage') && !mainImageUrl.match(/\.(jpg|jpeg|png|gif|webp)$/i)) {
+                imageUrl = `${mainImageUrl}.jpg`; // 기본 확장자 추가
+                console.log('Supabase URL 확장자 추가:', imageUrl);
+            } else {
+                imageUrl = mainImageUrl;
+            }
         } else if (mainImageUrl.startsWith('/')) {
             // 상대 URL을 절대 URL로 변환
             imageUrl = `${window.location.origin}${mainImageUrl}`;
