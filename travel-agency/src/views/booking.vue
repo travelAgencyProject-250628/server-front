@@ -835,13 +835,6 @@ onMounted(loadInitialData)
     color: var(--text-primary);
 }
 
-.container {
-    max-width: 700px;
-    margin: 0 auto;
-    padding: 0 20px;
-}
-
-/* 메인 컨텐츠 */
 .main-content {
     min-height: calc(100vh - 200px);
     padding: 3.5rem 0 2rem 0;

@@ -19,6 +19,38 @@
     <!-- 메인 콘텐츠 -->
     <main class="main-content">
       <div class="content-container">
+        <!-- 인기 상품 섹션 -->
+        <section class="popular-products">
+          <h2 class="popular-title">인기 상품</h2>
+          <div class="popular-grid">
+            <div 
+              v-for="product in popularProducts" 
+              :key="product.id"
+              class="popular-card"
+              @click="goToProduct(product.id)"
+            >
+              <div class="popular-image">
+                <img :src="product.image" :alt="product.title" />
+                <div v-if="product.badge" class="popular-badge">{{ product.badge }}</div>
+              </div>
+              <div class="popular-content">
+                <div class="popular-info">
+                  <h3 class="popular-title-text">{{ product.title }}</h3>
+                </div>
+                <div class="popular-details">
+                  <span class="popular-duration">{{ product.travelDuration }}</span>
+                  <span class="popular-location">{{ product.location }}</span>
+                </div>
+                <div class="popular-footer">
+                  <div class="popular-price">
+                    <span class="popular-price-text">{{ formatPrice(product.price) }}원</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
         <!-- 페이지 제목 -->
         <div class="filter-section">
           <h1 class="page-title">{{ pageTitle }}</h1>
@@ -53,11 +85,47 @@
             <div class="product-info">
               <div class="product-number">상품번호 {{ product.id }}</div>
               <h3 class="product-title">{{ product.title }}</h3>
+              <div class="product-details">
+                <div class="detail-item">
+                  <span class="detail-label">포함내용:</span>
+                  <span class="detail-value">{{ product.includedItems }}</span>
+                </div>
+                <div class="detail-item">
+                  <span class="detail-label">출발날짜:</span>
+                  <span class="detail-value">2024.03.15 (금)</span>
+                </div>
+              </div>
               <div class="product-price">
                 <span class="current-price">{{ formatPrice(product.price) }}원</span>
               </div>
             </div>
           </div>
+        </div>
+
+        <!-- 페이지네이션 -->
+        <div v-if="totalPages > 0" class="pagination">
+          <button 
+            class="page-btn" 
+            :disabled="currentPage === 1"
+            @click="changePage(currentPage - 1)"
+          >
+            이전
+          </button>
+          <button 
+            v-for="page in visiblePages" 
+            :key="page"
+            :class="['page-btn', { active: page === currentPage }]"
+            @click="changePage(page)"
+          >
+            {{ page }}
+          </button>
+          <button 
+            class="page-btn" 
+            :disabled="currentPage >= totalPages || totalPages === 0"
+            @click="changePage(currentPage + 1)"
+          >
+            다음
+          </button>
         </div>
 
         <!-- 상품이 없을 때 -->
@@ -81,11 +149,14 @@ const router = useRouter()
 
 // 반응형 데이터
 const products = ref([])
+const popularProducts = ref([])
 const sortBy = ref('popular')
 const itemsPerPage = 12
 const menuData = ref(null)
 const loading = ref(true)
 const totalProducts = ref(0)
+const currentPage = ref(1)
+const itemsPerPageRef = ref(itemsPerPage)
 
 // 전체 메뉴 데이터 (Header에서 사용하는 것과 동일)
 const allMenuData = ref({
@@ -113,6 +184,21 @@ const pageTitle = computed(() => {
     return subCategoryName.value
   }
   return categoryName.value
+})
+
+const totalPages = computed(() => {
+  return Math.ceil(totalProducts.value / itemsPerPageRef.value)
+})
+
+const visiblePages = computed(() => {
+  const pages = []
+  const start = Math.max(1, currentPage.value - 2)
+  const end = Math.min(totalPages.value, start + 4)
+  
+  for (let i = start; i <= end; i++) {
+    pages.push(i)
+  }
+  return pages
 })
 
 
@@ -165,6 +251,7 @@ const loadProducts = async () => {
   try {
     const categoryId = parseInt(route.query.categoryId)
     const subCategoryId = parseInt(route.query.subCategoryId)
+    const page = currentPage.value
     
     if (!categoryId) {
       console.warn('카테고리 ID가 없습니다. 홈페이지로 리다이렉트합니다.')
@@ -173,12 +260,12 @@ const loadProducts = async () => {
     }
     
     // Supabase에서 카테고리별 상품 가져오기 (서브카테고리 필터링, 정렬 포함)
-    const response = await getProductsByCategory(categoryId, subCategoryId, sortBy.value)
+    const response = await getProductsByCategory(categoryId, subCategoryId, sortBy.value, page, itemsPerPageRef.value)
     
     if (response.success) {
       // 서버에서 이미 매핑된 데이터를 그대로 사용
       products.value = response.products || []
-      totalProducts.value = products.value.length
+      totalProducts.value = response.totalCount || 0
     } else {
       products.value = []
       totalProducts.value = 0
@@ -190,7 +277,31 @@ const loadProducts = async () => {
   }
 }
 
+const loadPopularProducts = async () => {
+  try {
+    const categoryId = parseInt(route.query.categoryId)
+    
+    if (!categoryId) {
+      popularProducts.value = []
+      return
+    }
+    
+    // 인기순으로 정렬된 상품 중 상위 3개 가져오기
+    const response = await getProductsByCategory(categoryId, null, 'popular')
+    
+    if (response.success) {
+      popularProducts.value = (response.products || []).slice(0, 3)
+    } else {
+      popularProducts.value = []
+    }
+  } catch (error) {
+    console.error('인기 상품 로드 오류:', error)
+    popularProducts.value = []
+  }
+}
+
 const sortProducts = async () => {
+  currentPage.value = 1 // 정렬 변경 시 페이지 초기화
   await loadProducts() // 서버에서 정렬된 데이터 요청
 }
 
@@ -202,15 +313,24 @@ const goToProduct = (productId) => {
   router.push(`/product/${productId}`)
 }
 
+const changePage = (page) => {
+  if (page >= 1 && page <= totalPages.value) {
+    currentPage.value = page
+    loadProducts()
+  }
+}
+
 // 라우트 변경 감지
 watch(() => route.query, async () => {
   loading.value = true
+  currentPage.value = 1 // 쿼리 변경 시 페이지 초기화
   
   try {
     // 병렬로 처리하여 로딩 시간 단축
     await Promise.all([
       loadMenuData(),
-  loadProducts()
+      loadProducts(),
+      loadPopularProducts()
     ])
   } finally {
     loading.value = false
@@ -225,7 +345,8 @@ onMounted(async () => {
     // 병렬로 처리하여 로딩 시간 단축
     await Promise.all([
       loadMenuData(),
-  loadProducts()
+      loadProducts(),
+      loadPopularProducts()
     ])
   } finally {
     loading.value = false
@@ -257,7 +378,7 @@ onMounted(async () => {
 /* 전체 레이아웃 */
 .product-list-page {
   display: grid;
-  grid-template-columns: 1fr 220px 740px 1fr;
+  grid-template-columns: 1fr 220px 900px 1fr;
   min-height: 100vh;
   font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
   line-height: 1.6;
@@ -390,12 +511,6 @@ onMounted(async () => {
   box-shadow: var(--shadow-sm);
 }
 
-.product-image {
-  position: relative;
-  height: 180px;
-  overflow: hidden;
-}
-
 .product-image img {
   width: 100%;
   height: 100%;
@@ -404,7 +519,7 @@ onMounted(async () => {
 
 /* 상품 정보 */
 .product-info {
-  padding: 1rem;
+  padding: 0.5rem 1.25rem;
 }
 
 .product-number {
@@ -423,6 +538,32 @@ onMounted(async () => {
   -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
   overflow: hidden;
+}
+
+.product-details {
+  margin-bottom: 0.75rem;
+  background-color: none;
+}
+
+.detail-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.5rem;
+  margin-bottom: 0.25rem;
+  font-size: 0.85rem;
+  line-height: 1.3;
+}
+
+.detail-label {
+  color: var(--text-secondary);
+  font-weight: 500;
+  min-width: 60px;
+  flex-shrink: 0;
+}
+
+.detail-value {
+  color: var(--text-primary);
+  flex: 1;
 }
 
 .product-price {
@@ -479,12 +620,12 @@ onMounted(async () => {
 /* 리스트 뷰 스타일 */
 .product-grid.list-view .product-card {
   display: flex;
-  height: 180px;
+  height: 210px;
 }
 
 .product-grid.list-view .product-image {
   width: 250px;
-  height: 180px;
+  height: 210px;
   flex-shrink: 0;
 }
 
@@ -493,6 +634,148 @@ onMounted(async () => {
   display: flex;
   flex-direction: column;
   justify-content: space-between;
+}
+
+/* 인기 상품 섹션 */
+.popular-products {
+  margin-bottom: 2rem;
+}
+
+.popular-title {
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin-bottom: 1rem;
+}
+
+.popular-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1.5rem;
+  margin-bottom: 1rem;
+}
+
+.popular-card {
+  background: white;
+  border-radius: var(--border-radius);
+  overflow: hidden;
+  border: 1px solid var(--border-color);
+  transition: var(--transition);
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+.popular-card:hover {
+  border-color: var(--primary-color);
+  box-shadow: var(--shadow-md);
+}
+
+.popular-image {
+  position: relative;
+  height: 180px;
+  overflow: hidden;
+}
+
+.popular-image img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: var(--transition);
+}
+
+.popular-badge {
+  position: absolute;
+  top: 0.75rem;
+  left: 0.75rem;
+  background: var(--accent-color);
+  color: white;
+  padding: 0.25rem 0.75rem;
+  border-radius: 20px;
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
+.popular-content {
+  padding: 1rem;
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
+}
+
+.popular-info {
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.popular-title-text {
+  font-size: 1rem;
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+  color: var(--text-primary);
+  line-height: 1.4;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.popular-details {
+  display: flex;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+  flex: 0 0 auto;
+}
+
+.popular-duration, .popular-location {
+  padding: 0.25rem 0.5rem;
+  background: var(--bg-light);
+  border-radius: var(--border-radius);
+  font-size: 0.75rem;
+  color: var(--text-secondary);
+  border: 1px solid var(--border-color);
+}
+
+.popular-footer {
+  display: flex;
+  align-items: center;
+  flex: 0 0 auto;
+  margin-top: auto;
+}
+
+.popular-price {
+  display: flex;
+  flex-direction: column;
+}
+
+.popular-price-text {
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--error-color);
+}
+
+/* 반응형 디자인 */
+@media (max-width: 1024px) {
+  .popular-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 768px) {
+  .popular-products {
+    display: none;
+  }
+  
+  .popular-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .popular-title {
+    font-size: 1.25rem;
+  }
 }
 
 /* 반응형 디자인 */

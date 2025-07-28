@@ -227,13 +227,32 @@ export async function getProductDetail(productId) {
  * @param {string} sortBy - 정렬 기준 ('latest', 'price-low', 'price-high', 'popular')
  * @returns {Promise<{success: boolean, products: Array, error?: string}>}
  */
-export async function getProductsByCategory(categoryId, tagId = null, sortBy = 'latest') {
+export async function getProductsByCategory(categoryId, tagId = null, sortBy = 'latest', page = 1, limit = 12) {
   try {
+    // 전체 개수 조회
+    let countQuery = supabase
+      .from('Products')
+      .select('*', { count: 'exact', head: true })
+      .eq('category_id', categoryId)
+      .eq('status', true)
+    
+    if (tagId) {
+      countQuery = countQuery.eq('tag_id', tagId)
+    }
+    
+    const { count, error: countError } = await countQuery
+    if (countError) throw countError
+    
+    // 페이지네이션 적용
+    const from = (page - 1) * limit
+    const to = from + limit - 1
+    
     let query = supabase
       .from('Products')
       .select('id, title, subtitle, main_image_url, adult_price, child_price, duration, tag_id, location:location_id(id, name), badge:badge_id(id, name)')
       .eq('category_id', categoryId)
       .eq('status', true)
+      .range(from, to)
     
     // 서브카테고리(태그) 필터링
     if (tagId) {
@@ -295,9 +314,9 @@ export async function getProductsByCategory(categoryId, tagId = null, sortBy = '
       bookingCount: item.bookingCount
     }))
 
-    return { success: true, products }
+    return { success: true, products, totalCount: count }
   } catch (error) {
-    return { success: false, products: [], error: error.message }
+    return { success: false, products: [], totalCount: 0, error: error.message }
   }
 }
 
