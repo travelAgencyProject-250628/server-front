@@ -24,7 +24,11 @@
       :style="calendarStyle">
         <template #day-content="{ day }">
           <div class="day-content" @click.stop="onDayContentClick(day)">
-            <div class="day-number">{{ day.day }}</div>
+            <div class="day-number-container">
+              <div v-if="getStatusClass(day.date) && isInSelectableRange(day.date)" 
+                   :class="['status-circle', getStatusClass(day.date)]"></div>
+              <div class="day-number">{{ day.day }}</div>
+            </div>
             <div v-if="getDayLabel(day.date)" :class="['day-label', getStatusClass(day.date)]">
               {{ getDayLabel(day.date) }}
             </div>
@@ -34,7 +38,10 @@
     </div>
 
     <div class="calendar-legend">
-
+      <div class="legend-item">
+        <div class="legend-dot available"></div>
+        <span>예약가능</span>
+      </div>
       <div class="legend-item">
         <div class="legend-dot confirmed"></div>
         <span>출발유력</span>
@@ -410,11 +417,23 @@ const getStatusText = (date) => {
   return '예약가능'
 }
 
+// 날짜가 선택 가능한 범위에 있는지 확인하는 함수
+const isInSelectableRange = (date) => {
+  if (!date) return false
+  return date >= minSelectableDate.value && date <= maxSelectableDate.value
+}
+
 // 날짜 레이블 가져오기 (예약 상태에 따라 다르게 표시)
 const getDayLabel = (date) => {
   if (!date) return ''
 
   const dateKey = formatDateKey(date)
+  
+  // 3주 범위 내의 날짜만 텍스트 표시
+  if (date < minSelectableDate.value || date > maxSelectableDate.value) {
+    return ''
+  }
+  
   const bookingInfo = bookingMap.value.get(dateKey)
 
   if (bookingInfo) {
@@ -428,7 +447,9 @@ const getDayLabel = (date) => {
       return '예약가능'
     }
   }
-  return ''
+  
+  // 예약 데이터가 없는 날짜도 예약가능으로 표시
+  return '예약가능'
 }
 
 // 날짜 컨텐츠 클릭 핸들러
@@ -589,9 +610,9 @@ onMounted(() => {
   font-weight: 500;
 }
 
-.legend-dot.closed {
-  background: #0d9488;
-  border-color: #0d9488;
+.legend-dot.available {
+  background: #22c55e;
+  border-color: #22c55e;
 }
 
 .legend-dot.confirmed {
@@ -602,6 +623,11 @@ onMounted(() => {
 .legend-dot.guaranteed {
   background: #dc2626;
   border-color: #dc2626;
+}
+
+.legend-dot.closed {
+  background: #94a3b8;
+  border-color: #94a3b8;
 }
 
 
@@ -645,13 +671,8 @@ onMounted(() => {
 }
 
 .status-badge.available {
-  background: #f1f5f9;
-  color: var(--text-secondary);
-}
-
-.status-badge.closed {
-  background: #ccfbf1;
-  color: #0d9488;
+  background: #dcfce7;
+  color: #22c55e;
 }
 
 .status-badge.confirmed {
@@ -662,6 +683,11 @@ onMounted(() => {
 .status-badge.guaranteed {
   background: #fecaca;
   color: #dc2626;
+}
+
+.status-badge.closed {
+  background: #f1f5f9;
+  color: #94a3b8;
 }
 
 /* 반응형 디자인 */
@@ -689,12 +715,47 @@ onMounted(() => {
   height: 100%;
   padding: 4px;
   cursor: pointer;
+  gap: 7px;
+}
+
+:deep(.day-number-container) {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 2px;
 }
 
 :deep(.day-number) {
   font-size: 1rem;
   font-weight: 500;
-  margin-bottom: 2px;
+  z-index: 2;
+  position: relative;
+}
+
+:deep(.status-circle) {
+  position: absolute;
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  z-index: 1;
+  opacity: 0.3;
+}
+
+:deep(.status-circle.available) {
+  background-color: #22c55e; /* 초록색 */
+}
+
+:deep(.status-circle.confirmed) {
+  background-color: #2563eb; /* 파란색 */
+}
+
+:deep(.status-circle.guaranteed) {
+  background-color: #dc2626; /* 빨간색 */
+}
+
+:deep(.status-circle.closed) {
+  background-color: #94a3b8; /* 회색 */
 }
 
 :deep(.day-label) {
@@ -706,18 +767,18 @@ onMounted(() => {
 }
 
 :deep(.day-label.available) {
-  color: #64748b;
+  color: #22c55e; /* 초록색 */
 }
 
 :deep(.day-label.confirmed) {
-  color: #2563eb;
+  color: #2563eb; /* 파란색 */
 }
 
 :deep(.day-label.guaranteed) {
-  color: #dc2626;
+  color: #dc2626; /* 빨간색 */
 }
 
 :deep(.day-label.closed) {
-  color: #0d9488;
+  color: #94a3b8; /* 회색 */
 }
 </style>
