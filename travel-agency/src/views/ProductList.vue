@@ -38,7 +38,7 @@
                   <h3 class="popular-title-text">{{ product.title }}</h3>
                 </div>
                 <div class="popular-details">
-                  <span class="popular-duration">{{ product.travelDuration }}</span>
+                  <span class="popular-duration">{{ product.duration }}</span>
                   <span class="popular-location">{{ product.location }}</span>
                 </div>
                 <div class="popular-footer">
