@@ -256,22 +256,25 @@ onMounted(async () => {
 
 /* 전체 레이아웃 */
 .product-list-page {
-  display: grid;
-  grid-template-columns: 1fr 220px 740px 1fr;
+  display: flex;
+  justify-content: center;
   min-height: 100vh;
   font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
   line-height: 1.6;
   color: var(--text-primary);
   padding-top: 3.5rem;
+  gap: 2rem;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding-left: 2rem;
+  padding-right: 2rem;
 }
 
 /* 사이드바 섹션 */
 .sidebar-section {
-  grid-column: 2;
-  padding: 1.5rem 1rem 0 0;
-  display: flex;
-  align-items: flex-start;
-  align-self: start;
+  width: 220px;
+  flex-shrink: 0;
+  padding-top: 1.5rem;
 }
 
 /* 사이드바 로딩 */
@@ -521,7 +524,14 @@ onMounted(async () => {
     padding: 2rem 1rem 2rem 1rem;
   }
   
-  .content-container {
+/* 메인 콘텐츠 */
+.main-content {
+  flex: 1;
+  max-width: 740px;
+  padding-top: 1.5rem;
+}
+
+.content-container {
     padding: 0;
   }
   
