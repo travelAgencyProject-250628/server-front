@@ -4,8 +4,20 @@
     <div v-if="showAdBanner" class="ad-banner">
       <div class="ad-banner-content">
         <div class="ad-banner-images">
-          <img src="/banner-ad1.jpg" alt="광고 배너 1" class="ad-banner-image">
-          <img src="/banner-ad2.jpg" alt="광고 배너 2" class="ad-banner-image">
+          <img 
+            src="/banner-ad1.jpg" 
+            alt="광고 배너 1" 
+            class="ad-banner-image"
+            @click="goToCategory(1)"
+            style="cursor: pointer;"
+          >
+          <img 
+            src="/banner-ad2.jpg" 
+            alt="광고 배너 2" 
+            class="ad-banner-image"
+            @click="goToCategory(2)"
+            style="cursor: pointer;"
+          >
         </div>
         <button class="ad-banner-close" @click="closeAdBanner">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -692,6 +704,11 @@ const closeAdBanner = () => {
   showAdBanner.value = false
   // 로컬 스토리지에 닫기 상태 저장 (24시간 동안)
   localStorage.setItem('adBannerClosed', Date.now().toString())
+}
+
+// 카테고리 페이지로 이동
+const goToCategory = (categoryId) => {
+  router.push(`/products?categoryId=${categoryId}`)
 }
 
 
