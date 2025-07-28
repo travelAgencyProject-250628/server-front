@@ -1,6 +1,22 @@
 <template>
   <header class="header">
-        <!-- 상단 유틸리티 바 -->
+    <!-- 광고 배너 -->
+    <div v-if="showAdBanner" class="ad-banner">
+      <div class="ad-banner-content">
+        <div class="ad-banner-images">
+          <img src="/banner-ad1.jpg" alt="광고 배너 1" class="ad-banner-image">
+          <img src="/banner-ad2.jpg" alt="광고 배너 2" class="ad-banner-image">
+        </div>
+        <button class="ad-banner-close" @click="closeAdBanner">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <line x1="18" y1="6" x2="6" y2="18"></line>
+            <line x1="6" y1="6" x2="18" y2="18"></line>
+          </svg>
+        </button>
+      </div>
+    </div>
+    
+    <!-- 상단 유틸리티 바 -->
     <div class="top-bar">
       <div class="top-bar-container">
         <div class="top-bar-spacer"></div>
@@ -371,6 +387,7 @@ const showAllMenuFlag = ref(false)
 const allMenuTimeout = ref(null)
 const expandedMobileCategory = ref(null)
 const menuLoading = ref(true)
+const showAdBanner = ref(true)
 
 // 메뉴 데이터 (supabase에서 동적으로 불러올 데이터)
 const menuData = ref({
@@ -670,6 +687,13 @@ const handleMobileSearch = () => {
   }
 }
 
+// 광고 배너 닫기
+const closeAdBanner = () => {
+  showAdBanner.value = false
+  // 로컬 스토리지에 닫기 상태 저장 (24시간 동안)
+  localStorage.setItem('adBannerClosed', Date.now().toString())
+}
+
 
 
 // 컴포넌트 마운트 시 메뉴 데이터 불러오기
@@ -720,6 +744,56 @@ onMounted(async () => {
 .header {
   background: white;
   position: relative;
+}
+
+/* 광고 배너 */
+.ad-banner {
+  background: #f8f9fa;
+  /* border-bottom: 1px solid var(--border-color); */
+  position: relative;
+  overflow: hidden;
+}
+
+.ad-banner-content {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  position: relative;
+  height: 60px;
+}
+
+.ad-banner-images {
+  display: flex;
+  width: 100%;
+  height: 100%;
+}
+
+.ad-banner-image {
+  flex: 1;
+}
+
+.ad-banner-close {
+  position: absolute;
+  top: 50%;
+  right: 1rem;
+  transform: translateY(-50%);
+  background: rgba(0, 0, 0, 0.5);
+  color: white;
+  border: none;
+  border-radius: 50%;
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  z-index: 10;
+}
+
+.ad-banner-close:hover {
+  background: rgba(0, 0, 0, 0.7);
+  transform: translateY(-50%) scale(1.1);
 }
 
 /* 상단 유틸리티 바 */
@@ -1566,6 +1640,22 @@ onMounted(async () => {
     z-index: 1000 !important;
     box-shadow: var(--shadow-md) !important;
     background: white !important;
+  }
+  
+  .ad-banner-content {
+    padding: 0 1rem;
+    height: 50px;
+  }
+  
+  .ad-banner-close {
+    right: 0.5rem;
+    width: 20px;
+    height: 20px;
+  }
+  
+  .ad-banner-close svg {
+    width: 12px;
+    height: 12px;
   }
   
   .top-bar {
