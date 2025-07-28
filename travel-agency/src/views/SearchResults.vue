@@ -400,8 +400,8 @@ watch(() => route.query, (newQuery) => {
   
   // URL에 검색어가 있으면 검색 실행 (헤더 검색) - 빈 검색어도 허용
   console.log('🔄 URL 검색어로 검색 실행!')
-  currentPage.value = page
-  performSearch()
+    currentPage.value = page
+    performSearch()
 }, { immediate: true, deep: true })
 
 // 필터 변경 감지
@@ -830,7 +830,7 @@ onMounted(async () => {
   .desktop-only {
     display: none;
   }
-
+  
   .filter-section {
     font-size: 1.125rem;
     padding-bottom: 0.5rem;
