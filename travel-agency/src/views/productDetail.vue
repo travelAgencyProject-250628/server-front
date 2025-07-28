@@ -58,21 +58,23 @@
 
                         <!-- 상품 요약 정보 -->
                         <div class="product-summary">
-                            <div class="summary-item">
-                                <span class="summary-label">여행 기간</span>
-                                <span class="summary-value">{{ productDetail.travelDuration }}</span>
-                            </div>
-                            <div class="summary-item">
-                                <span class="summary-label">포함 내역</span>
-                                <span class="summary-value">{{ productDetail.includedItems }}</span>
-                            </div>
-                            <div class="summary-item">
-                                <span class="summary-label">불포함 내역</span>
-                                <span class="summary-value">{{ productDetail.excludedItems }}</span>
-                            </div>
-                            <div class="summary-item">
-                                <span class="summary-label">출발 날짜</span>
-                                <span class="summary-value">2024.03.15 (금)</span>
+                            <div class="summary-content">
+                                <div class="summary-item">
+                                    <span class="summary-label">여행 기간</span>
+                                    <span class="summary-value">{{ productDetail.travelDuration }}</span>
+                                </div>
+                                <div class="summary-item">
+                                    <span class="summary-label">포함 내역</span>
+                                    <span class="summary-value">{{ productDetail.includedItems }}</span>
+                                </div>
+                                <div class="summary-item">
+                                    <span class="summary-label">불포함 내역</span>
+                                    <span class="summary-value">{{ productDetail.excludedItems }}</span>
+                                </div>
+                                <div class="summary-item">
+                                    <span class="summary-label">출발 날짜</span>
+                                    <span class="summary-value">2024.03.15 (금)</span>
+                                </div>
                             </div>
                             <div class="share-buttons">
                                 <button @click="shareToKakao" class="share-btn kakao-btn" title="카카오톡 공유">
@@ -726,6 +728,7 @@ const handleImageError = (event) => {
     display: flex;
     gap: 0.75rem;
     margin-top: 1rem;
+    justify-content: flex-end;
 }
 
 .share-btn {
@@ -859,8 +862,9 @@ const handleImageError = (event) => {
 /* 상품 요약 정보 */
 .product-summary {
     position: relative;
-    display: grid;
-    grid-template-columns: repeat(2, 1fr);
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
     gap: 0.8rem;
     background: white;
     padding: 1.25rem;
@@ -868,6 +872,12 @@ const handleImageError = (event) => {
     border-top-right-radius: var(--border-radius);
     border-bottom-right-radius: var(--border-radius);
     margin-bottom: 1.5rem;
+}
+
+.summary-content {
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
 }
 
 .summary-item {
@@ -1354,15 +1364,6 @@ const handleImageError = (event) => {
 
     .schedule-selection {
         padding: 1rem;
-    }
-
-    .product-summary .share-buttons {
-        position: static;
-        justify-content: flex-end;
-        margin-top: 1rem;
-        bottom: auto;
-        right: auto;
-        grid-column: 1 / -1;
     }
 
     .share-btn {
