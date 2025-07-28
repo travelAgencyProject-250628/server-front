@@ -1,6 +1,13 @@
 <template>
-  <footer class="footer">
-    <div class="container">
+  <div class="footer-wrapper">
+    <!-- 카카오 배너 -->
+    <div class="kakao-banner">
+      <img src="/kakao_banner.jpg" alt="카카오톡 채널 추가" class="kakao-banner-image desktop-banner">
+      <img src="/kakao_banner_m.jpg" alt="카카오톡 채널 추가" class="kakao-banner-image mobile-banner">
+    </div>
+    
+    <footer class="footer">
+      <div class="container">
       <div class="footer-content">
         <div class="footer-section">
           <h4>회사정보</h4>
@@ -37,11 +44,12 @@
         </div>
       </div>
       
-      <div class="footer-bottom">
-        <p>&copy; 2024 더쉼투어. All Rights Reserved.</p>
+        <div class="footer-bottom">
+          <p>&copy; 2024 더쉼투어. All Rights Reserved.</p>
+        </div>
       </div>
-    </div>
-  </footer>
+    </footer>
+  </div>
 </template>
 
 <script setup>
@@ -64,6 +72,37 @@
   --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
   --border-radius: 8px;
   --transition: all 0.3s ease;
+}
+
+.footer-wrapper {
+  width: 100%;
+}
+
+.kakao-banner {
+  width: 100%;
+  background: #fee500;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.kakao-banner-image {
+  width: 100%;
+  max-width: 1200px;
+  height: auto;
+  display: block;
+  object-fit: contain;
+}
+
+/* 데스크톱에서는 데스크톱 배너만 표시 */
+.desktop-banner {
+  display: block;
+}
+
+.mobile-banner {
+  display: none;
 }
 
 .container {
@@ -140,6 +179,15 @@
 
 /* 반응형 디자인 */
 @media (max-width: 768px) {
+  /* 모바일에서는 모바일 배너만 표시 */
+  .desktop-banner {
+    display: none;
+  }
+  
+  .mobile-banner {
+    display: block;
+  }
+  
   .footer-content {
     grid-template-columns: 1fr;
     text-align: center;
