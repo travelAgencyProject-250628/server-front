@@ -943,7 +943,7 @@ onMounted(async () => {
   padding: 0.625rem 1rem;
   border: none;
   outline: none;
-  font-size: 0.85rem;
+  font-size: 0.95rem;
   background: transparent;
   color: var(--text-primary);
 }
@@ -1016,7 +1016,7 @@ onMounted(async () => {
 }
 
 .menu-text {
-  font-size: 0.75rem;
+  font-size: 0.85rem;
   color: var(--text-secondary);
 }
 
@@ -1049,7 +1049,7 @@ onMounted(async () => {
   cursor: pointer;
   padding: 0.5rem;
   color: var(--text-primary);
-  font-size: 0.9rem;
+  font-size: 1rem;
   font-weight: 500;
 }
 
@@ -1076,7 +1076,7 @@ onMounted(async () => {
   font-weight: 500;
   padding: 0.5rem 0;
   transition: var(--transition);
-  font-size: 0.9rem;
+  font-size: 1rem;
 }
 
 .nav-link:hover {
