@@ -141,7 +141,7 @@
                             </button>
                             <button type="button" class="tab-button" :class="{ active: activeTab === 'detail' }"
                                 @click="scrollToSection('detail')">
-                                상세정보
+                                여행지소개
                             </button>
                             <button type="button" class="tab-button" :class="{ active: activeTab === 'notice' }"
                                 @click="scrollToSection('notice')">
