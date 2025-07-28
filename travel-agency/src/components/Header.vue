@@ -14,14 +14,16 @@
           
         <!-- 로그인되지 않은 경우 -->
         <template v-if="!isLoggedIn">
+            <router-link to="/" class="top-link">메인으로</router-link>
             <router-link to="/login" class="top-link">로그인</router-link>
             <router-link to="/join" class="top-link">회원가입</router-link>
         </template>
         
         <!-- 로그인된 경우 -->
         <template v-else>
-            <router-link to="/mypage" class="top-link">마이페이지</router-link>
-            <button @click="handleLogout" class="top-link">로그아웃</button>
+          <router-link to="/" class="top-link">메인으로</router-link>
+          <router-link to="/mypage" class="top-link">마이페이지</router-link>
+          <button @click="handleLogout" class="top-link">로그아웃</button>
         </template>
       </div>
       </div>
@@ -292,6 +294,7 @@
           
           <!-- 로그인되지 않은 경우 -->
           <template v-if="!isLoggedIn">
+            <router-link to="/" class="btn-secondary" @click="closeMobileMenu">메인으로</router-link>
             <router-link to="/login" class="btn-secondary" @click="closeMobileMenu">로그인</router-link>
             <router-link to="/join" class="btn-secondary" @click="closeMobileMenu">회원가입</router-link>
             <button class="btn-primary" @click="() => { handleBusRental(); closeMobileMenu(); }">
@@ -316,6 +319,7 @@
           
           <!-- 로그인된 경우 -->
           <template v-else>
+            <router-link to="/" class="btn-secondary" @click="closeMobileMenu">메인으로</router-link>
             <router-link to="/mypage" class="btn-secondary" @click="closeMobileMenu">마이페이지</router-link>
             <button @click="handleLogout" class="btn-secondary">로그아웃</button>
             <button class="btn-primary" @click="() => { handleBusRental(); closeMobileMenu(); }">
