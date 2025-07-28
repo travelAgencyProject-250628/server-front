@@ -313,11 +313,8 @@ const setMetaTags = (product) => {
   
   // 이미지 URL 처리
   if (imageUrl && imageUrl.startsWith('http')) {
-    // 절대 URL - Supabase Storage URL 확장자 처리
-    if (imageUrl.includes('supabase.co/storage') && !imageUrl.match(/\.(jpg|jpeg|png|gif|webp)$/i)) {
-      imageUrl = `${imageUrl}.jpg`; // 기본 확장자 추가
-      console.log('메타태그 - Supabase URL 확장자 추가:', imageUrl);
-    }
+    // 절대 URL - 그대로 사용
+    // (확장자 처리 제거)
   } else if (imageUrl && !imageUrl.startsWith('http')) {
     // 상대 경로인 경우 절대 경로로 변환
     if (imageUrl.startsWith('/')) {
@@ -618,19 +615,18 @@ const shareToKakao = () => {
     // 메인 이미지 URL 처리 (절대 URL로 변환, fallback은 로고)
     let imageUrl = `${window.location.origin}/logo.png`; // 기본값: 로고
     
-    if (productDetail.value?.main_image_url) {
-        const mainImageUrl = productDetail.value.main_image_url;
+    // 여러 가능한 필드명 확인
+    const mainImageUrl = productDetail.value?.main_image_url || 
+                         productDetail.value?.mainImage || 
+                         productDetail.value?.images?.[0];
+    
+    if (mainImageUrl) {
         console.log('원본 메인 이미지 URL:', mainImageUrl);
         
         // URL 형태별 처리
         if (mainImageUrl.startsWith('http://') || mainImageUrl.startsWith('https://')) {
-            // 절대 URL - Supabase Storage URL 확장자 처리
-            if (mainImageUrl.includes('supabase.co/storage') && !mainImageUrl.match(/\.(jpg|jpeg|png|gif|webp)$/i)) {
-                imageUrl = `${mainImageUrl}.jpg`; // 기본 확장자 추가
-                console.log('Supabase URL 확장자 추가:', imageUrl);
-            } else {
-                imageUrl = mainImageUrl;
-            }
+            // 절대 URL - 그대로 사용
+            imageUrl = mainImageUrl;
         } else if (mainImageUrl.startsWith('/')) {
             // 상대 URL을 절대 URL로 변환
             imageUrl = `${window.location.origin}${mainImageUrl}`;
