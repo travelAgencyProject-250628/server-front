@@ -21,7 +21,11 @@
       <div class="content-container">
         <!-- 인기 상품 섹션 -->
         <section class="popular-products">
-          <h2 class="popular-title">인기 여행</h2>
+          <div class="popular-title-group">
+            <span class="title-green">절찬인기여행</span>
+            <span class="title-black">더쉼투어 추천!</span>
+            <span class="title-gray">더쉼투어가 추천하는 인기여행을 소개합니다.</span>
+          </div>
           <div class="popular-grid">
             <div 
               v-for="product in popularProducts" 
@@ -799,11 +803,34 @@ onMounted(async () => {
   margin-bottom: 2rem;
 }
 
-.popular-title {
-  font-size: 1.5rem;
-  font-weight: 600;
-  color: var(--text-primary);
-  margin-bottom: 1rem;
+.popular-title-group {
+  margin-bottom: 1.5rem;
+  display: flex;
+  align-items: baseline;
+  gap: 0.8rem;
+  flex-wrap: wrap;
+}
+
+.title-green {
+  font-size: 2rem;
+  font-weight: 800;
+  color: #10b981;
+  line-height: 1.2;
+}
+
+.title-black {
+  font-size: 2rem;
+  font-weight: 700;
+  color: #1f2937;
+  line-height: 1.2;
+}
+
+.title-gray {
+  font-size: 0.9rem;
+  font-weight: 500;
+  color: #6b7280;
+  line-height: 1.4;
+  margin-top: 0.2rem;
 }
 
 .popular-grid {
@@ -931,8 +958,16 @@ onMounted(async () => {
     grid-template-columns: 1fr;
   }
   
-  .popular-title {
-    font-size: 1.25rem;
+  .title-green {
+    font-size: 1.5rem;
+  }
+  
+  .title-black {
+    font-size: 1.2rem;
+  }
+  
+  .title-gray {
+    font-size: 0.8rem;
   }
 }
 
