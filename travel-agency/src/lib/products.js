@@ -229,13 +229,32 @@ export async function getProductDetail(productId) {
  * @param {string} sortBy - 정렬 기준 ('latest', 'price-low', 'price-high', 'popular')
  * @returns {Promise<{success: boolean, products: Array, error?: string}>}
  */
-export async function getProductsByCategory(categoryId, tagId = null, sortBy = 'latest') {
+export async function getProductsByCategory(categoryId, tagId = null, sortBy = 'latest', page = 1, limit = 12) {
   try {
-    let query = supabase
+    // 전체 개수 조회
+    let countQuery = supabase
       .from('Products')
-      .select('id, title, subtitle, main_image_url, adult_price, child_price, duration, tag_id, location:location_id(id, name), badge:badge_id(id, name)')
+      .select('*', { count: 'exact', head: true })
       .eq('category_id', categoryId)
       .eq('status', true)
+    
+    if (tagId) {
+      countQuery = countQuery.eq('tag_id', tagId)
+    }
+    
+    const { count, error: countError } = await countQuery
+    if (countError) throw countError
+    
+    // 페이지네이션 적용
+    const from = (page - 1) * limit
+    const to = from + limit - 1
+    
+    let query = supabase
+      .from('Products')
+      .select('id, title, subtitle, main_image_url, adult_price, child_price, duration, tag_id, included_items, location:location_id(id, name), badge:badge_id(id, name)')
+      .eq('category_id', categoryId)
+      .eq('status', true)
+      .range(from, to)
     
     // 서브카테고리(태그) 필터링
     if (tagId) {
@@ -262,20 +281,41 @@ export async function getProductsByCategory(categoryId, tagId = null, sortBy = '
     const { data, error } = await query
     if (error) throw error
 
-    // 각 상품의 예약 개수를 조회
+    // 각 상품의 예약 개수와 출발일 정보를 조회
     const productsWithBookingCount = await Promise.all((data || []).map(async (product) => {
+      // 예약 개수 조회
       const { count, error: bookingError } = await supabase
         .from('Bookings')
         .select('*', { count: 'exact', head: true })
         .eq('product_id', product.id)
         .not('status', 'eq', 'canceled') // 취소된 예약 제외
       
-      if (bookingError) {
-        console.error(`예약 개수 조회 오류 (상품 ${product.id}):`, bookingError)
-        return { ...product, bookingCount: 0 }
+      // 출발일 조회 (가장 가까운 3개)
+      const { data: departureDates, error: dateError } = await supabase
+        .from('ProductDepartureDates')
+        .select('departure_date')
+        .eq('product_id', product.id)
+        .eq('status', true)
+        .gte('departure_date', new Date().toISOString().split('T')[0])
+        .order('departure_date', { ascending: true })
+        .limit(3)
+      
+      let departureDateString = '출발일 문의'
+      if (!dateError && departureDates && departureDates.length > 0) {
+        departureDateString = departureDates
+          .map(date => {
+            const d = new Date(date.departure_date)
+            return `${d.getMonth() + 1}/${d.getDate()}`
+          })
+          .join(', ')
       }
       
-      return { ...product, bookingCount: count || 0 }
+      if (bookingError) {
+        console.error(`예약 개수 조회 오류 (상품 ${product.id}):`, bookingError)
+        return { ...product, bookingCount: 0, departureDates: departureDateString }
+      }
+      
+      return { ...product, bookingCount: count || 0, departureDates: departureDateString }
     }))
 
     // 인기순 정렬이면 예약 개수 기준으로 정렬
@@ -294,12 +334,14 @@ export async function getProductsByCategory(categoryId, tagId = null, sortBy = '
       badge: item.badge?.name || '',
       image: item.main_image_url || '',
       tagId: item.tag_id,
-      bookingCount: item.bookingCount
+      bookingCount: item.bookingCount,
+      includedItems: item.included_items || '',
+      departureDate: item.departureDates || '출발일 문의'
     }))
 
-    return { success: true, products }
+    return { success: true, products, totalCount: count }
   } catch (error) {
-    return { success: false, products: [], error: error.message }
+    return { success: false, products: [], totalCount: 0, error: error.message }
   }
 }
 

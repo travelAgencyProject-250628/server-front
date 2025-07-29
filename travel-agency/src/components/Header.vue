@@ -450,8 +450,12 @@ const toggleMobileMenu = () => {
   if (mobileMenuOpen.value) {
     mobileSearchOpen.value = false
     mobileSearchQuery.value = ''
+    // body와 html 스크롤 잠그기
+    document.documentElement.style.overflow = 'hidden'
     document.body.style.overflow = 'hidden'
   } else {
+    // body와 html 스크롤 해제
+    document.documentElement.style.overflow = ''
     document.body.style.overflow = ''
     expandedMobileCategory.value = null
   }
@@ -460,6 +464,8 @@ const toggleMobileMenu = () => {
 const closeMobileMenu = () => {
   mobileMenuOpen.value = false
   expandedMobileCategory.value = null
+  // body와 html 스크롤 해제
+  document.documentElement.style.overflow = ''
   document.body.style.overflow = ''
 }
 
@@ -700,8 +706,6 @@ const handleMobileSearch = () => {
 // 광고 배너 닫기
 const closeAdBanner = () => {
   showAdBanner.value = false
-  // 로컬 스토리지에 닫기 상태 저장 (24시간 동안)
-  localStorage.setItem('adBannerClosed', Date.now().toString())
 }
 
 // 카테고리 페이지로 이동
@@ -713,6 +717,17 @@ const goToCategory = (categoryId) => {
 
 // 컴포넌트 마운트 시 메뉴 데이터 불러오기
 onMounted(async () => {
+  // --vh CSS 변수 설정 (iOS Safari 주소창 대응)
+  const setVH = () => {
+    document.documentElement.style.setProperty('--vh', window.innerHeight * 0.01 + 'px')
+  }
+  
+  // 초기 설정
+  setVH()
+  
+  // 리사이즈 이벤트 리스너 추가
+  window.addEventListener('resize', setVH)
+  
   await Promise.all([
     fetchMenuData(),
     getCurrentSession()
@@ -943,7 +958,7 @@ onMounted(async () => {
   padding: 0.625rem 1rem;
   border: none;
   outline: none;
-  font-size: 0.85rem;
+  font-size: 0.95rem;
   background: transparent;
   color: var(--text-primary);
 }
@@ -1372,10 +1387,10 @@ onMounted(async () => {
   top: 0;
   left: 0;
   width: 100vw;
-  height: 100vh;
+  height: calc(var(--vh, 1vh) * 100);
   background: white;
   z-index: 9999;
-  overflow-y: auto;
+  overflow: hidden;
 }
 
 .nav-mobile.active {
@@ -1438,6 +1453,8 @@ onMounted(async () => {
 .mobile-content {
   flex: 1;
   overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior: contain;
 }
 
 .mobile-nav-menu {
