@@ -706,8 +706,6 @@ const handleMobileSearch = () => {
 // 광고 배너 닫기
 const closeAdBanner = () => {
   showAdBanner.value = false
-  // 로컬 스토리지에 닫기 상태 저장 (24시간 동안)
-  localStorage.setItem('adBannerClosed', Date.now().toString())
 }
 
 // 카테고리 페이지로 이동
@@ -729,23 +727,6 @@ onMounted(async () => {
   
   // 리사이즈 이벤트 리스너 추가
   window.addEventListener('resize', setVH)
-  
-  // 광고 배너 표시 여부 확인 (24시간 이내에 닫았는지 체크)
-  const adBannerClosed = localStorage.getItem('adBannerClosed')
-  if (adBannerClosed) {
-    const closedTime = parseInt(adBannerClosed)
-    const currentTime = Date.now()
-    const twentyFourHours = 24 * 60 * 60 * 1000 // 24시간을 밀리초로 변환
-    
-    // 24시간이 지나지 않았으면 배너 숨김
-    if (currentTime - closedTime < twentyFourHours) {
-      showAdBanner.value = false
-    } else {
-      // 24시간이 지났으면 localStorage에서 제거하고 배너 표시
-      localStorage.removeItem('adBannerClosed')
-      showAdBanner.value = true
-    }
-  }
   
   await Promise.all([
     fetchMenuData(),
