@@ -3,7 +3,7 @@
     <div class="calendar-header">
       <h3>출발일 선택</h3>
       <p class="calendar-description">
-        내일부터 3주간 출발 가능한 날짜를 선택하세요
+내일부터 3주간 출발 가능한 날짜를 선택하세요 (화살표로 다른 달도 확인 가능)
       </p>
     </div>
 
@@ -11,15 +11,12 @@
       <VCalendar v-model="selectedDate" 
       :columns="calendarColumns" 
       :rows="calendarRows" 
-      :min-date="currentMonth"
-      :max-date="nextMonthEnd" 
-      :from-page="fromPage" 
-      :to-page="toPage"
       :attributes="calendarAttributes"
       :disabled-dates="disabledDates" 
       locale="ko" 
       @dayclick="handleDateClick" 
-      :nav-visibility="'hidden'"
+      :nav-visibility="'focus'"
+      :step="1"
       class="custom-calendar" 
       :style="calendarStyle">
         <template #day-content="{ day }">
@@ -123,7 +120,7 @@ const calendarColumns = computed(() => {
 })
 
 const calendarRows = computed(() => {
-  return windowWidth.value > 750 ? 1 : 2  // 큰 화면: 세로 1개, 작은 화면: 세로 2개
+  return 1  // 모든 화면에서 세로 1개 (한 달만 표시)
 })
 
 // 달력 크기 스타일 계산
@@ -131,15 +128,6 @@ const calendarStyle = computed(() => ({
   width: '100%',
 }))
 
-
-// 이번 달과 다음 달 설정
-const currentMonth = computed(() => {
-  return new Date(today.getFullYear(), today.getMonth(), 1)
-})
-
-const nextMonthEnd = computed(() => {
-  return new Date(today.getFullYear(), today.getMonth() + 2, 0) // 다음 달 마지막 날
-})
 
 // 3주 범위 설정 (실제 선택 가능한 날짜)
 const minSelectableDate = computed(() => {
@@ -154,23 +142,11 @@ const maxSelectableDate = computed(() => {
   return maxDate
 })
 
-// 달력 페이지 설정 (이번 달과 다음 달 고정)
-const fromPage = computed(() => {
-  return { month: today.getMonth() + 1, year: today.getFullYear() }
-})
-
-const toPage = computed(() => {
-  const nextMonth = new Date(today.getFullYear(), today.getMonth() + 1, 1)
-  return { month: nextMonth.getMonth() + 1, year: nextMonth.getFullYear() }
-})
-
-// 비활성화할 날짜들 (3주 범위 외 + 출발 불가능 날짜 + 예약마감 날짜)
+// 비활성화할 날짜들 (과거 날짜 + 출발 불가능 날짜 + 예약마감 날짜)
 const disabledDates = computed(() => {
   const disabled = [
     // 오늘까지 이전 날짜들 (내일부터 선택 가능하도록)
-    { start: null, end: today },
-    // 3주 이후 날짜들 (22일부터)
-    { start: maxSelectableDate.value, end: null }
+    { start: null, end: today }
   ]
   
   // 3주 범위 내에서 출발 불가능한 날짜들과 예약마감 날짜들 추가
@@ -190,6 +166,18 @@ const disabledDates = computed(() => {
     if (bookingInfo && bookingInfo.bookingCount >= props.closingThreshold) {
       disabled.push(date)
     }
+  }
+  
+  // 3주 범위를 넘어서는 모든 날짜들 비활성화 (선택은 불가능하지만 달력은 볼 수 있도록)
+  const threeWeeksLater = new Date(today)
+  threeWeeksLater.setDate(today.getDate() + 22) // 22일부터
+  
+  // 6개월 후까지 비활성화
+  const sixMonthsLater = new Date(today)
+  sixMonthsLater.setMonth(today.getMonth() + 6)
+  
+  for (let date = new Date(threeWeeksLater); date <= sixMonthsLater; date.setDate(date.getDate() + 1)) {
+    disabled.push(new Date(date))
   }
 
   return disabled
@@ -614,9 +602,36 @@ onMounted(() => {
   font-size: 1em !important;
 }
 
-/* 네비게이션 화살표 제거 */
+/* 네비게이션 화살표 스타일 */
 :deep(.vc-arrow) {
-  display: none !important;
+  display: flex !important;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 6px;
+  background: transparent;
+  border: 1px solid #e2e8f0;
+  color: #64748b;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+:deep(.vc-arrow:hover) {
+  background: var(--primary-color);
+  border-color: var(--primary-color);
+  color: white;
+}
+
+:deep(.vc-arrow:disabled) {
+  opacity: 0.3;
+  cursor: not-allowed;
+}
+
+:deep(.vc-arrow:disabled:hover) {
+  background: transparent;
+  border-color: #e2e8f0;
+  color: #64748b;
 }
 
 /* 월 제목 스타일 */
@@ -624,8 +639,7 @@ onMounted(() => {
   background: transparent !important;
   border: none !important;
   box-shadow: none !important;
-  pointer-events: none;
-  cursor: default;
+  cursor: pointer;
   padding: 0.75rem !important;
 }
 
@@ -753,13 +767,36 @@ onMounted(() => {
 
 /* 반응형 디자인 */
 
-@media (max-width: 480px) {
-  .calendar-legend {
-    flex-direction: column;
-    gap: 0.75rem;
-    align-items: center;
+@media (max-width: 768px) {
+  /* 모바일에서 화살표 크기 조정 */
+  :deep(.vc-arrow) {
+    width: 24px;
+    height: 24px;
+    border-radius: 4px;
   }
+  
+  /* 모바일에서 달력 헤더 여백 조정 */
+  :deep(.vc-header) {
+    margin-bottom: 0.75rem;
+  }
+  
+  /* 모바일에서 월 제목 패딩 조정 */
+  :deep(.vc-title) {
+    padding: 0.5rem !important;
+    font-size: 1rem;
+  }
+}
 
+@media (max-width: 768px) {
+  .calendar-legend {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.75rem 1rem;
+    justify-items: center;
+  }
+}
+
+@media (max-width: 480px) {
   .selected-date-display {
     flex-direction: column;
     gap: 0.5rem;
