@@ -89,12 +89,12 @@
             <div class="product-content">
               <h3 class="product-title">{{ product.title }}</h3>
               
-              <div class="product-badges">
+              <div class="product-badges ">
                 <span class="badge departure-badge">출발일</span>
                 <span class="badge-content">{{ product.departureDate }}</span>
               </div>
               
-              <div class="product-badges">
+              <div class="product-badges mobile-hide">
                 <span class="badge include-badge">포함내역</span>
                 <div class="badge-content include-content">
                   <div v-if="product.includedItems" v-html="formatIncludedItems(product.includedItems)"></div>
@@ -523,7 +523,6 @@ onMounted(async () => {
   overflow: hidden;
   cursor: pointer;
   transition: var(--transition);
-  padding-bottom: 2.5rem;
   margin-bottom: 2.5rem;
 }
 
@@ -618,7 +617,7 @@ onMounted(async () => {
   display: flex;
   align-items: center;
   gap: 1rem;
-  margin-top: auto;
+  margin-top: 1.5rem;
 }
 
 .price-badge {
@@ -678,7 +677,7 @@ onMounted(async () => {
   
   .product-content {
     padding: 1rem;
-    gap: 0.8rem;
+    gap: 0.1rem;
   }
   
   .product-title {
@@ -706,10 +705,7 @@ onMounted(async () => {
   }
   
   .product-price-section {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 0.5rem;
-    margin-top: 0.5rem;
+    margin-top: 0rem !important;
   }
   
   .price-badge {
@@ -720,6 +716,47 @@ onMounted(async () => {
   
   .product-price {
     font-size: 1.4rem;
+  }
+  
+  /* 모바일에서 포함내역 내용 숨기기 */
+  .mobile-hide {
+    display: none;
+  }
+  
+  /* 모바일에서 상품가 배지 숨기기 */
+  .price-badge {
+    display: none;
+  }
+  
+  /* 모바일에서 출발일 배지 숨기기 */
+  .departure-badge {
+    display: none;
+  }
+  
+  /* 모바일에서 출발일을 텍스트 형태로 표시 */
+  .product-badges .badge-content {
+    font-size: 0.9rem;
+    color: #333;
+    font-weight: 500;
+  }
+  
+  /* 출발일 텍스트 앞에 "출발일: " 추가 */
+  .product-badges:first-of-type .badge-content::before {
+    content: "출발일: ";
+    font-weight: 600;
+    color: #666;
+  }
+  .product-card {
+    padding-bottom: 0rem;
+    margin-bottom: 0.5rem;
+  }
+
+  .product-content {
+    padding: 0.5rem; 
+  }
+
+  .product-price-section {
+    margin-top: 0.5rem;
   }
 }
 
