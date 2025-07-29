@@ -3,7 +3,7 @@
     <div class="calendar-header">
       <h3>출발일 선택</h3>
       <p class="calendar-description">
-        내일부터 6개월간 출발 가능한 날짜를 선택하세요.
+        내일부터 출발 가능한 날짜를 선택하세요 (화살표로 언제든지 이동 가능).
       </p>
     </div>
 
@@ -12,9 +12,7 @@
       :columns="calendarColumns" 
       :rows="calendarRows" 
       :min-date="currentMonth"
-      :max-date="maxSelectableDate" 
       :from-page="fromPage" 
-      :to-page="{ month: maxSelectableDate.getMonth() + 1, year: maxSelectableDate.getFullYear() }"
       :attributes="calendarAttributes"
       :disabled-dates="disabledDates" 
       locale="ko" 
@@ -142,7 +140,7 @@ const nextMonthEnd = computed(() => {
   return new Date(today.getFullYear(), today.getMonth() + 2, 0) // 다음 달 마지막 날
 })
 
-// 선택 가능한 날짜 범위 설정 (내일부터 6개월 후까지)
+// 선택 가능한 날짜 범위 설정 
 const minSelectableDate = computed(() => {
   const tomorrow = new Date(today)
   tomorrow.setDate(today.getDate() + 1)
@@ -151,7 +149,7 @@ const minSelectableDate = computed(() => {
 
 const maxSelectableDate = computed(() => {
   const maxDate = new Date(today)
-  maxDate.setMonth(maxDate.getMonth() + 6) // 6개월 후까지
+  maxDate.setFullYear(maxDate.getFullYear() + 2) // 2년 후까지 (사실상 무제한)
   return maxDate
 })
 
@@ -165,18 +163,18 @@ const toPage = computed(() => {
   return { month: nextMonth.getMonth() + 1, year: nextMonth.getFullYear() }
 })
 
-// 비활성화할 날짜들 (6개월 범위 외 + 출발 불가능 날짜 + 예약마감 날짜)
+// 비활성화할 날짜들 (과거 날짜 + 출발 불가능 날짜 + 예약마감 날짜)
 const disabledDates = computed(() => {
   const disabled = [
     // 오늘까지 이전 날짜들 (내일부터 선택 가능하도록)
-    { start: null, end: today },
-    // 6개월 이후 날짜들
-    { start: maxSelectableDate.value, end: null }
+    { start: null, end: today }
   ]
   
-  // 6개월 범위 내에서 출발 불가능한 날짜들과 예약마감 날짜들 추가
+  // 로드된 출발 가능 날짜 범위에서 출발 불가능한 날짜들과 예약마감 날짜들 추가
   const currentDate = new Date(minSelectableDate.value)
-  while (currentDate <= maxSelectableDate.value) {
+  const endDate = new Date(maxSelectableDate.value) // 2년 후까지
+  
+  while (currentDate <= endDate) {
     const dateKey = formatDateKey(currentDate)
     
     // 출발 불가능한 날짜 (ProductDepartureDates에 없는 날짜)
@@ -203,9 +201,9 @@ const loadBookingData = async () => {
   try {
     console.log('🔍 예약 데이터 로드 시작 - productId:', props.productId)
     
-    // 현재 시점으로부터 6개월간의 날짜 범위 계산
+    // 현재 시점으로부터 10년간의 날짜 범위 계산
     const startDate = formatDateKey(minSelectableDate.value) // 내일
-    const endDate = formatDateKey(maxSelectableDate.value)   // 6개월 후
+    const endDate = formatDateKey(maxSelectableDate.value)   // 2년 후
     
     console.log('🔍 조회 날짜 범위:', { startDate, endDate })
     
@@ -218,7 +216,7 @@ const loadBookingData = async () => {
     
     if (error) throw error
     
-    console.log('🔍 View에서 가져온 예약 데이터 (6개월간):', data)
+    console.log('🔍 View에서 가져온 예약 데이터 (2년간):', data)
     
     // 날짜별로 예약 인원 수 계산 (성인 + 아동)
     const bookingCountMap = new Map()
@@ -289,7 +287,7 @@ const bookingMap = computed(() => {
 const calendarAttributes = computed(() => {
   const attributes = []
 
-  // 6개월 범위의 각 날짜별로 개별 속성 생성
+  // 2년 범위의 각 날짜별로 개별 속성 생성 (실제로는 로드된 출발 날짜만)
   const currentDate = new Date(minSelectableDate.value)
   while (currentDate <= maxSelectableDate.value) {
     const dateKey = formatDateKey(currentDate)

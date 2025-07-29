@@ -3,11 +3,23 @@
     <!-- 상단 헤더 -->
     <div class="page-header">
       <h2>출발 날짜 관리</h2>
-      <p>상품별로 출발 가능한 날짜를 설정하세요</p>
+      <p>상품별로 출발 가능한 날짜를 설정하세요 (무제한 기간 설정 가능)</p>
     </div>
 
     <!-- 상품 선택 -->
     <div class="product-selector">
+      <div class="form-group">
+        <label for="productSearch">상품 검색</label>
+        <input 
+          id="productSearch"
+          v-model="searchQuery" 
+          type="text" 
+          placeholder="상품명 또는 상품코드로 검색하세요"
+          class="form-input"
+          @input="onSearchInput"
+        >
+      </div>
+      
       <div class="form-group">
         <label for="productSelect">상품 선택</label>
         <select 
@@ -15,12 +27,18 @@
           v-model="selectedProductId"
           @change="loadDepartureDates"
           class="form-select"
+          :disabled="filteredProducts.length === 0"
         >
-          <option value="">상품을 선택하세요</option>
-          <option v-for="product in products" :key="product.id" :value="product.id">
-            {{ product.title }}
+          <option value="">
+            {{ filteredProducts.length === 0 ? '검색 결과가 없습니다' : '상품을 선택하세요' }}
+          </option>
+          <option v-for="product in filteredProducts" :key="product.id" :value="product.id">
+            [{{ product.product_code }}] {{ product.title }}
           </option>
         </select>
+        <div v-if="filteredProducts.length > 0" class="search-result-count">
+          {{ filteredProducts.length }}개 상품 검색됨
+        </div>
       </div>
     </div>
 
@@ -118,6 +136,7 @@ import { getProductDepartureDatesInRange, batchUpdateDepartureDates } from '@/li
 // 반응형 데이터
 const products = ref([])
 const selectedProductId = ref('')
+const searchQuery = ref('')
 const currentMonth = ref(new Date())
 const departureDates = ref(new Map()) // 날짜별 출발 가능 여부
 const originalDepartureDates = ref(new Map()) // 원본 데이터 (변경사항 추적용)
@@ -131,11 +150,26 @@ const weekdays = ['일', '월', '화', '수', '목', '금', '토']
 const today = new Date()
 today.setHours(0, 0, 0, 0)
 
-// 6달 후까지의 범위
+// 무제한 날짜 범위 (10년 후까지)
 const maxDate = computed(() => {
   const max = new Date(today)
-  max.setMonth(max.getMonth() + 6)
+  max.setFullYear(max.getFullYear() + 10)
   return max
+})
+
+// 검색된 상품 목록
+const filteredProducts = computed(() => {
+  if (!searchQuery.value.trim()) {
+    return products.value
+  }
+  
+  const query = searchQuery.value.toLowerCase().trim()
+  return products.value.filter(product => {
+    const title = product.title?.toLowerCase() || ''
+    const productCode = product.product_code?.toLowerCase() || ''
+    
+    return title.includes(query) || productCode.includes(query)
+  })
 })
 
 // 현재 월의 캘린더 날짜들 생성
@@ -160,7 +194,6 @@ const calendarDates = computed(() => {
     const isOtherMonth = date.getMonth() !== month
     const isToday = date.getTime() === today.getTime()
     const isPast = date < today
-    const isInRange = date <= maxDate.value
     const dateString = formatDateString(date)
     
     dates.push({
@@ -170,8 +203,7 @@ const calendarDates = computed(() => {
       dateString,
       isOtherMonth,
       isToday,
-      isPast,
-      isInRange
+      isPast
     })
   }
   
@@ -195,7 +227,7 @@ const loadDepartureDates = async () => {
   
   loading.value = true
   try {
-    // 현재 월부터 6달 후까지의 날짜 범위
+    // 현재 월부터 10년 후까지의 날짜 범위
     const startDate = formatDateString(new Date(currentMonth.value.getFullYear(), currentMonth.value.getMonth(), 1))
     const endDate = formatDateString(maxDate.value)
     
@@ -226,7 +258,7 @@ const toggleDepartureDate = (dateString, enabled) => {
 
 const selectAllDates = () => {
   calendarDates.value.forEach(date => {
-    if (!date.isOtherMonth && !date.isPast && date.isInRange) {
+    if (!date.isOtherMonth && !date.isPast) {
       departureDates.value.set(date.dateString, true)
     }
   })
@@ -234,7 +266,7 @@ const selectAllDates = () => {
 
 const clearAllDates = () => {
   calendarDates.value.forEach(date => {
-    if (!date.isOtherMonth && !date.isPast && date.isInRange) {
+    if (!date.isOtherMonth && !date.isPast) {
       departureDates.value.set(date.dateString, false)
     }
   })
@@ -298,8 +330,8 @@ const nextMonth = () => {
   const newMonth = new Date(currentMonth.value)
   newMonth.setMonth(newMonth.getMonth() + 1)
   
-  // 6달 후까지만 이동 가능
-  const maxMonth = new Date(today.getFullYear(), today.getMonth() + 6, 1)
+  // 10년 후까지 이동 가능
+  const maxMonth = new Date(today.getFullYear() + 10, 11, 1) // 10년 후 12월
   if (newMonth <= maxMonth) {
     currentMonth.value = newMonth
   }
@@ -317,6 +349,21 @@ const formatDateString = (date) => {
   const month = String(date.getMonth() + 1).padStart(2, '0')
   const day = String(date.getDate()).padStart(2, '0')
   return `${year}-${month}-${day}`
+}
+
+const onSearchInput = () => {
+  // 검색어 변경 시 현재 선택된 상품이 검색 결과에 없으면 선택 해제
+  if (selectedProductId.value) {
+    const isProductInResults = filteredProducts.value.some(product => 
+      product.id.toString() === selectedProductId.value.toString()
+    )
+    
+    if (!isProductInResults) {
+      selectedProductId.value = ''
+      departureDates.value = new Map()
+      originalDepartureDates.value = new Map()
+    }
+  }
 }
 
 // 월 변경 시 데이터 다시 로드
@@ -367,6 +414,10 @@ onMounted(() => {
 }
 
 .form-group {
+  margin-bottom: 1.5rem;
+}
+
+.form-group:last-child {
   margin-bottom: 0;
 }
 
@@ -378,7 +429,7 @@ onMounted(() => {
   color: #374151;
 }
 
-.form-select {
+.form-input, .form-select {
   width: 100%;
   max-width: 400px;
   padding: 0.75rem;
@@ -386,12 +437,26 @@ onMounted(() => {
   border-radius: 6px;
   font-size: 0.875rem;
   background: white;
+  transition: border-color 0.2s, box-shadow 0.2s;
 }
 
-.form-select:focus {
+.form-input:focus, .form-select:focus {
   outline: none;
   border-color: #3b82f6;
   box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+.form-select:disabled {
+  background-color: #f9fafb;
+  color: #9ca3af;
+  cursor: not-allowed;
+}
+
+.search-result-count {
+  margin-top: 0.5rem;
+  font-size: 0.75rem;
+  color: #6b7280;
+  font-style: italic;
 }
 
 /* 캘린더 섹션 */
