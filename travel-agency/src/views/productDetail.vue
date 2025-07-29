@@ -187,7 +187,7 @@
 
                     <!-- 상세 이미지 섹션 -->
                     <section id="detail" v-if="productDetail.detailImage" class="content-section detail-image-section" ref="detailSection">
-                        <h2 class="section-title">상세정보</h2>
+                        <h2 class="section-title">여행일정표</h2>
                         <div class="detail-image-container">
                             <img 
                                 :src="productDetail.detailImage" 

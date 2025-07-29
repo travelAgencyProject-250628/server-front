@@ -3,7 +3,7 @@
     <div class="calendar-header">
       <h3>출발일 선택</h3>
       <p class="calendar-description">
-        내일부터 6개월간 출발 가능한 날짜를 선택하세요 (화살표로 다른 달도 확인 가능)
+        내일부터 6개월간 출발 가능한 날짜를 선택하세요.
       </p>
     </div>
 
@@ -781,13 +781,36 @@ onMounted(() => {
 
 /* 반응형 디자인 */
 
-@media (max-width: 480px) {
-  .calendar-legend {
-    flex-direction: column;
-    gap: 0.75rem;
-    align-items: center;
+@media (max-width: 768px) {
+  /* 모바일에서 화살표 크기 조정 */
+  :deep(.vc-arrow) {
+    width: 24px;
+    height: 24px;
+    border-radius: 4px;
   }
+  
+  /* 모바일에서 달력 헤더 여백 조정 */
+  :deep(.vc-header) {
+    margin-bottom: 0.75rem;
+  }
+  
+  /* 모바일에서 월 제목 패딩 조정 */
+  :deep(.vc-title) {
+    padding: 0.5rem !important;
+    font-size: 1rem;
+  }
+}
 
+@media (max-width: 768px) {
+  .calendar-legend {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.75rem 1rem;
+    justify-items: center;
+  }
+}
+
+@media (max-width: 480px) {
   .selected-date-display {
     flex-direction: column;
     gap: 0.5rem;

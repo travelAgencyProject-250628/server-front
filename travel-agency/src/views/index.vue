@@ -28,7 +28,70 @@
       </div>
     </section>
 
-
+    <!-- 여행 추천 배너 섹션 -->
+    <section class="travel-recommendation-banner">
+      <div class="container">
+        <div class="banner-content">
+          <!-- 왼쪽 텍스트 영역 -->
+          <div class="banner-text">
+            <h2 class="banner-title">
+              요즘 여행 🪷<br>
+              어디로 갈까?
+            </h2>
+            <div class="banner-buttons">
+              <!-- PC 버전: 세로로 모든 버튼 -->
+              <template v-if="windowWidth > 768">
+                <button 
+                  v-for="(category, index) in categories"
+                  :key="category.id"
+                  class="banner-btn" 
+                  :class="{ primary: selectedCategoryIndex === index }"
+                  @click="changeCategory(index)"
+                                  >{{ getCategoryIcon(index) }} {{ category.description || category.name }}</button>
+              </template>
+              
+              <!-- 모바일 버전: 2줄로 나누어서 -->
+              <template v-else>
+                <!-- 첫 번째 줄: 2개 -->
+                <div class="banner-row">
+                  <button 
+                    v-for="(category, index) in categories.slice(0, 2)"
+                    :key="category.id"
+                    class="banner-btn" 
+                    :class="{ primary: selectedCategoryIndex === index }"
+                    @click="changeCategory(index)"
+                  >{{ getCategoryIcon(index) }} {{ category.description || category.name }}</button>
+                </div>
+                <!-- 두 번째 줄: 3개 -->
+                <div class="banner-row">
+                  <button 
+                    v-for="(category, index) in categories.slice(2, 5)"
+                    :key="category.id"
+                    class="banner-btn" 
+                    :class="{ primary: selectedCategoryIndex === (index + 2) }"
+                    @click="changeCategory(index + 2)"
+                                      >{{ getCategoryIcon(index + 2) }} {{ category.description || category.name }}</button>
+                </div>
+              </template>
+            </div>
+          </div>
+          
+          <!-- 오른쪽 상품 카드 영역 -->
+          <div class="banner-products">
+            <div class="product-slider" ref="productSlider" 
+                 @touchstart="handleTouchStart" 
+                 @touchend="handleTouchEnd">
+              <ProductCard 
+                v-for="product in bannerProducts" 
+                :key="product.id"
+                :product="product"
+                @click="handleProductClick"
+              />
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
 
     <!-- 인기 상품 섹션 -->
     <section class="popular-tours">
@@ -84,6 +147,7 @@ import { ref, onMounted, onBeforeUnmount, computed} from 'vue'
 import { useRouter } from 'vue-router'
 import { getBannerImages } from '../lib/banners.js'
 import { getPopularTours } from '../lib/products.js'
+import ProductCard from '@/components/ProductCard.vue'
 
 // 라우터 초기화
 const router = useRouter()
@@ -96,6 +160,19 @@ const isLoading = ref(true)
 
 // 인기 투어 데이터 (API에서 가져올 예정)
 const popularTours = ref([])
+
+// 배너 상품 데이터
+const bannerProducts = ref([])
+const selectedCategoryIndex = ref(0) // 기본 선택 카테고리 인덱스
+const categories = ref([]) // 카테고리 목록
+const categoryProducts = ref({}) // 카테고리별 상품 데이터
+
+// 반응형 화면 크기 감지
+const windowWidth = ref(window.innerWidth)
+
+// 모바일 슬라이더 관련
+const productSlider = ref(null)
+const currentProductSlide = ref(0)
 
 // 배너 데이터 가져오기
 const fetchBannerData = async () => {
@@ -141,6 +218,127 @@ const fetchPopularTours = async () => {
   }
 }
 
+// 카테고리 데이터 가져오기
+const fetchCategoriesAndProducts = async () => {
+  try {
+    console.log('🚀 카테고리 및 상품 데이터 로딩 시작')
+    
+    // 1. 카테고리 id 순으로 앞쪽 5개 가져오기
+    const { categoryService } = await import('@/lib/categories.js')
+    const categoryResponse = await categoryService.getAllCategories()
+    
+    console.log('📂 카테고리 응답:', categoryResponse)
+    
+    if (categoryResponse.success) {
+      categories.value = categoryResponse.categories
+        .sort((a, b) => a.id - b.id) // id 순으로 정렬
+        .slice(0, 5) // 앞쪽 5개만
+      
+      console.log('✅ 선택된 카테고리 5개:', categories.value)
+    }
+    
+    // 2. 각 카테고리별로 상품 3개씩 가져오기
+    const { getProductsByCategory } = await import('@/lib/products.js')
+    
+    // 각 카테고리별로 상품 조회
+    for (const category of categories.value) {
+      console.log(`🛍️ 카테고리 "${category.name}" (ID: ${category.id}) 상품 조회 중...`)
+      
+      const productsResponse = await getProductsByCategory(category.id, null, 'latest')
+      
+      console.log(`📦 카테고리 ${category.id} 상품 응답:`, productsResponse)
+      
+      let categoryProductList = []
+      if (productsResponse.success && productsResponse.products.length > 0) {
+        console.log(`✨ 실제 상품 ${productsResponse.products.length}개 발견`)
+        
+        // 실제 상품 데이터 매핑
+        categoryProductList = productsResponse.products.slice(0, 3).map(product => {
+          console.log(`🔍 상품 매핑 전체 객체:`, product)
+          console.log(`💰 가격 정보 상세:`, {
+            adult_price: product.adult_price,
+            adult_price_type: typeof product.adult_price,
+            adult_price_exists: product.adult_price !== undefined && product.adult_price !== null,
+            child_price: product.child_price,
+            all_keys: Object.keys(product)
+          })
+          
+          const mappedProduct = {
+            id: product.id,
+            title: product.title,
+            image: product.image || product.main_image_url || '/logo.png',
+            price: product.price || 29000,
+            badge: typeof product.badge === 'string' ? product.badge : (product.badge?.name || '리무진버스'),
+            tag: null, // 실제 태그 로직이 있다면 적용
+            category: category.name,
+            isDummy: false
+          }
+          
+          console.log(`🏷️ 상품 "${product.title}" badge 정보:`, {
+            badge_object: product.badge,
+            badge_type: typeof product.badge,
+            badge_name: product.badge?.name,
+            final_badge: mappedProduct.badge,
+            full_product: product
+          })
+          
+          console.log(`✅ 매핑된 상품:`, mappedProduct)
+          return mappedProduct
+        })
+      } else {
+        console.log(`⚠️ 카테고리 ${category.name}에 상품이 없음`)
+      }
+      
+      // 3개가 안되면 더미데이터로 채우기
+      const originalLength = categoryProductList.length
+      while (categoryProductList.length < 3) {
+        const dummyProduct = {
+          id: `dummy_${category.id}_${categoryProductList.length + 1}`,
+          title: `${category.name} 추천상품 ${categoryProductList.length + 1}`,
+          image: '/logo.png', // 로컬 이미지 사용
+          price: [29000, 139000, 35000][categoryProductList.length],
+          badge: '리무진버스',
+          tag: ['할인중', null, '덤핑할인'][categoryProductList.length],
+          category: category.name,
+          isDummy: true
+        }
+        categoryProductList.push(dummyProduct)
+      }
+      
+      if (categoryProductList.length > originalLength) {
+        console.log(`🔧 더미 상품 ${categoryProductList.length - originalLength}개 추가됨`)
+      }
+      
+      categoryProducts.value[category.id] = categoryProductList
+      console.log(`💾 카테고리 ${category.name} 최종 상품 리스트:`, categoryProductList)
+    }
+    
+    // 기본 선택 카테고리의 상품 표시
+    if (categories.value.length > 0) {
+      bannerProducts.value = categoryProducts.value[categories.value[0].id] || []
+      console.log('🎯 기본 선택된 배너 상품들:', bannerProducts.value)
+    }
+    
+    console.log('🎉 카테고리 및 상품 데이터 로딩 완료!')
+    console.log('📊 전체 카테고리별 상품 데이터:', categoryProducts.value)
+    
+  } catch (error) {
+    console.error('❌ 카테고리 및 상품 로드 오류:', error)
+  }
+}
+
+// 카테고리 변경 함수
+const changeCategory = (categoryIndex) => {
+  selectedCategoryIndex.value = categoryIndex
+  const selectedCategory = categories.value[categoryIndex]
+  if (selectedCategory) {
+    bannerProducts.value = categoryProducts.value[selectedCategory.id] || []
+    // 모바일 슬라이더 초기화
+    currentProductSlide.value = 0
+    updateProductSlider()
+  }
+}
+
 // 메서드들
 const startSlider = () => {
   if (bannerImages.value.length > 0) {
@@ -158,24 +356,104 @@ const setSlide = (index) => {
 
 
 
+
+
+// 카테고리 아이콘 가져오기
+const getCategoryIcon = (index) => {
+  const icons = ['🎉', '🌊', '🍽️', '🏕️', '🌿']
+  return icons[index] || '✨'
+}
+
 // 상품 상세 페이지로 이동
 const goToProductDetail = (productId) => {
   router.push(`/product/${productId}`)
 }
 
+// ProductCard 컴포넌트에서 발생하는 클릭 이벤트 처리
+const handleProductClick = (product) => {
+  if (!product.isDummy) {
+    goToProductDetail(product.id)
+  }
+}
+
 // 라이프사이클 훅
+// 화면 크기 변경 감지
+const handleResize = () => {
+  windowWidth.value = window.innerWidth
+}
+
+// 모바일 상품 슬라이더 함수들
+const nextProductSlide = () => {
+  if (currentProductSlide.value < bannerProducts.value.length - 1) {
+    currentProductSlide.value++
+  } else {
+    currentProductSlide.value = 0
+  }
+  updateProductSlider()
+}
+
+const prevProductSlide = () => {
+  if (currentProductSlide.value > 0) {
+    currentProductSlide.value--
+  } else {
+    currentProductSlide.value = bannerProducts.value.length - 1
+  }
+  updateProductSlider()
+}
+
+const updateProductSlider = () => {
+  if (productSlider.value && windowWidth.value <= 768) {
+    const cardWidth = 280 + 16 // 카드 너비 + gap
+    const translateX = -currentProductSlide.value * cardWidth
+    productSlider.value.style.transform = `translateX(${translateX}px)`
+  }
+}
+
+// 터치/스와이프 이벤트 처리
+let touchStartX = 0
+let touchEndX = 0
+
+const handleTouchStart = (e) => {
+  touchStartX = e.changedTouches[0].screenX
+}
+
+const handleTouchEnd = (e) => {
+  touchEndX = e.changedTouches[0].screenX
+  handleSwipe()
+}
+
+const handleSwipe = () => {
+  const swipeThreshold = 50
+  const diff = touchStartX - touchEndX
+  
+  if (Math.abs(diff) > swipeThreshold) {
+    if (diff > 0) {
+      nextProductSlide() // 왼쪽으로 스와이프 -> 다음 슬라이드
+    } else {
+      prevProductSlide() // 오른쪽으로 스와이프 -> 이전 슬라이드
+    }
+  }
+}
+
 onMounted(async () => {
   await Promise.all([
     fetchBannerData(),
-    fetchPopularTours()
+    fetchPopularTours(),
+    fetchCategoriesAndProducts() // 카테고리와 상품 로드
   ])
   startSlider()
+  
+  // 리사이즈 이벤트 리스너 추가
+  window.addEventListener('resize', handleResize)
 })
 
 onBeforeUnmount(() => {
   if (sliderInterval.value) {
     clearInterval(sliderInterval.value)
   }
+  
+  // 리사이즈 이벤트 리스너 제거
+  window.removeEventListener('resize', handleResize)
 })
 </script>
 
@@ -422,9 +700,135 @@ onBeforeUnmount(() => {
 
 
 
+/* 여행 추천 배너 섹션 */
+.travel-recommendation-banner {
+  background: white;
+  padding: 3rem 0;
+}
+
+.banner-content {
+  position: relative;
+  display: flex;
+  align-items: center;
+  min-height: 400px;
+}
+
+/* 왼쪽 텍스트 영역 */
+.banner-text {
+  background: url('/section.jpg');
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  padding: 3rem 2rem;
+  border-radius: 20px;
+  width: 45%;
+  height: 570px;
+  z-index: 1;
+  position: relative;
+}
+
+.banner-title {
+  font-size: 2.5rem;
+  font-weight: 700;
+  color: #7c3aed;
+  margin-bottom: 2rem;
+  line-height: 1.2;
+}
+
+.banner-buttons {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  align-items: flex-start;
+}
+
+.banner-btn {
+  background: rgba(255, 255, 255, 0.95);
+  border: none;
+  padding: 0.5rem 1.5rem;
+  border-radius: 25px;
+  font-size: 1rem;
+  font-weight: 500;
+  color: #374151;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  text-align: center;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  backdrop-filter: blur(5px);
+  width: auto;
+  display: inline-block;
+}
+
+.banner-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+  background: white;
+}
+
+.banner-btn.primary {
+  background: rgba(31, 41, 55, 0.95);
+  color: white;
+}
+
+.banner-btn.primary:hover {
+  background: #1f2937;
+}
+
+/* 오른쪽 상품 카드 영역 */
+.banner-products {
+  position: absolute;
+  right: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1rem;
+  width: 70%;
+  height: 70%;
+  z-index: 2;
+}
+
+.product-slider {
+  display: contents; /* PC에서는 일반 그리드 */
+}
+
+
+
+.product-badge {
+  position: absolute;
+  top: 8px;
+  left: 8px;
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: white;
+}
+
+.product-badge.red {
+  background: #ef4444;
+}
+
+.product-tag {
+  position: absolute;
+  bottom: 8px;
+  left: 8px;
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: white;
+}
+
+.product-tag.green {
+  background: #10b981;
+}
+
+
+
 /* 인기 상품 섹션 */
 .popular-tours {
-  padding: 4rem 0;
+  padding: 2rem 0;
 }
 
 .section-title {
@@ -615,6 +1019,73 @@ onBeforeUnmount(() => {
     font-size: 1rem;
   }
   
+  /* 여행 추천 배너 모바일 스타일 */
+  .travel-recommendation-banner {
+    padding: 2rem 0;
+  }
+  
+  .banner-content {
+    flex-direction: column;
+    min-height: auto;
+    gap: 2rem;
+  }
+  
+  .banner-text {
+    height: auto;
+    width: 100%;
+    padding: 5px 1rem;
+    text-align: center;
+    position: static;
+    background: white !important;
+    border-radius: 0;
+  }
+  
+  .banner-text .banner-buttons {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    align-items: center;
+  }
+  
+  .banner-text .banner-buttons .banner-row {
+    display: flex;
+    gap: 0.75rem;
+    justify-content: center;
+    flex-wrap: wrap;
+  }
+  
+  .banner-text .banner-buttons .banner-row:first-child {
+    /* 첫 번째 줄: 2개 */
+  }
+  
+  .banner-text .banner-buttons .banner-row:last-child {
+    /* 두 번째 줄: 3개 */
+  }
+  
+  .banner-title {
+    font-size: 1.8rem;
+  }
+  
+  .banner-products {
+    position: static;
+    transform: none;
+    width: 100%;
+    overflow: hidden; /* 슬라이더를 위한 오버플로우 숨김 */
+  }
+  
+  .product-slider {
+    display: flex;
+    transition: transform 0.3s ease;
+    width: 100%;
+    gap: 2rem;
+    padding: 2rem 3rem;
+  }
+  
+  .product-slider .product-card {
+    flex: 0 0 280px; /* 고정 너비로 변경 */
+    max-width: 280px;
+  }
+  
   .section-title {
     font-size: 1.5rem;
   }
@@ -668,6 +1139,22 @@ onBeforeUnmount(() => {
     font-size: 1.5rem;
   }
   
-
+  /* 작은 화면에서 배너 조정 */
+  .banner-title {
+    font-size: 1.5rem;
+  }
+  
+  .banner-btn {
+    padding: 0.8rem 1.2rem;
+    font-size: 0.9rem;
+  }
+  
+  .banner-products .product-title {
+    font-size: 0.85rem;
+  }
+  
+  .banner-products .price {
+    font-size: 0.9rem;
+  }
 }
 </style>

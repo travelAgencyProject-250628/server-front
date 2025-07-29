@@ -6,8 +6,8 @@
       <img src="/kakao_banner_m.jpg" alt="카카오톡 채널 추가" class="kakao-banner-image mobile-banner">
     </div>
     
-    <footer class="footer">
-      <div class="container">
+  <footer class="footer">
+    <div class="container">
       <div class="footer-content">
         <div class="footer-section">
           <h4>회사정보</h4>
@@ -44,11 +44,11 @@
         </div>
       </div>
       
-        <div class="footer-bottom">
-          <p>&copy; 2024 더쉼투어. All Rights Reserved.</p>
-        </div>
+      <div class="footer-bottom">
+        <p>&copy; 2024 더쉼투어. All Rights Reserved.</p>
       </div>
-    </footer>
+    </div>
+  </footer>
   </div>
 </template>
 

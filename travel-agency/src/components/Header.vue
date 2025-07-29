@@ -966,6 +966,7 @@ onMounted(async () => {
 .search-input::placeholder {
   color: var(--text-secondary);
   font-weight: 400;
+  font-size: 1rem;
 }
 
 .search-btn {
@@ -1031,7 +1032,7 @@ onMounted(async () => {
 }
 
 .menu-text {
-  font-size: 0.85rem;
+  font-size: 0.8rem;
   color: var(--text-secondary);
 }
 

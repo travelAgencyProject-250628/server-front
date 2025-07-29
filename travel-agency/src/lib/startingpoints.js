@@ -47,7 +47,7 @@ export async function getProductStartingPoints(productId) {
   } catch (error) {
     return { success: false, startingPoints: [], error: error.message }
   }
-}
+} 
 
 /**
  * 출발지 추가
