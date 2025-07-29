@@ -6,7 +6,7 @@
         <input 
           type="text" 
           v-model="searchTerm"
-          placeholder="카테고리 검색..."
+          placeholder="카테고리명 또는 설명 검색..."
           class="search-input"
           @input="handleSearch"
         >
@@ -41,6 +41,7 @@
             <tr>
               <th>ID</th>
               <th>카테고리명</th>
+              <th>설명</th>
               <th>액션</th>
             </tr>
           </thead>
@@ -48,6 +49,11 @@
             <tr v-for="category in filteredCategories" :key="category.id">
               <td>{{ category.id }}</td>
               <td>{{ category.name }}</td>
+              <td>
+                <div class="description-cell">
+                  {{ category.description || '설명 없음' }}
+                </div>
+              </td>
               <td>
                 <div class="action-buttons">
                   <button 
@@ -104,6 +110,17 @@
             >
           </div>
           
+          <div class="form-group">
+            <label for="categoryDescription">설명</label>
+            <textarea 
+              id="categoryDescription"
+              v-model="formData.description"
+              placeholder="카테고리 설명을 입력하세요 (선택사항)"
+              rows="3"
+              class="form-textarea"
+            ></textarea>
+          </div>
+          
           <div class="modal-actions">
             <button type="button" class="btn-secondary" @click="closeModal">
               취소
@@ -133,7 +150,8 @@ const selectedCategory = ref(null)
 
 // 폼 데이터
 const formData = ref({
-  name: ''
+  name: '',
+  description: ''
 })
 
 // 계산된 속성
@@ -141,9 +159,13 @@ const filteredCategories = computed(() => {
   if (!searchTerm.value) {
     return categories.value
   }
-  return categories.value.filter(category =>
-    category.name.toLowerCase().includes(searchTerm.value.toLowerCase())
-  )
+  return categories.value.filter(category => {
+    const searchQuery = searchTerm.value.toLowerCase()
+    const name = category.name.toLowerCase()
+    const description = (category.description || '').toLowerCase()
+    
+    return name.includes(searchQuery) || description.includes(searchQuery)
+  })
 })
 
 // 메서드
@@ -169,21 +191,24 @@ const handleSearch = () => {
 
 const openCreateModal = () => {
   modalMode.value = 'create'
-  formData.value = { name: '' }
+  formData.value = { name: '', description: '' }
   showModal.value = true
 }
 
 const openEditModal = (category) => {
   modalMode.value = 'edit'
   selectedCategory.value = category
-  formData.value = { name: category.name }
+  formData.value = { 
+    name: category.name,
+    description: category.description || ''
+  }
   showModal.value = true
 }
 
 const closeModal = () => {
   showModal.value = false
   selectedCategory.value = null
-  formData.value = { name: '' }
+  formData.value = { name: '', description: '' }
 }
 
 const handleSubmit = async () => {
@@ -390,6 +415,14 @@ onMounted(() => {
   font-size: 0.875rem;
 }
 
+.description-cell {
+  max-width: 200px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: #6b7280;
+}
+
 /* 액션 버튼 */
 .action-buttons {
   display: flex;
@@ -490,15 +523,23 @@ onMounted(() => {
   color: #374151;
 }
 
-.form-input {
+.form-input,
+.form-textarea {
   width: 100%;
   padding: 0.75rem;
   border: 1px solid #e5e7eb;
   border-radius: 6px;
   font-size: 0.875rem;
+  font-family: inherit;
 }
 
-.form-input:focus {
+.form-textarea {
+  resize: vertical;
+  min-height: 80px;
+}
+
+.form-input:focus,
+.form-textarea:focus {
   outline: none;
   border-color: #3b82f6;
   box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
@@ -529,6 +570,11 @@ onMounted(() => {
   .categories-table th,
   .categories-table td {
     padding: 0.5rem;
+  }
+  
+  .description-cell {
+    max-width: 150px;
+    font-size: 0.75rem;
   }
   
   .modal-content {
