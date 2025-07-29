@@ -72,6 +72,17 @@
           <span>출발지관리</span>
         </router-link>
         
+        <router-link to="/admin/departure-dates" class="nav-item">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+            <rect x="3" y="4" width="18" height="18" rx="2" ry="2" stroke="currentColor" stroke-width="2"/>
+            <line x1="16" y1="2" x2="16" y2="6" stroke="currentColor" stroke-width="2"/>
+            <line x1="8" y1="2" x2="8" y2="6" stroke="currentColor" stroke-width="2"/>
+            <line x1="3" y1="10" x2="21" y2="10" stroke="currentColor" stroke-width="2"/>
+            <circle cx="12" cy="16" r="2" stroke="currentColor" stroke-width="2"/>
+          </svg>
+          <span>출발날짜</span>
+        </router-link>
+        
         <router-link to="/admin/bus-rentals" class="nav-item">
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
             <path stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>

@@ -1,16 +1,95 @@
 import { supabase } from './supabase.js'
 
 /**
- * 특정 상품의 날짜 범위 내 출발 가능한 날짜들을 조회합니다.
+ * 특정 상품의 출발 가능 날짜 조회
  * @param {number} productId - 상품 ID
- * @param {string} startDate - 시작 날짜 (YYYY-MM-DD 형식)
- * @param {string} endDate - 종료 날짜 (YYYY-MM-DD 형식)
  * @returns {Promise<{success: boolean, departureDates: Array, error?: string}>}
  */
-export const getProductDepartureDatesInRange = async (productId, startDate, endDate) => {
+export async function getProductDepartureDates(productId) {
   try {
-    console.log('🗓️ 출발 가능 날짜 조회 시작:', { productId, startDate, endDate })
-    
+    const { data, error } = await supabase
+      .from('ProductDepartureDates')
+      .select('departure_date, status')
+      .eq('product_id', productId)
+      .eq('status', true)
+      .order('departure_date', { ascending: true })
+
+    if (error) throw error
+
+    return { success: true, departureDates: data || [] }
+  } catch (error) {
+    return { success: false, departureDates: [], error: error.message }
+  }
+}
+
+/**
+ * 상품의 출발 날짜 상태 업데이트 (토글)
+ * @param {number} productId - 상품 ID
+ * @param {string} departureDate - 출발 날짜 (YYYY-MM-DD)
+ * @param {boolean} status - 출발 가능 여부
+ * @returns {Promise<{success: boolean, error?: string}>}
+ */
+export async function updateDepartureDate(productId, departureDate, status) {
+  try {
+    if (status) {
+      // 출발 가능으로 설정 - 먼저 기존 레코드 확인 후 insert 또는 update
+      const { data: existing, error: selectError } = await supabase
+        .from('ProductDepartureDates')
+        .select('id')
+        .eq('product_id', productId)
+        .eq('departure_date', departureDate)
+        .single()
+
+      if (selectError && selectError.code !== 'PGRST116') { // PGRST116은 "no rows found" 에러
+        throw selectError
+      }
+
+      if (existing) {
+        // 기존 레코드 업데이트
+        const { error } = await supabase
+          .from('ProductDepartureDates')
+          .update({ status: true })
+          .eq('id', existing.id)
+
+        if (error) throw error
+      } else {
+        // 새 레코드 생성
+        const { error } = await supabase
+          .from('ProductDepartureDates')
+          .insert({
+            product_id: productId,
+            departure_date: departureDate,
+            status: true
+          })
+
+        if (error) throw error
+      }
+    } else {
+      // 출발 불가능으로 설정 - 해당 레코드 삭제
+      const { error } = await supabase
+        .from('ProductDepartureDates')
+        .delete()
+        .eq('product_id', productId)
+        .eq('departure_date', departureDate)
+
+      if (error) throw error
+    }
+
+    return { success: true }
+  } catch (error) {
+    return { success: false, error: error.message }
+  }
+}
+
+/**
+ * 특정 기간의 상품 출발 날짜 조회 (관리자용)
+ * @param {number} productId - 상품 ID
+ * @param {string} startDate - 시작 날짜 (YYYY-MM-DD)
+ * @param {string} endDate - 종료 날짜 (YYYY-MM-DD)
+ * @returns {Promise<{success: boolean, departureDates: Array, error?: string}>}
+ */
+export async function getProductDepartureDatesInRange(productId, startDate, endDate) {
+  try {
     const { data, error } = await supabase
       .from('ProductDepartureDates')
       .select('departure_date, status')
@@ -18,123 +97,91 @@ export const getProductDepartureDatesInRange = async (productId, startDate, endD
       .gte('departure_date', startDate)
       .lte('departure_date', endDate)
       .order('departure_date', { ascending: true })
-    
-    if (error) {
-      console.error('출발 가능 날짜 조회 오류:', error)
-      return {
-        success: false,
-        departureDates: [],
-        error: error.message
-      }
-    }
-    
-    console.log('🗓️ 출발 가능 날짜 조회 완료:', data)
-    
-    return {
-      success: true,
-      departureDates: data || []
-    }
-    
+
+    if (error) throw error
+
+    return { success: true, departureDates: data || [] }
   } catch (error) {
-    console.error('출발 가능 날짜 조회 실패:', error)
-    return {
-      success: false,
-      departureDates: [],
-      error: error.message
-    }
+    return { success: false, departureDates: [], error: error.message }
   }
 }
 
 /**
- * 특정 상품의 모든 출발 가능한 날짜들을 조회합니다.
+ * 여러 날짜의 출발 상태 일괄 업데이트
  * @param {number} productId - 상품 ID
- * @returns {Promise<{success: boolean, departureDates: Array, error?: string}>}
+ * @param {Array} dateUpdates - [{date: 'YYYY-MM-DD', status: boolean}, ...]
+ * @returns {Promise<{success: boolean, error?: string}>}
  */
-export const getAllProductDepartureDates = async (productId) => {
+export async function batchUpdateDepartureDates(productId, dateUpdates) {
   try {
-    console.log('🗓️ 전체 출발 가능 날짜 조회 시작:', productId)
-    
-    const { data, error } = await supabase
-      .from('ProductDepartureDates')
-      .select('departure_date, status')
-      .eq('product_id', productId)
-      .order('departure_date', { ascending: true })
-    
-    if (error) {
-      console.error('전체 출발 가능 날짜 조회 오류:', error)
-      return {
-        success: false,
-        departureDates: [],
-        error: error.message
-      }
-    }
-    
-    console.log('🗓️ 전체 출발 가능 날짜 조회 완료:', data)
-    
-    return {
-      success: true,
-      departureDates: data || []
-    }
-    
-  } catch (error) {
-    console.error('전체 출발 가능 날짜 조회 실패:', error)
-    return {
-      success: false,
-      departureDates: [],
-      error: error.message
-    }
-  }
-}
+    // 활성화할 날짜들
+    const activeDates = dateUpdates.filter(update => update.status)
+    // 비활성화할 날짜들
+    const inactiveDates = dateUpdates.filter(update => !update.status)
 
-/**
- * 특정 날짜가 해당 상품의 출발 가능한 날짜인지 확인합니다.
- * @param {number} productId - 상품 ID
- * @param {string} date - 확인할 날짜 (YYYY-MM-DD 형식)
- * @returns {Promise<{success: boolean, isAvailable: boolean, error?: string}>}
- */
-export const checkDateAvailability = async (productId, date) => {
-  try {
-    console.log('🗓️ 날짜 가용성 확인:', { productId, date })
-    
-    const { data, error } = await supabase
-      .from('ProductDepartureDates')
-      .select('status')
-      .eq('product_id', productId)
-      .eq('departure_date', date)
-      .single()
-    
-    if (error) {
-      // 데이터가 없는 경우 (PGRST116) 는 정상적인 경우로 처리
-      if (error.code === 'PGRST116') {
-        console.log('🗓️ 해당 날짜는 출발 불가능:', date)
-        return {
-          success: true,
-          isAvailable: false
+    // 활성화할 날짜들 처리
+    if (activeDates.length > 0) {
+      // 먼저 기존 레코드들 조회
+      const { data: existingRecords, error: selectError } = await supabase
+        .from('ProductDepartureDates')
+        .select('departure_date')
+        .eq('product_id', productId)
+        .in('departure_date', activeDates.map(update => update.date))
+
+      if (selectError) throw selectError
+
+      const existingDates = new Set(existingRecords?.map(record => record.departure_date) || [])
+      
+      // 새로 생성할 날짜들
+      const newDates = activeDates.filter(update => !existingDates.has(update.date))
+      
+      // 업데이트할 날짜들
+      const updateDates = activeDates.filter(update => existingDates.has(update.date))
+
+      // 새 레코드들 생성
+      if (newDates.length > 0) {
+        const insertData = newDates.map(update => ({
+          product_id: productId,
+          departure_date: update.date,
+          status: true
+        }))
+
+        const { error: insertError } = await supabase
+          .from('ProductDepartureDates')
+          .insert(insertData)
+
+        if (insertError) throw insertError
+      }
+
+      // 기존 레코드들 업데이트
+      if (updateDates.length > 0) {
+        for (const update of updateDates) {
+          const { error: updateError } = await supabase
+            .from('ProductDepartureDates')
+            .update({ status: true })
+            .eq('product_id', productId)
+            .eq('departure_date', update.date)
+
+          if (updateError) throw updateError
         }
       }
+    }
+
+    // 비활성화할 날짜들 삭제
+    if (inactiveDates.length > 0) {
+      const datesToDelete = inactiveDates.map(update => update.date)
       
-      console.error('날짜 가용성 확인 오류:', error)
-      return {
-        success: false,
-        isAvailable: false,
-        error: error.message
-      }
+      const { error: deleteError } = await supabase
+        .from('ProductDepartureDates')
+        .delete()
+        .eq('product_id', productId)
+        .in('departure_date', datesToDelete)
+
+      if (deleteError) throw deleteError
     }
-    
-    const isAvailable = data && data.status === true
-    console.log('🗓️ 날짜 가용성 확인 완료:', { date, isAvailable })
-    
-    return {
-      success: true,
-      isAvailable
-    }
-    
+
+    return { success: true }
   } catch (error) {
-    console.error('날짜 가용성 확인 실패:', error)
-    return {
-      success: false,
-      isAvailable: false,
-      error: error.message
-    }
+    return { success: false, error: error.message }
   }
 } 

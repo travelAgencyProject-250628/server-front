@@ -3,7 +3,7 @@
     <div class="calendar-header">
       <h3>출발일 선택</h3>
       <p class="calendar-description">
-        내일부터 3주간 출발 가능한 날짜를 선택하세요
+        내일부터 6개월간 출발 가능한 날짜를 선택하세요 (화살표로 다른 달도 확인 가능)
       </p>
     </div>
 
@@ -12,14 +12,15 @@
       :columns="calendarColumns" 
       :rows="calendarRows" 
       :min-date="currentMonth"
-      :max-date="nextMonthEnd" 
+      :max-date="maxSelectableDate" 
       :from-page="fromPage" 
-      :to-page="toPage"
+      :to-page="{ month: maxSelectableDate.getMonth() + 1, year: maxSelectableDate.getFullYear() }"
       :attributes="calendarAttributes"
       :disabled-dates="disabledDates" 
       locale="ko" 
       @dayclick="handleDateClick" 
-      :nav-visibility="'hidden'"
+      :nav-visibility="'focus'"
+      :step="1"
       class="custom-calendar" 
       :style="calendarStyle">
         <template #day-content="{ day }">
@@ -123,7 +124,7 @@ const calendarColumns = computed(() => {
 })
 
 const calendarRows = computed(() => {
-  return windowWidth.value > 750 ? 1 : 2  // 큰 화면: 세로 1개, 작은 화면: 세로 2개
+  return 1  // 모든 화면에서 세로 1개 (한 달씩만 표시)
 })
 
 // 달력 크기 스타일 계산
@@ -141,7 +142,7 @@ const nextMonthEnd = computed(() => {
   return new Date(today.getFullYear(), today.getMonth() + 2, 0) // 다음 달 마지막 날
 })
 
-// 3주 범위 설정 (실제 선택 가능한 날짜)
+// 선택 가능한 날짜 범위 설정 (내일부터 6개월 후까지)
 const minSelectableDate = computed(() => {
   const tomorrow = new Date(today)
   tomorrow.setDate(today.getDate() + 1)
@@ -150,7 +151,7 @@ const minSelectableDate = computed(() => {
 
 const maxSelectableDate = computed(() => {
   const maxDate = new Date(today)
-  maxDate.setDate(today.getDate() + 21) // 3주 = 21일
+  maxDate.setMonth(maxDate.getMonth() + 6) // 6개월 후까지
   return maxDate
 })
 
@@ -164,32 +165,32 @@ const toPage = computed(() => {
   return { month: nextMonth.getMonth() + 1, year: nextMonth.getFullYear() }
 })
 
-// 비활성화할 날짜들 (3주 범위 외 + 출발 불가능 날짜 + 예약마감 날짜)
+// 비활성화할 날짜들 (6개월 범위 외 + 출발 불가능 날짜 + 예약마감 날짜)
 const disabledDates = computed(() => {
   const disabled = [
     // 오늘까지 이전 날짜들 (내일부터 선택 가능하도록)
     { start: null, end: today },
-    // 3주 이후 날짜들 (22일부터)
+    // 6개월 이후 날짜들
     { start: maxSelectableDate.value, end: null }
   ]
   
-  // 3주 범위 내에서 출발 불가능한 날짜들과 예약마감 날짜들 추가
-  for (let i = 1; i <= 21; i++) {
-    const date = new Date(today)
-    date.setDate(today.getDate() + i)
-    const dateKey = formatDateKey(date)
+  // 6개월 범위 내에서 출발 불가능한 날짜들과 예약마감 날짜들 추가
+  const currentDate = new Date(minSelectableDate.value)
+  while (currentDate <= maxSelectableDate.value) {
+    const dateKey = formatDateKey(currentDate)
     
     // 출발 불가능한 날짜 (ProductDepartureDates에 없는 날짜)
     if (!availableDepartureDates.value.has(dateKey)) {
-      disabled.push(date)
-      continue // 이미 비활성화된 날짜는 예약마감 체크 불필요
+      disabled.push(new Date(currentDate))
+    } else {
+      // 출발 가능하지만 예약마감된 날짜
+      const bookingInfo = bookingMap.value.get(dateKey)
+      if (bookingInfo && bookingInfo.bookingCount >= props.closingThreshold) {
+        disabled.push(new Date(currentDate))
+      }
     }
     
-    // 출발 가능하지만 예약마감된 날짜
-    const bookingInfo = bookingMap.value.get(dateKey)
-    if (bookingInfo && bookingInfo.bookingCount >= props.closingThreshold) {
-      disabled.push(date)
-    }
+    currentDate.setDate(currentDate.getDate() + 1)
   }
 
   return disabled
@@ -202,9 +203,9 @@ const loadBookingData = async () => {
   try {
     console.log('🔍 예약 데이터 로드 시작 - productId:', props.productId)
     
-    // 현재 시점으로부터 3주간의 날짜 범위 계산
+    // 현재 시점으로부터 6개월간의 날짜 범위 계산
     const startDate = formatDateKey(minSelectableDate.value) // 내일
-    const endDate = formatDateKey(maxSelectableDate.value)   // 3주 후
+    const endDate = formatDateKey(maxSelectableDate.value)   // 6개월 후
     
     console.log('🔍 조회 날짜 범위:', { startDate, endDate })
     
@@ -213,11 +214,11 @@ const loadBookingData = async () => {
       .select('*')
       .eq('product_id', props.productId)
       .gte('departure_date', startDate)  // 내일부터
-      .lte('departure_date', endDate)    // 3주까지
+      .lte('departure_date', endDate)    // 6개월까지
     
     if (error) throw error
     
-    console.log('🔍 View에서 가져온 예약 데이터 (3주간):', data)
+    console.log('🔍 View에서 가져온 예약 데이터 (6개월간):', data)
     
     // 날짜별로 예약 인원 수 계산 (성인 + 아동)
     const bookingCountMap = new Map()
@@ -288,15 +289,14 @@ const bookingMap = computed(() => {
 const calendarAttributes = computed(() => {
   const attributes = []
 
-  // 각 날짜별로 개별 속성 생성
-  for (let i = 1; i <= 21; i++) {
-    const date = new Date(today)
-    date.setDate(today.getDate() + i)
-    const dateKey = formatDateKey(date)
+  // 6개월 범위의 각 날짜별로 개별 속성 생성
+  const currentDate = new Date(minSelectableDate.value)
+  while (currentDate <= maxSelectableDate.value) {
+    const dateKey = formatDateKey(currentDate)
     const bookingInfo = bookingMap.value.get(dateKey)
 
     // 선택 가능한 날짜 범위 내에 있는지 확인
-    const isSelectable = date >= minSelectableDate.value && date <= maxSelectableDate.value
+    const isSelectable = currentDate >= minSelectableDate.value && currentDate <= maxSelectableDate.value
 
     // 선택 가능하고 출발 가능한 날짜만 속성 추가
     if (isSelectable && availableDepartureDates.value.has(dateKey)) {
@@ -331,7 +331,7 @@ const calendarAttributes = computed(() => {
       // 각 날짜별 속성 추가 (dot 제거)
       attributes.push({
         key: `${attributeKey}-${dateKey}`,
-        dates: date,
+        dates: new Date(currentDate),
         customData: {
           type: attributeKey,
           bookingInfo: bookingInfo || null
@@ -339,6 +339,8 @@ const calendarAttributes = computed(() => {
         order: order
       })
     }
+    
+    currentDate.setDate(currentDate.getDate() + 1)
   }
 
   // 선택된 날짜 속성
@@ -389,7 +391,7 @@ const handleDateClick = (day) => {
     return
   }
 
-  // 3주 범위 내 날짜만 선택 가능
+  // 선택 가능한 날짜 범위 내 날짜만 선택 가능
   const clickedDate = day.date
   if (clickedDate < minSelectableDate.value || clickedDate > maxSelectableDate.value) {
     return
@@ -475,7 +477,7 @@ const getDayLabel = (date) => {
 
   const dateKey = formatDateKey(date)
   
-  // 3주 범위 내의 날짜만 텍스트 표시
+  // 선택 가능한 날짜 범위 내의 날짜만 텍스트 표시
   if (date < minSelectableDate.value || date > maxSelectableDate.value) {
     return ''
   }
@@ -510,7 +512,7 @@ const onDayContentClick = (day) => {
     return
   }
 
-  // 3주 범위 내 날짜만 선택 가능
+  // 선택 가능한 날짜 범위 내 날짜만 선택 가능
   const clickedDate = day.date
   if (clickedDate < minSelectableDate.value || clickedDate > maxSelectableDate.value) {
     return
@@ -614,9 +616,36 @@ onMounted(() => {
   font-size: 1em !important;
 }
 
-/* 네비게이션 화살표 제거 */
+/* 네비게이션 화살표 스타일 */
 :deep(.vc-arrow) {
-  display: none !important;
+  display: flex !important;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 6px;
+  background: transparent;
+  border: 1px solid #e2e8f0;
+  color: #64748b;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+:deep(.vc-arrow:hover) {
+  background: var(--primary-color);
+  border-color: var(--primary-color);
+  color: white;
+}
+
+:deep(.vc-arrow:disabled) {
+  opacity: 0.3;
+  cursor: not-allowed;
+}
+
+:deep(.vc-arrow:disabled:hover) {
+  background: transparent;
+  border-color: #e2e8f0;
+  color: #64748b;
 }
 
 /* 월 제목 스타일 */
@@ -624,8 +653,7 @@ onMounted(() => {
   background: transparent !important;
   border: none !important;
   box-shadow: none !important;
-  pointer-events: none;
-  cursor: default;
+  cursor: pointer;
   padding: 0.75rem !important;
 }
 

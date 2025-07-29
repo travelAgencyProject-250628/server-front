@@ -162,6 +162,12 @@ const router = createRouter({
           name: 'adminStartingPoints',
           component: () => import('@/views/admin/StartingPoints.vue'),
           meta: { requiresAuth: true, requiresAdmin: true }
+        },
+        {
+          path: 'departure-dates',
+          name: 'adminDepartureDates',
+          component: () => import('@/views/admin/DepartureDates.vue'),
+          meta: { requiresAuth: true, requiresAdmin: true }
         }
       ]
     }
