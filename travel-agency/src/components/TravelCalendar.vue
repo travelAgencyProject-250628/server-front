@@ -73,6 +73,7 @@
 <script setup>
 import { ref, computed, onMounted, onBeforeUnmount, watch } from 'vue'
 import 'v-calendar/style.css'
+import { getProductDepartureDatesInRange } from '@/lib/departureDates.js'
 import { supabase } from '@/lib/supabase.js'
 
 // Props 정의
@@ -113,6 +114,7 @@ const selectedDate = ref(props.modelValue)
 const today = new Date()
 today.setHours(0, 0, 0, 0)
 const windowWidth = ref(window.innerWidth)
+const availableDepartureDates = ref(new Set()) // 출발 가능한 날짜들
 const bookingData = ref([]) // View에서 가져온 예약 데이터
 
 // 반응형 columns와 rows 계산
@@ -162,7 +164,7 @@ const toPage = computed(() => {
   return { month: nextMonth.getMonth() + 1, year: nextMonth.getFullYear() }
 })
 
-// 비활성화할 날짜들 (3주 범위 외 + 예약마감 날짜)
+// 비활성화할 날짜들 (3주 범위 외 + 출발 불가능 날짜 + 예약마감 날짜)
 const disabledDates = computed(() => {
   const disabled = [
     // 오늘까지 이전 날짜들 (내일부터 선택 가능하도록)
@@ -171,14 +173,20 @@ const disabledDates = computed(() => {
     { start: maxSelectableDate.value, end: null }
   ]
   
-  // 예약마감 날짜들 추가 (closingThreshold 이상)
+  // 3주 범위 내에서 출발 불가능한 날짜들과 예약마감 날짜들 추가
   for (let i = 1; i <= 21; i++) {
     const date = new Date(today)
     date.setDate(today.getDate() + i)
     const dateKey = formatDateKey(date)
-    const bookingInfo = bookingMap.value.get(dateKey)
     
-    // 예약마감 조건: closingThreshold 이상
+    // 출발 불가능한 날짜 (ProductDepartureDates에 없는 날짜)
+    if (!availableDepartureDates.value.has(dateKey)) {
+      disabled.push(date)
+      continue // 이미 비활성화된 날짜는 예약마감 체크 불필요
+    }
+    
+    // 출발 가능하지만 예약마감된 날짜
+    const bookingInfo = bookingMap.value.get(dateKey)
     if (bookingInfo && bookingInfo.bookingCount >= props.closingThreshold) {
       disabled.push(date)
     }
@@ -241,6 +249,30 @@ const loadBookingData = async () => {
   }
 }
 
+// 출발 가능 날짜 로드
+const loadAvailableDepartureDates = async () => {
+  if (!props.productId) return
+  
+  try {
+    const startDate = formatDateKey(minSelectableDate.value)
+    const endDate = formatDateKey(maxSelectableDate.value)
+    
+    const result = await getProductDepartureDatesInRange(props.productId, startDate, endDate)
+    
+    if (result.success) {
+      const dateSet = new Set()
+      result.departureDates.forEach(item => {
+        if (item.status) {
+          dateSet.add(item.departure_date)
+        }
+      })
+      availableDepartureDates.value = dateSet
+    }
+  } catch (error) {
+    console.error('출발 가능 날짜 로드 오류:', error)
+  }
+}
+
 // 예약 데이터를 날짜별로 매핑
 const bookingMap = computed(() => {
   const map = new Map()
@@ -266,8 +298,8 @@ const calendarAttributes = computed(() => {
     // 선택 가능한 날짜 범위 내에 있는지 확인
     const isSelectable = date >= minSelectableDate.value && date <= maxSelectableDate.value
 
-    // 선택 가능한 날짜만 속성 추가
-    if (isSelectable) {
+    // 선택 가능하고 출발 가능한 날짜만 속성 추가
+    if (isSelectable && availableDepartureDates.value.has(dateKey)) {
       let attributeKey = 'available'
       let order = 0
 
@@ -277,22 +309,18 @@ const calendarAttributes = computed(() => {
           // 예약마감 (closingThreshold 이상) - 청록색
           attributeKey = 'closed'
           order = 4
-          console.log(`→ ${dateKey}: 예약마감`)
         } else if (bookingInfo.bookingCount >= props.confirmedThreshold) {
           // 출발확정 (confirmedThreshold 이상) - 빨간색
           attributeKey = 'guaranteed'
           order = 3
-          console.log(`→ ${dateKey}: 출발확정`)
         } else if (bookingInfo.bookingCount >= props.minRequiredBooking) {
           // 출발유력 (minRequiredBooking 이상)
           attributeKey = 'confirmed'
           order = 2
-          console.log(`→ ${dateKey}: 출발유력`)
         } else {
           // 예약가능 (기본)
           attributeKey = 'available'
           order = 1
-          console.log(`→ ${dateKey}: 예약가능`)
         }
       } else {
         // 예약가능 (기본)
@@ -366,12 +394,18 @@ const handleDateClick = (day) => {
   if (clickedDate < minSelectableDate.value || clickedDate > maxSelectableDate.value) {
     return
   }
-
+  
+  // 출발 가능한 날짜만 선택 가능
+  const dateKey = formatDateKey(clickedDate)
+  if (!availableDepartureDates.value.has(dateKey)) {
+    return
+  }
+  
   selectedDate.value = clickedDate
   emit('update:modelValue', clickedDate)
   emit('dateSelect', {
     date: clickedDate,
-    bookingInfo: bookingMap.value.get(formatDateKey(clickedDate))
+    bookingInfo: bookingMap.value.get(dateKey)
   })
 }
 
@@ -380,6 +414,12 @@ const getStatusClass = (date) => {
   if (!date) return ''
 
   const dateKey = formatDateKey(date)
+  
+  // 출발 가능한 날짜(status가 true)가 아닌 경우 빈 문자열 반환
+  if (!availableDepartureDates.value.has(dateKey)) {
+    return ''
+  }
+  
   const bookingInfo = bookingMap.value.get(dateKey)
 
   if (bookingInfo) {
@@ -401,6 +441,12 @@ const getStatusText = (date) => {
   if (!date) return ''
 
   const dateKey = formatDateKey(date)
+  
+  // 출발 가능한 날짜(status가 true)가 아닌 경우 빈 문자열 반환
+  if (!availableDepartureDates.value.has(dateKey)) {
+    return ''
+  }
+  
   const bookingInfo = bookingMap.value.get(dateKey)
 
   if (bookingInfo) {
@@ -434,6 +480,11 @@ const getDayLabel = (date) => {
     return ''
   }
   
+  // 출발 가능한 날짜(status가 true)만 레이블 표시
+  if (!availableDepartureDates.value.has(dateKey)) {
+    return ''
+  }
+  
   const bookingInfo = bookingMap.value.get(dateKey)
 
   if (bookingInfo) {
@@ -448,7 +499,7 @@ const getDayLabel = (date) => {
     }
   }
   
-  // 예약 데이터가 없는 날짜도 예약가능으로 표시
+  // 예약 데이터가 없지만 출발 가능한 날짜는 예약가능으로 표시
   return '예약가능'
 }
 
@@ -464,12 +515,18 @@ const onDayContentClick = (day) => {
   if (clickedDate < minSelectableDate.value || clickedDate > maxSelectableDate.value) {
     return
   }
+  
+  // 출발 가능한 날짜만 선택 가능
+  const dateKey = formatDateKey(clickedDate)
+  if (!availableDepartureDates.value.has(dateKey)) {
+    return
+  }
 
   selectedDate.value = clickedDate
   emit('update:modelValue', clickedDate)
   emit('dateSelect', {
     date: clickedDate,
-    bookingInfo: bookingMap.value.get(formatDateKey(clickedDate))
+    bookingInfo: bookingMap.value.get(dateKey)
   })
 }
 
@@ -482,8 +539,9 @@ watch(selectedDate, (newValue) => {
   emit('update:modelValue', newValue)
 })
 
-// productId 변경 시 예약 데이터 다시 로드
+// productId 변경 시 출발 가능 날짜와 예약 데이터 다시 로드
 watch(() => props.productId, () => {
+  loadAvailableDepartureDates()
   loadBookingData()
 }, { immediate: true })
 
@@ -494,6 +552,9 @@ onMounted(() => {
   }
 
   window.addEventListener('resize', handleResize)
+  
+  // 출발 가능 날짜 로드
+  loadAvailableDepartureDates()
   
   // 예약 데이터 로드
   loadBookingData()
