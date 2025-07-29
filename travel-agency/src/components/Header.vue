@@ -1,34 +1,6 @@
 <template>
   <header class="header">
-              <!-- 광고 배너 (PC 전용) -->
-          <div v-if="showAdBanner" class="ad-banner desktop-only">
-      <div class="ad-banner-content">
-        <div class="ad-banner-images">
-          <img 
-            src="/banner-ad1.jpg" 
-            alt="광고 배너 1" 
-            class="ad-banner-image"
-            @click="goToCategory(1)"
-            style="cursor: pointer;"
-          >
-          <img 
-            src="/banner-ad2.jpg" 
-            alt="광고 배너 2" 
-            class="ad-banner-image"
-            @click="goToCategory(2)"
-            style="cursor: pointer;"
-          >
-        </div>
-        <button class="ad-banner-close" @click="closeAdBanner">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <line x1="18" y1="6" x2="6" y2="18"></line>
-            <line x1="6" y1="6" x2="18" y2="18"></line>
-          </svg>
-        </button>
-      </div>
-    </div>
-    
-    <!-- 상단 유틸리티 바 -->
+        <!-- 상단 유틸리티 바 -->
     <div class="top-bar">
       <div class="top-bar-container">
         <div class="top-bar-spacer"></div>
@@ -42,16 +14,14 @@
           
         <!-- 로그인되지 않은 경우 -->
         <template v-if="!isLoggedIn">
-            <router-link to="/" class="top-link">메인으로</router-link>
             <router-link to="/login" class="top-link">로그인</router-link>
             <router-link to="/join" class="top-link">회원가입</router-link>
         </template>
         
         <!-- 로그인된 경우 -->
         <template v-else>
-          <router-link to="/" class="top-link">메인으로</router-link>
-          <router-link to="/mypage" class="top-link">마이페이지</router-link>
-          <button @click="handleLogout" class="top-link">로그아웃</button>
+            <router-link to="/mypage" class="top-link">마이페이지</router-link>
+            <button @click="handleLogout" class="top-link">로그아웃</button>
         </template>
       </div>
       </div>
@@ -63,8 +33,8 @@
         <!-- 로고 -->
         <div class="logo">
           <router-link to="/">
-            <img src="/logo.png" alt="더쉼투어 로고" class="logo-image">
-            <h1>더쉼투어</h1>
+            <img src="/logo.png" alt="나라투어 로고" class="logo-image">
+            <h1>나라투어</h1>
           </router-link>
         </div>
 
@@ -262,8 +232,8 @@
     <nav class="nav-mobile" :class="{ active: mobileMenuOpen }">
       <div class="mobile-header">
         <div class="mobile-logo" @click="goHome">
-          <img src="/logo.png" alt="더쉼투어 로고" class="logo-image">
-          <h1>더쉼투어</h1>
+          <img src="/logo.png" alt="나라투어 로고" class="logo-image">
+          <h1>나라투어</h1>
         </div>
         <button class="mobile-close-btn" @click="closeMobileMenu">
           <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -322,7 +292,6 @@
           
           <!-- 로그인되지 않은 경우 -->
           <template v-if="!isLoggedIn">
-            <router-link to="/" class="btn-secondary" @click="closeMobileMenu">메인으로</router-link>
             <router-link to="/login" class="btn-secondary" @click="closeMobileMenu">로그인</router-link>
             <router-link to="/join" class="btn-secondary" @click="closeMobileMenu">회원가입</router-link>
             <button class="btn-primary" @click="() => { handleBusRental(); closeMobileMenu(); }">
@@ -347,7 +316,6 @@
           
           <!-- 로그인된 경우 -->
           <template v-else>
-            <router-link to="/" class="btn-secondary" @click="closeMobileMenu">메인으로</router-link>
             <router-link to="/mypage" class="btn-secondary" @click="closeMobileMenu">마이페이지</router-link>
             <button @click="handleLogout" class="btn-secondary">로그아웃</button>
             <button class="btn-primary" @click="() => { handleBusRental(); closeMobileMenu(); }">
@@ -399,7 +367,6 @@ const showAllMenuFlag = ref(false)
 const allMenuTimeout = ref(null)
 const expandedMobileCategory = ref(null)
 const menuLoading = ref(true)
-const showAdBanner = ref(true)
 
 // 메뉴 데이터 (supabase에서 동적으로 불러올 데이터)
 const menuData = ref({
@@ -450,8 +417,12 @@ const toggleMobileMenu = () => {
   if (mobileMenuOpen.value) {
     mobileSearchOpen.value = false
     mobileSearchQuery.value = ''
+    // body와 html 스크롤 잠그기
+    document.documentElement.style.overflow = 'hidden'
     document.body.style.overflow = 'hidden'
   } else {
+    // body와 html 스크롤 해제
+    document.documentElement.style.overflow = ''
     document.body.style.overflow = ''
     expandedMobileCategory.value = null
   }
@@ -460,6 +431,8 @@ const toggleMobileMenu = () => {
 const closeMobileMenu = () => {
   mobileMenuOpen.value = false
   expandedMobileCategory.value = null
+  // body와 html 스크롤 해제
+  document.documentElement.style.overflow = ''
   document.body.style.overflow = ''
 }
 
@@ -658,10 +631,11 @@ const handleGuestReservation = () => {
 }
 
 const handleSearch = () => {
-  console.log('검색어:', searchQuery.value)
-  // 검색어가 있으면 해당 검색어로, 없으면 빈 검색어로 검색 페이지로 이동
-  const searchTerm = searchQuery.value.trim()
-  router.push(`/search?q=${encodeURIComponent(searchTerm)}`)
+  if (searchQuery.value.trim()) {
+    console.log('검색어:', searchQuery.value)
+    // 검색 결과 페이지로 이동
+    router.push(`/search?q=${encodeURIComponent(searchQuery.value.trim())}`)
+  }
 }
 
 const toggleMobileSearch = () => {
@@ -690,29 +664,29 @@ const closeMobileSearch = () => {
 }
 
 const handleMobileSearch = () => {
-  console.log('모바일 검색어:', mobileSearchQuery.value)
-  // 검색어가 있으면 해당 검색어로, 없으면 빈 검색어로 검색 페이지로 이동
-  const searchTerm = mobileSearchQuery.value.trim()
-  router.push(`/search?q=${encodeURIComponent(searchTerm)}`)
-  closeMobileSearch()
-}
-
-// 광고 배너 닫기
-const closeAdBanner = () => {
-  showAdBanner.value = false
-  // 로컬 스토리지에 닫기 상태 저장 (24시간 동안)
-  localStorage.setItem('adBannerClosed', Date.now().toString())
-}
-
-// 카테고리 페이지로 이동
-const goToCategory = (categoryId) => {
-  router.push(`/products?categoryId=${categoryId}`)
+  if (mobileSearchQuery.value.trim()) {
+    console.log('모바일 검색어:', mobileSearchQuery.value)
+    // 검색 결과 페이지로 이동
+    router.push(`/search?q=${encodeURIComponent(mobileSearchQuery.value.trim())}`)
+    closeMobileSearch()
+  }
 }
 
 
 
 // 컴포넌트 마운트 시 메뉴 데이터 불러오기
 onMounted(async () => {
+  // --vh CSS 변수 설정 (iOS Safari 주소창 대응)
+  const setVH = () => {
+    document.documentElement.style.setProperty('--vh', window.innerHeight * 0.01 + 'px')
+  }
+  
+  // 초기 설정
+  setVH()
+  
+  // 리사이즈 이벤트 리스너 추가
+  window.addEventListener('resize', setVH)
+  
   await Promise.all([
     fetchMenuData(),
     getCurrentSession()
@@ -735,79 +709,10 @@ onMounted(async () => {
 </script>
 
 <style scoped>
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
-@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700&display=swap');
-
-/* CSS 변수 정의 */
-:root {
-  --primary-color: #2563eb;
-  --primary-dark: #1e40af;
-  --secondary-color: #64748b;
-  --accent-color: #f59e0b;
-  --text-primary: #1e293b;
-  --text-secondary: #64748b;
-  --bg-light: #f8fafc;
-  --border-color: #e2e8f0;
-  --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
-  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
-  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
-  --border-radius: 8px;
-  --transition: all 0.3s ease;
-}
-
 /* 헤더 전체 */
 .header {
   background: white;
   position: relative;
-}
-
-/* PC 전용 클래스 */
-.desktop-only {
-  display: block;
-}
-
-
-.ad-banner-content {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  position: relative;
-  width: 100%;
-}
-
-.ad-banner-images {
-  display: flex;
-  width: 100%;
-}
-
-.ad-banner-image {
-  flex: 1;
-  object-fit: cover;
-  object-position: center;
-}
-
-.ad-banner-close {
-  position: absolute;
-  top: 50%;
-  right: 1rem;
-  transform: translateY(-50%);
-  background: rgba(0, 0, 0, 0.5);
-  color: white;
-  border: none;
-  border-radius: 50%;
-  width: 24px;
-  height: 24px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  z-index: 10;
-}
-
-.ad-banner-close:hover {
-  background: rgba(0, 0, 0, 0.7);
-  transform: translateY(-50%) scale(1.1);
 }
 
 /* 상단 유틸리티 바 */
@@ -831,7 +736,6 @@ onMounted(async () => {
 }
 
 .top-link {
-  padding: 0;
   text-decoration: none;
   color: var(--text-secondary);
   font-size: 0.8rem;
@@ -943,7 +847,7 @@ onMounted(async () => {
   padding: 0.625rem 1rem;
   border: none;
   outline: none;
-  font-size: 0.95rem;
+  font-size: 0.85rem;
   background: transparent;
   color: var(--text-primary);
 }
@@ -1016,7 +920,7 @@ onMounted(async () => {
 }
 
 .menu-text {
-  font-size: 0.85rem;
+  font-size: 0.75rem;
   color: var(--text-secondary);
 }
 
@@ -1049,7 +953,7 @@ onMounted(async () => {
   cursor: pointer;
   padding: 0.5rem;
   color: var(--text-primary);
-  font-size: 1rem;
+  font-size: 0.9rem;
   font-weight: 500;
 }
 
@@ -1076,7 +980,7 @@ onMounted(async () => {
   font-weight: 500;
   padding: 0.5rem 0;
   transition: var(--transition);
-  font-size: 1rem;
+  font-size: 0.9rem;
 }
 
 .nav-link:hover {
@@ -1371,10 +1275,10 @@ onMounted(async () => {
   top: 0;
   left: 0;
   width: 100vw;
-  height: 100vh;
+  height: calc(var(--vh, 1vh) * 100);
   background: white;
   z-index: 9999;
-  overflow-y: auto;
+  overflow: hidden;
 }
 
 .nav-mobile.active {
@@ -1437,6 +1341,8 @@ onMounted(async () => {
 .mobile-content {
   flex: 1;
   overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior: contain;
 }
 
 .mobile-nav-menu {
@@ -1645,11 +1551,6 @@ onMounted(async () => {
 
 /* 반응형 디자인 */
 @media (max-width: 768px) {
-  /* 모바일에서 PC 전용 요소 숨기기 */
-  .desktop-only {
-    display: none;
-  }
-  
   /* 모바일에서 헤더 고정 */
   .header {
     position: fixed !important;
@@ -1660,22 +1561,6 @@ onMounted(async () => {
     z-index: 1000 !important;
     box-shadow: var(--shadow-md) !important;
     background: white !important;
-  }
-  
-  .ad-banner-content {
-    padding: 0 1rem;
-    height: 50px;
-  }
-  
-  .ad-banner-close {
-    right: 0.5rem;
-    width: 20px;
-    height: 20px;
-  }
-  
-  .ad-banner-close svg {
-    width: 12px;
-    height: 12px;
   }
   
   .top-bar {
