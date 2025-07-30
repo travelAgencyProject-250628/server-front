@@ -299,8 +299,8 @@
                         </div>
                     </section>
 
-                    <!-- 예약 버튼 -->
-                    <div class="booking-section">
+                    <!-- 모바일용 예약 버튼 -->
+                    <div class="booking-section mobile-booking">
                         <div class="booking-info">
                             <div class="price-info">
                                 <span class="price-label">1인 기준</span>
@@ -319,7 +319,7 @@
                 </template>
             </div>
             
-            <!-- 상품 요약 정보 - main-content 내부, container와 같은 레벨 -->
+            <!-- PC용 상품 요약 정보 - main-content 내부, container와 같은 레벨 -->
             <div v-if="productDetail" class="product-summary">
                 <div class="summary-content">
                     <div class="summary-item">
@@ -344,14 +344,32 @@
                         <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
                             <path d="M12 3C6.477 3 2 6.477 2 10.5c0 2.442 1.492 4.625 3.77 6.056L5 20l3.925-1.965C9.835 18.35 10.892 18.5 12 18.5c5.523 0 10-3.477 10-7.5S17.523 3 12 3z"/>
                         </svg>
-                        <span>카카오톡공유</span>
+                        <span>카카오톡 공유</span>
                     </button>
                     <button @click="copyCurrentUrl" class="share-btn url-btn" title="URL 복사">
                         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                             <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path>
                             <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path>
                         </svg>
-                        <span>URL공유하기</span>
+                        <span>링크 공유</span>
+                    </button>
+                </div>
+                
+                <!-- PC용 예약 버튼 - product-summary 안에 포함 -->
+                <div class="booking-section pc-booking">
+                    <div class="booking-info">
+                        <div class="price-info">
+                            <span class="price-label">1인 기준</span>
+                            <span class="price-amount">{{ formatPrice(productDetail.adultPrice) }}원</span>
+                        </div>
+                        <div class="date-info">
+                            <span class="selected-date">
+                                {{ selectedDate ? formatSelectedDateForBooking(selectedDate) : '날짜를 선택해주세요' }}
+                            </span>
+                        </div>
+                    </div>
+                    <button class="btn-booking" @click="handleBooking" :disabled="!selectedDate">
+                        예약하기
                     </button>
                 </div>
             </div>
@@ -1019,7 +1037,6 @@ const handleImageError = (event) => {
     .main-content {
         display: flex;
         align-items: flex-start;
-        gap: 20px;
         max-width: 1200px;
         margin: 0 auto;
     }
@@ -1029,7 +1046,7 @@ const handleImageError = (event) => {
     }
     
     .product-summary {
-        width: 320px;
+        width: 330px;
         flex-shrink: 0;
         margin-bottom: 0;
         border-radius: var(--border-radius);
@@ -1055,6 +1072,15 @@ const handleImageError = (event) => {
     }
     
     .mobile-header {
+        display: none !important;
+    }
+    
+    /* PC에서만 pc-booking 보이기 */
+    .pc-booking {
+        display: block !important;
+    }
+    
+    .mobile-booking {
         display: none !important;
     }
 }
@@ -1086,6 +1112,15 @@ const handleImageError = (event) => {
     }
     
     .mobile-header {
+        display: block !important;
+    }
+    
+    /* 모바일에서만 mobile-booking 보이기 */
+    .pc-booking {
+        display: none !important;
+    }
+    
+    .mobile-booking {
         display: block !important;
     }
     
@@ -1475,16 +1510,17 @@ const handleImageError = (event) => {
     position: sticky;
     bottom: 0;
     background: white;
-    padding: 1rem 1.5rem;
     border-top: 1px solid var(--border-color);
     z-index: 2;
 }
 
 .booking-info {
     display: flex;
+    flex-direction: column;
     justify-content: space-between;
-    align-items: center;
-    margin-bottom: 1rem;
+    align-items: flex-start;
+    gap: 0.3rem;
+    padding: 0.5rem 0rem;
 }
 
 .price-info {
@@ -1815,6 +1851,12 @@ const handleImageError = (event) => {
 /* 기본적으로 모든 헤더 숨기기 */
 .pc-header,
 .mobile-header {
+    display: none;
+}
+
+/* 기본적으로 모든 booking-section 숨기기 */
+.pc-booking,
+.mobile-booking {
     display: none;
 }
 
