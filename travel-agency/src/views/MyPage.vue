@@ -36,7 +36,7 @@ const mypageMenu = ref({
 /* 전체 레이아웃 - ProductList와 동일 */
 .mypage-layout {
   display: grid;
-  grid-template-columns: 1fr 220px 900px 1fr;
+  grid-template-columns: 1fr 270px 850px 1fr;
   min-height: 100vh;
   font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
   line-height: 1.6;
@@ -46,10 +46,7 @@ const mypageMenu = ref({
 /* 사이드바 섹션 */
 .sidebar-section {
   grid-column: 2;
-  padding: 1.5rem 1rem 0 0;
-  display: flex;
-  align-items: flex-start;
-  align-self: start;
+  padding: 1.5rem 2rem 0 0;
 }
 
 /* 메인 콘텐츠 */

@@ -78,7 +78,6 @@ const isActive = (path) => {
 }
 
 .sidebar {
-  width: 200px;
   background: white;
   border-radius: var(--border-radius);
   box-shadow: var(--shadow-md);

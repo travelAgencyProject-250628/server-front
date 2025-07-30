@@ -27,10 +27,9 @@
         <div class="footer-section">
           <h4>고객지원</h4>
           <ul class="footer-links">
-            <li><a href="#">이용약관</a></li>
-            <li><a href="#">개인정보처리방침</a></li>
-            <li><a href="#">여행약관</a></li>
-            <li><a href="#">취소/환불정책</a></li>
+            <li><a href="https://naratour.notion.site/2390fe2b4a0380028b64e199dc914abe">이용약관</a></li>
+            <li><a href="https://naratour.notion.site/2390fe2b4a0380d88f66dd592754e8bf">개인정보처리방침</a></li>
+            <li><a href="https://naratour.notion.site/">여행약관</a></li>
           </ul>
         </div>
         

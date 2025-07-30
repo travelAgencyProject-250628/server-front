@@ -14,6 +14,40 @@
           <p>메뉴 로딩중...</p>
         </div>
       </div>
+      
+      <!-- 여행 상담 & 예약 센터 정보 -->
+      <div class="contact-info-section">
+        <div class="contact-header">
+          <h3>여행상담 & 예약센터</h3>
+        </div>
+        
+        <div class="phone-numbers">
+          <div class="phone-number primary">02)6745-0110</div>
+          <div class="phone-number secondary">02)853-0110</div>
+        </div>
+        
+        <div class="operating-hours">
+          <div class="hours-item">
+            <span class="hours-label">평일 : 09:00~18:00</span>
+          </div>
+          <div class="hours-item">
+            <span class="hours-label">토요일 : 09:00~16:00</span>
+          </div>
+        </div>
+        
+        <div class="cancellation-policy">
+          <p>*취소 및 변경은 평일 18시까지 전화로만 가능합니다. (공휴일 제외)</p>
+        </div>
+        
+        <div class="bank-info">
+          <div class="bank-header">
+            <div class="bank-logo">KB</div>
+            <span class="bank-name">KB국민은행</span>
+          </div>
+          <div class="account-number">000000-00-000000</div>
+          <div class="account-holder">예금주 : 주식회사 더쉼투어</div>
+        </div>
+      </div>
     </aside>
     
     <!-- 메인 콘텐츠 -->
@@ -397,7 +431,7 @@ onMounted(async () => {
 /* 전체 레이아웃 */
 .product-list-page {
   display: grid;
-  grid-template-columns: 1fr 220px 900px 1fr;
+  grid-template-columns: 1fr 270px 850px 1fr;
   min-height: 100vh;
   font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
   line-height: 1.6;
@@ -408,10 +442,14 @@ onMounted(async () => {
 /* 사이드바 섹션 */
 .sidebar-section {
   grid-column: 2;
-  padding: 1.5rem 1rem 0 0;
+  padding: 1.5rem 2rem 1rem 0;
   display: flex;
-  align-items: flex-start;
+  flex-direction: column;
+  align-items: stretch;
   align-self: start;
+  position: sticky;
+  top: 1rem; 
+  height: fit-content;
 }
 
 /* 사이드바 로딩 */
@@ -447,6 +485,117 @@ onMounted(async () => {
 @keyframes spin {
   0% { transform: rotate(0deg); }
   100% { transform: rotate(360deg); }
+}
+
+/* 여행 상담 & 예약 센터 정보 */
+.contact-info-section {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  align-items: stretch;
+  margin-top: 1rem;
+  padding-left: 2px;
+}
+
+.contact-header h3 {
+  font-size: 1.1rem;
+  font-weight: 900;
+  color: var(--text-primary);
+  text-align: left;
+  margin-bottom: 0.4rem;
+}
+
+.phone-number {
+  font-size: 1.2rem;
+  font-weight: 800;
+  text-align: left;
+}
+
+.phone-number.primary {
+  color: var(--primary-color);
+  font-size: 1.4rem;
+  line-height: 1;
+}
+
+.phone-number.secondary {
+  color: #1f2937;
+  font-size: 1.4rem;
+}
+
+.operating-hours {
+  margin-bottom: 1.5rem;
+}
+
+.hours-item {
+  display: flex;
+  align-items: center;
+  margin-bottom: 0.2rem;
+}
+
+.hours-label {
+  font-size: 0.9rem;
+  font-weight: 500;
+  color: var(--text-secondary);
+}
+
+.cancellation-policy {
+  margin-bottom: 1.5rem;
+  padding: 0.75rem;
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+  border-radius: var(--border-radius);
+}
+
+.cancellation-policy p {
+  margin: 0;
+  font-size: 0.8rem;
+  color: #dc2626;
+  line-height: 1.4;
+  text-align: left;
+}
+
+.bank-info {
+  padding: 1rem;
+  background: #f9f9f9;
+}
+
+.bank-header {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 0.75rem;
+}
+
+.bank-logo {
+  background: #ffd700;
+  color: #1f2937;
+  font-weight: 700;
+  font-size: 0.8rem;
+  padding: 0.25rem 0.5rem;
+  border-radius: 4px;
+  min-width: 24px;
+  text-align: center;
+}
+
+.bank-name {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.account-number {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: #ea580c;
+  text-align: left;
+  margin-bottom: 0.5rem;
+}
+
+.account-holder {
+  font-size: 0.8rem;
+  color: var(--text-secondary);
+  text-align: left;
+  line-height: 1.3;
 }
 
 /* 제목 섹션 */
@@ -1023,7 +1172,13 @@ onMounted(async () => {
     width: 100%;
     margin-bottom: 1rem;
     padding: 0;
-    display: block;
+    display: flex;
+    flex-direction: column;
+  }
+  
+  /* 모바일에서 연락처 정보 섹션 숨기기 */
+  .contact-info-section {
+    display: none;
   }
   
   .main-content {
@@ -1031,7 +1186,7 @@ onMounted(async () => {
     display: flex;
     justify-content: center;
     align-items: flex-start;
-    padding: 2rem 1rem 2rem 1rem;
+    padding: 0.5rem 1rem 2rem 1rem;
   }
   
   .content-container {
@@ -1082,7 +1237,8 @@ onMounted(async () => {
     width: 100%;
     margin-bottom: 1rem;
     padding: 0;
-    display: block;
+    display: flex;
+    flex-direction: column;
   }
   
   .main-content {
