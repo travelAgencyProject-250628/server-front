@@ -44,4 +44,5 @@ brew install supabase/tap/supabase
 npm install @unhead/vue
 ```
 
-test
+# 수정사항
+// 광고 배너 표시 여부 (true: 표시, false: 숨김)

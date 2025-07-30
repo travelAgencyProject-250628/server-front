@@ -399,7 +399,8 @@ const showAllMenuFlag = ref(false)
 const allMenuTimeout = ref(null)
 const expandedMobileCategory = ref(null)
 const menuLoading = ref(true)
-const showAdBanner = ref(true)
+// 광고 배너 표시 여부 (true: 표시, false: 숨김)
+const showAdBanner = ref(false)
 
 // 메뉴 데이터 (supabase에서 동적으로 불러올 데이터)
 const menuData = ref({
