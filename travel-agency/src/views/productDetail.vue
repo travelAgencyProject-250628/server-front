@@ -1,5 +1,12 @@
 <template>
     <div class="product-detail-page">
+        <!-- PC용 상품 헤더 - main-content 밖으로 이동 -->
+        <div v-if="productDetail" class="product-header pc-header">
+            <div class="product-category">{{ productDetail.category }}</div>
+            <h1 class="product-title">{{ productDetail.title }}</h1>
+            <p class="product-subtitle">{{ productDetail.subtitle }}</p>
+        </div>
+        
         <!-- 메인 컨텐츠 -->
         <main class="main-content">
             <div class="container">
@@ -15,10 +22,8 @@
 
                 <!-- 상품 정보 표시 -->
                 <template v-else-if="productDetail">
-
-                    <!-- 상품 헤더 이후 섹션 수정 -->
-                    <!-- 상품 헤더 -->
-                    <div class="product-header">
+                    <!-- 모바일용 상품 헤더 - container 안에 유지 -->
+                    <div class="product-header mobile-header">
                         <div class="product-category">{{ productDetail.category }}</div>
                         <h1 class="product-title">{{ productDetail.title }}</h1>
                         <p class="product-subtitle">{{ productDetail.subtitle }}</p>
@@ -801,13 +806,35 @@ const handleImageError = (event) => {
     padding: 3.5rem 0 2rem 0;
 }
 
-/* 상품 헤더 */
-.product-header {
-    background: white;
-    padding: 1.25rem;
-    border: 1px solid var(--border-color);
-    border-radius: var(--border-radius);
-    margin-bottom: 1.5rem;
+/* PC용 상품 헤더 */
+@media (min-width: 1200px) {
+    .pc-header {
+        width: calc(1200px - 4rem);
+        margin: 0 auto;
+        position: relative;
+        padding-top: 2rem;
+    }
+    
+    .pc-header::after {
+        content: '';
+        position: absolute;
+        bottom: -1.5rem;
+        left: 0;
+        right: -2rem;
+        height: 1px;
+        background-color: black;
+    }
+}
+
+/* 모바일용 상품 헤더 */
+@media (max-width: 1199px) {
+    .mobile-header {
+        background: white;
+        padding: 1.25rem;
+        border: 1px solid var(--border-color);
+        border-radius: var(--border-radius);
+        margin-bottom: 1.5rem;
+    }
 }
 
 .product-category {
@@ -1021,6 +1048,15 @@ const handleImageError = (event) => {
     .mobile-only {
         display: none !important;
     }
+    
+    /* PC에서만 pc-header 보이기 */
+    .pc-header {
+        display: block !important;
+    }
+    
+    .mobile-header {
+        display: none !important;
+    }
 }
 
 /* 모바일에서는 기존과 완전히 동일하게 - 모바일용 컨테이너 사용 */
@@ -1041,6 +1077,15 @@ const handleImageError = (event) => {
     }
     
     .mobile-only {
+        display: block !important;
+    }
+    
+    /* 모바일에서만 mobile-header 보이기 */
+    .pc-header {
+        display: none !important;
+    }
+    
+    .mobile-header {
         display: block !important;
     }
     
@@ -1764,6 +1809,12 @@ const handleImageError = (event) => {
 /* 기본적으로 모든 컨테이너 숨기기 */
 .pc-only,
 .mobile-only {
+    display: none;
+}
+
+/* 기본적으로 모든 헤더 숨기기 */
+.pc-header,
+.mobile-header {
     display: none;
 }
 
