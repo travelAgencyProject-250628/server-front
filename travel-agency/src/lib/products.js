@@ -1,4 +1,5 @@
 import { supabase } from './supabase.js'
+import { uploadProductImagesToR2, uploadDetailImageToR2, deleteAllProductImagesFromR2 } from './r2-upload.js'
 
 // 랜덤 10자리 product_number 생성 함수
 function getRandomProductNumber() {
@@ -30,51 +31,23 @@ export async function getAllStartingPoints() {
 }
 
 /**
- * Supabase Storage에 상품 이미지 업로드
+ * Cloudflare R2에 상품 이미지 업로드
  * @param {File[]} files - 업로드할 이미지 파일 배열
  * @param {string} productNumber - product_number (폴더명)
  * @returns {Promise<{success: boolean, urls?: string[], error?: string}>}
  */
 export async function uploadProductImages(files, productNumber) {
-  try {
-    if (!files || !files.length) return { success: false, error: '이미지 파일이 없습니다.' };
-    const urls = [];
-    for (let i = 0; i < files.length; i++) {
-      const file = files[i];
-      const fileName = i === 0 ? 'main' : String(i);
-      const path = `${productNumber}/${fileName}`;
-      const { error } = await supabase.storage.from('products').upload(path, file, { upsert: true });
-      if (error) throw error;
-      // publicUrl 구하기
-      const { data } = supabase.storage.from('products').getPublicUrl(path);
-      urls.push(data.publicUrl);
-    }
-    return { success: true, urls };
-  } catch (error) {
-    return { success: false, error: error.message };
-  }
+  return await uploadProductImagesToR2(files, productNumber);
 }
 
 /**
- * Supabase Storage에 상세 이미지 업로드
+ * Cloudflare R2에 상세 이미지 업로드
  * @param {File} file - 업로드할 상세 이미지 파일
  * @param {string} productNumber - product_number (폴더명)
  * @returns {Promise<{success: boolean, url?: string, error?: string}>}
  */
 export async function uploadDetailImage(file, productNumber) {
-  try {
-    if (!file) return { success: false, error: '상세 이미지 파일이 없습니다.' };
-    
-    const path = `${productNumber}/detail`;
-    const { error } = await supabase.storage.from('products').upload(path, file, { upsert: true });
-    if (error) throw error;
-    
-    // publicUrl 구하기
-    const { data } = supabase.storage.from('products').getPublicUrl(path);
-    return { success: true, url: data.publicUrl };
-  } catch (error) {
-    return { success: false, error: error.message };
-  }
+  return await uploadDetailImageToR2(file, productNumber);
 }
 
 /**
@@ -573,7 +546,21 @@ export async function updateProduct(productId, productData) {
  */
 export async function deleteProduct(productId) {
   try {
-    // 1. ProductImages 테이블에서 관련 이미지 삭제
+    // 1. 상품 정보 조회 (product_number 가져오기)
+    const { data: productData, error: fetchError } = await supabase
+      .from('Products')
+      .select('product_number')
+      .eq('id', productId)
+      .single();
+    
+    if (fetchError) throw fetchError;
+    
+    // 2. R2에서 이미지 삭제
+    if (productData.product_number) {
+      await deleteAllProductImagesFromR2(productData.product_number);
+    }
+    
+    // 3. ProductImages 테이블에서 관련 이미지 삭제
     const { error: imgError } = await supabase
       .from('ProductImages')
       .delete()
@@ -581,7 +568,7 @@ export async function deleteProduct(productId) {
     
     if (imgError) throw imgError;
     
-    // 2. ProductStartingPoints 테이블에서 관련 출발장소 삭제
+    // 4. ProductStartingPoints 테이블에서 관련 출발장소 삭제
     const { error: spError } = await supabase
       .from('ProductStartingPoints')
       .delete()
@@ -589,7 +576,7 @@ export async function deleteProduct(productId) {
     
     if (spError) throw spError;
     
-    // 3. Products 테이블에서 상품 삭제
+    // 5. Products 테이블에서 상품 삭제
     const { error } = await supabase
       .from('Products')
       .delete()
