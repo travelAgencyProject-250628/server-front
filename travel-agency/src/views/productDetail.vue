@@ -24,8 +24,41 @@
                         <p class="product-subtitle">{{ productDetail.subtitle }}</p>
                     </div>
 
-                    <!-- 이미지와 요약정보를 감싸는 flex 컨테이너 추가 -->
-                    <div class="product-main-info">
+                    <!-- PC용: 이미지만 포함하는 컨테이너 -->
+                    <div class="product-main-info pc-only">
+                        <!-- 상품 이미지 섹션 -->
+                        <div class="product-image-section">
+                            <div class="image-slider">
+                                <button class="slider-btn prev" @click="prevImage" :disabled="currentImageIndex === 0">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"
+                                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                                        stroke-linejoin="round">
+                                        <polyline points="15 18 9 12 15 6"></polyline>
+                                    </svg>
+                                </button>
+                                <div class="image-container">
+                                    <img :src="productDetail.images[currentImageIndex]"
+                                        :alt="'상품 이미지 ' + (currentImageIndex + 1)" class="product-image">
+                                </div>
+                                <button class="slider-btn next" @click="nextImage"
+                                    :disabled="currentImageIndex === productDetail.images.length - 1">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"
+                                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                                        stroke-linejoin="round">
+                                        <polyline points="9 18 15 12 9 6"></polyline>
+                                    </svg>
+                                </button>
+                                <div class="image-pagination">
+                                    <span v-for="(_, index) in productDetail.images" :key="index"
+                                        :class="['dot', { active: index === currentImageIndex }]" @click="setImage(index)">
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 모바일용: 이미지와 요약정보를 함께 포함하는 컨테이너 -->
+                    <div class="product-main-info mobile-only">
                         <!-- 상품 이미지 섹션 -->
                         <div class="product-image-section">
                             <div class="image-slider">
@@ -56,8 +89,8 @@
                             </div>
                         </div>
 
-                        <!-- 상품 요약 정보 -->
-                        <div class="product-summary">
+                        <!-- 모바일용 상품 요약 정보 -->
+                        <div class="product-summary mobile-summary">
                             <div class="summary-content">
                                 <div class="summary-item">
                                     <span class="summary-label">여행 기간</span>
@@ -279,6 +312,43 @@
                         </button>
                     </div>
                 </template>
+            </div>
+            
+            <!-- 상품 요약 정보 - main-content 내부, container와 같은 레벨 -->
+            <div v-if="productDetail" class="product-summary">
+                <div class="summary-content">
+                    <div class="summary-item">
+                        <span class="summary-label">여행 기간</span>
+                        <span class="summary-value">{{ productDetail.travelDuration }}</span>
+                    </div>
+                    <div class="summary-item">
+                        <span class="summary-label">포함 내역</span>
+                        <span class="summary-value">{{ productDetail.includedItems }}</span>
+                    </div>
+                    <div class="summary-item">
+                        <span class="summary-label">불포함 내역</span>
+                        <span class="summary-value">{{ productDetail.excludedItems }}</span>
+                    </div>
+                    <div class="summary-item">
+                        <span class="summary-label">출발 날짜</span>
+                        <span class="summary-value">2024.03.15 (금)</span>
+                    </div>
+                </div>
+                <div class="share-buttons">
+                    <button @click="shareToKakao" class="share-btn kakao-btn" title="카카오톡 공유">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                            <path d="M12 3C6.477 3 2 6.477 2 10.5c0 2.442 1.492 4.625 3.77 6.056L5 20l3.925-1.965C9.835 18.35 10.892 18.5 12 18.5c5.523 0 10-3.477 10-7.5S17.523 3 12 3z"/>
+                        </svg>
+                        <span>카카오톡공유</span>
+                    </button>
+                    <button @click="copyCurrentUrl" class="share-btn url-btn" title="URL 복사">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path>
+                            <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path>
+                        </svg>
+                        <span>URL공유하기</span>
+                    </button>
+                </div>
             </div>
         </main>
     </div>
@@ -714,12 +784,15 @@ const handleImageError = (event) => {
     font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
     line-height: 1.6;
     color: var(--text-primary);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
 }
 
 .container {
     max-width: 960px;
     margin: 0 auto;
-    padding: 0 20px;
+    padding: 0 2rem;
 }
 
 /* 메인 컨텐츠 */
@@ -825,9 +898,10 @@ const handleImageError = (event) => {
     width: 100%;
     aspect-ratio: 16/9;
     overflow: hidden;
-    border-top-left-radius: var(--border-radius);
-    border-bottom-left-radius: var(--border-radius);
+    border-radius: var(--border-radius);
 }
+
+
 
 .product-image {
     width: 100%;
@@ -911,6 +985,92 @@ const handleImageError = (event) => {
     border-top-right-radius: var(--border-radius);
     border-bottom-right-radius: var(--border-radius);
     margin-bottom: 1.5rem;
+}
+
+/* PC에서만 main-content를 flex로 만들고 사이드바 배치 */
+@media (min-width: 1200px) {
+    .main-content {
+        display: flex;
+        align-items: flex-start;
+        gap: 20px;
+        max-width: 1200px;
+        margin: 0 auto;
+    }
+    
+    .main-content .container {
+        flex: 1;
+    }
+    
+    .product-summary {
+        width: 320px;
+        flex-shrink: 0;
+        margin-bottom: 0;
+        border-radius: var(--border-radius);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        position: sticky;
+        top: 120px;
+        align-self: flex-start;
+        height: fit-content;
+    }
+    
+    /* PC에서만 pc-only 컨테이너 보이기 */
+    .pc-only {
+        display: block !important;
+    }
+    
+    .mobile-only {
+        display: none !important;
+    }
+}
+
+/* 모바일에서는 기존과 완전히 동일하게 - 모바일용 컨테이너 사용 */
+@media (max-width: 1199px) {
+    .main-content {
+        display: flex;
+        flex-direction: column;
+    }
+    
+    .main-content .container {
+        display: flex;
+        flex-direction: column;
+    }
+    
+    /* 모바일에서만 mobile-only 컨테이너 보이기 */
+    .pc-only {
+        display: none !important;
+    }
+    
+    .mobile-only {
+        display: block !important;
+    }
+    
+    /* 모바일에서 PC용 사이드바 숨기기 */
+    .main-content > .product-summary {
+        display: none !important;
+    }
+    
+    /* 모바일용 요약정보는 기존 스타일 유지 */
+    .mobile-summary {
+        margin-bottom: 1.5rem;
+    }
+    
+    /* 768px 이하에서는 이미지와 요약정보를 붙여서 하나의 카드처럼 만들기 */
+    @media (max-width: 768px) {
+        .mobile-only .product-main-info {
+            margin-bottom: 0;
+        }
+        
+        .mobile-summary {
+            margin-top: 0;
+            border-top-left-radius: 0;
+            border-top-right-radius: 0;
+        }
+        
+        .mobile-only .image-container {
+            border-bottom-left-radius: 0;
+            border-bottom-right-radius: 0;
+        }
+    }
 }
 
 .summary-content {
@@ -1601,8 +1761,26 @@ const handleImageError = (event) => {
     margin-bottom: 1.5rem;
 }
 
-/* 데스크탑 레이아웃 */
-@media (min-width: 769px) {
+/* 기본적으로 모든 컨테이너 숨기기 */
+.pc-only,
+.mobile-only {
+    display: none;
+}
+
+/* PC에서만 레이아웃 조정 */
+@media (min-width: 1200px) {
+    .product-main-info {
+        flex-direction: column; /* PC에서는 세로 배치 (사이드바가 별도로 배치되므로) */
+    }
+
+    .product-image-section {
+        width: 100%; /* 전체 너비 사용 */
+        margin: 0;
+    }
+}
+
+/* 태블릿 레이아웃 (769px ~ 1199px) */
+@media (min-width: 769px) and (max-width: 1199px) {
     .product-main-info {
         flex-direction: row;
         align-items: flex-start;
