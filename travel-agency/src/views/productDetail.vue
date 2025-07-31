@@ -236,16 +236,29 @@
                                     <h3 class="day-title">{{ day.day }}일차</h3>
                                 </div>
                                 
-                                <!-- 식사 정보 -->
-                                <div class="meal-info" v-if="day.meals">
-                                    <div class="meal-row">
-                                        <div class="meal-icon">🍽️</div>
-                                        <div class="meal-content">
-                                            <span class="meal-label">식사</span>
-                                            <span class="meal-details">{{ day.meals }}</span>
+                                                            <!-- 식사 정보 -->
+                            <div class="meal-info" v-if="day.meals">
+                                <div class="meal-row">
+                                    <div class="meal-icon">🍽️</div>
+                                    <div class="meal-content">
+                                        <span class="meal-label">식사</span>
+                                        <div class="meal-buttons">
+                                            <div class="meal-item" v-if="day.meals.breakfast">
+                                                <span class="meal-keyword">조식</span>
+                                                <span class="meal-menu">{{ day.meals.breakfast }}</span>
+                                            </div>
+                                            <div class="meal-item" v-if="day.meals.lunch">
+                                                <span class="meal-keyword">중식</span>
+                                                <span class="meal-menu">{{ day.meals.lunch }}</span>
+                                            </div>
+                                            <div class="meal-item" v-if="day.meals.dinner">
+                                                <span class="meal-keyword">석식</span>
+                                                <span class="meal-menu">{{ day.meals.dinner }}</span>
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
+                            </div>
                                 
                                 <!-- 타임라인 일정 -->
                                 <div class="timeline-container">
@@ -269,24 +282,26 @@
                                                     </div>
                                                 </div>
                                                 <div class="event-content">
-                                                    <div class="event-time">{{ location.time }}</div>
                                                     <div class="event-details">
                                                         <div class="location-info">
                                                             <div class="location-name">{{ location.name }}</div>
-                                                            <div class="activity-description">{{ location.activity }}</div>
+                                                            <div class="event-time">{{ location.time }}</div>
+                                                            <div class="activity-description">
+                                                                {{ location.activity }}
+                                                                <div v-if="location.caution" class="caution-note">
+                                                                    <span class="caution-text">{{ location.caution }}</span>
+                                                                </div>
+                                                            </div>                                                            
                                                         </div>
                                                         
                                                         <!-- 주의사항 -->
-                                                        <div v-if="location.caution" class="caution-note">
-                                                            <span class="caution-icon">⚠️</span>
-                                                            <span class="caution-text">{{ location.caution }}</span>
-                                                        </div>
+                                                        
                                                         
                                                         <!-- 상세 정보 -->
                                                         <div v-if="location.details && location.details.length > 0" class="detail-sections">
                                                             <div v-for="(detail, detailIndex) in location.details" :key="detailIndex" class="detail-section">
                                                                 <h4 class="detail-title">{{ detail.title }}</h4>
-                                                                <p class="detail-description">{{ detail.description }}</p>
+                                                                <p class="detail-description" v-html="formatDescription(detail.description)"></p>
                                                                 <div v-if="detail.images && detail.images.length > 0" class="detail-images">
                                                                     <img 
                                                                         v-for="(image, imageIndex) in detail.images" 
@@ -406,11 +421,11 @@
                         <span class="summary-label">여행기간</span>
                         <span class="summary-value">{{ productDetail.travelDuration }}</span>
                     </div>
-                    <div class="summary-item">
+                    <!-- <div class="summary-item">
                         <span class="summary-label">포함내역</span>
                         <span class="summary-value">{{ productDetail.includedItems }}</span>
-                    </div>                                        
-                    <div v-if="productDetail.eventContent" class="summary-item event-content">
+                    </div>                                         -->
+                    <div v-if="productDetail.eventContent" class="summary-item event-content-summary">
                         <span class="summary-label">행사내용</span>
                         <span class="summary-value">{{ productDetail.eventContent }}</span>
                     </div>
@@ -467,6 +482,12 @@ import { getProductStartingPoints } from '@/lib/startingpoints.js'
 const route = useRoute()
 const router = useRouter()
 const activeTab = ref('basic')
+
+// 줄바꿈을 <br> 태그로 변환하는 함수
+const formatDescription = (description) => {
+  if (!description) return ''
+  return description.replace(/\n/g, '<br>')
+}
 
 // SEO 메타 태그 설정
 const setMetaTags = (product) => {
@@ -1135,7 +1156,7 @@ const handleImageError = (event) => {
         border-radius: var(--border-radius);
         box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
         position: sticky;
-        top: 120px;
+        top: 45px;
         align-self: flex-start;
         height: fit-content;
     }
@@ -1267,7 +1288,7 @@ const handleImageError = (event) => {
 }
 
 /* 행사 내용 스타일 */
-.event-content .summary-value {
+.event-content-summary .summary-value {
     color: var(--primary-color);
     font-weight: 600;
 }
@@ -1339,27 +1360,52 @@ const handleImageError = (event) => {
 .meal-content {
     display: flex;
     align-items: center;
-    gap: 1rem;
+    gap: 1.5rem;
+    flex: 1;
 }
 
 .meal-label {
     font-weight: 600;
     color: var(--text-primary);
+    font-size: 1rem;
 }
 
-.meal-details {
+.meal-buttons {
+    display: flex;
+    gap: 1rem;
+}
+
+.meal-item {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.meal-keyword {
+    padding: 0.25rem 0.75rem;
+    border-radius: 12px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: white;
+    background: var(--primary-color);
+}
+
+.meal-menu {
     color: var(--text-secondary);
+    font-size: 0.9rem;
+    font-weight: 500;
 }
 
 /* 타임라인 컨테이너 */
 .timeline-container {
     position: relative;
     padding: 2rem 0;
+    padding-right: 10px;
 }
 
 .timeline-line {
     position: absolute;
-    left: 30px;
+    left: 20px;
     top: 0;
     bottom: 0;
     width: 2px;
@@ -1416,8 +1462,8 @@ const handleImageError = (event) => {
 .timeline-event {
     display: flex;
     align-items: flex-start;
-    margin-bottom: 1.5rem;
-    padding: 0 0 0 60px;
+    margin-bottom: 1rem;
+    padding: 0 0 0 40px;
     position: relative;
 }
 
@@ -1427,8 +1473,7 @@ const handleImageError = (event) => {
 
 .event-marker {
     position: absolute;
-    left: calc(60px/2 - 24px/2);
-    top: 14px;
+    left: calc(40px/2 - 24px/2);
     z-index: 2;
 }
 
@@ -1448,29 +1493,19 @@ const handleImageError = (event) => {
 
 .event-content {
     flex: 1;
-    background: white;
-    border-radius: 8px;
-    border: 1px solid var(--border-color);
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
     overflow: hidden;
     display: flex;
-    flex-direction: row;
+    flex-direction: column;
 }
 
 .event-time {
-    background: var(--primary-color);
-    color: white;
-    padding: 1rem 0.75rem;
+    color: var(--primary-color);
     font-weight: 600;
     font-size: 0.9rem;
-    text-align: center;
-    min-width: 80px;
-    display: flex;
-    justify-content: center;
+    width: 4rem;
 }
 
 .event-details {
-    padding: 1rem;
     flex: 1;
     display: flex;
     flex-direction: column;
@@ -1482,57 +1517,50 @@ const handleImageError = (event) => {
     flex: 1;
     display: flex;
     flex-direction: row;
-    align-items: center;
-    gap: 0.5rem;
+    align-items: flex-start;
 }
 
 .location-name {
     font-weight: 600;
     color: var(--text-primary);
     font-size: 1rem;
+    width: 7rem;
 }
 
 .activity-description {
-    color: var(--text-secondary);
+    color: black;
     font-size: 0.9rem;
     line-height: 1.4;
+    word-wrap: break-word;
+    white-space: normal;
+    flex: 1;
 }
 
 /* 주의사항 */
 .caution-note {
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-    padding: 0.5rem;
-    background: #fff3cd;
-    border: 1px solid #ffeaa7;
-    border-radius: 4px;
-    margin-top: 0.5rem;
-}
-
-.caution-icon {
-    font-size: 0.9rem;
+    display: inline;
+    margin-left: 0.5rem;
+    text-align: center;
 }
 
 .caution-text {
     font-size: 0.85rem;
-    color: #856404;
+    color: red;
     font-weight: 500;
 }
 
-/* 상세 정보 */
 .detail-sections {
-    margin-top: 1rem;
-    padding-top: 1rem;
-    border-top: 1px solid var(--border-color);
+    padding: 0 10px 0 11rem;
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
 }
 
 .detail-section {
-    margin-bottom: 1.5rem;
     padding: 1rem;
-    background: #f8f9fa;
     border-radius: 4px;
-    border: 1px solid var(--border-color);
+    border: 1px solid #e2e8f0;
 }
 
 .detail-section:last-child {
@@ -1544,6 +1572,8 @@ const handleImageError = (event) => {
     font-weight: 600;
     color: var(--text-primary);
     margin-bottom: 0.5rem;
+    padding-bottom: 0.5rem;
+    border-bottom: 1px solid gray;
 }
 
 .detail-description {
@@ -1554,14 +1584,14 @@ const handleImageError = (event) => {
 }
 
 .detail-images {
-    display: flex;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
     gap: 0.5rem;
-    flex-wrap: wrap;
 }
 
 .detail-image {
-    width: 120px;
-    height: 80px;
+    width: 100%;
+    height: 170px;
     object-fit: cover;
     border-radius: 4px;
     border: 1px solid var(--border-color);
@@ -1616,8 +1646,8 @@ const handleImageError = (event) => {
     }
     
     .detail-image {
-        width: 100px;
-        height: 70px;
+        width: 100%;
+        height: 170px;
     }
 }
 
@@ -1694,7 +1724,7 @@ const handleImageError = (event) => {
 .tab-section {
     position: sticky;
     top: 0px;
-    z-index: 2;
+    z-index: 4;
     background: white;
     margin-bottom: 1.5rem;
     border: 1px solid var(--border-color);
