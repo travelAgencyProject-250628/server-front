@@ -238,7 +238,7 @@
                         </div>
                         <div class="payment-row">
                             <span class="payment-label">입금 계좌</span>
-                            <span class="payment-value">국민은행 123456-78-901234 (예금주: 더쉼투어)</span>
+                            <span class="payment-value">신한은행 110-566-753667 (예금주: 김태훈)</span>
                         </div>
                     </div>
                     <div class="form-grid">

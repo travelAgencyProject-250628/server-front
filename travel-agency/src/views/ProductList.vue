@@ -41,11 +41,11 @@
         
         <div class="bank-info">
           <div class="bank-header">
-            <div class="bank-logo">KB</div>
-            <span class="bank-name">KB국민은행</span>
+            <img src="/bank_icon.png" alt="신한은행" class="bank-logo-image" />
+            <span class="bank-name">신한은행</span>
           </div>
-          <div class="account-number">000000-00-000000</div>
-          <div class="account-holder">예금주 : 주식회사 더쉼투어</div>
+          <div class="account-number">110-566-753667</div>
+          <div class="account-holder">예금주 : 김태훈</div>
         </div>
       </div>
     </aside>
@@ -557,38 +557,33 @@ onMounted(async () => {
 .bank-info {
   padding: 1rem;
   background: #f9f9f9;
+  border-radius: var(--border-radius);
 }
 
 .bank-header {
   display: flex;
   align-items: center;
-  gap: 0.5rem;
-  margin-bottom: 0.75rem;
+  gap: 0.2rem;
 }
 
-.bank-logo {
-  background: #ffd700;
-  color: #1f2937;
-  font-weight: 700;
-  font-size: 0.8rem;
-  padding: 0.25rem 0.5rem;
-  border-radius: 4px;
-  min-width: 24px;
-  text-align: center;
+.bank-logo-image {
+  height: 24px;
+  width: auto;
+  object-fit: contain;
 }
 
 .bank-name {
-  font-size: 0.9rem;
+  font-size: 1rem;
   font-weight: 600;
-  color: var(--text-primary);
+  color: rgb(87, 87, 255);
 }
 
 .account-number {
-  font-size: 1.1rem;
+  font-size: 1.3rem;
   font-weight: 700;
-  color: #ea580c;
+  color: rgb(87, 87, 255);
   text-align: left;
-  margin-bottom: 0.5rem;
+  margin: 0.2rem 0rem;
 }
 
 .account-holder {
