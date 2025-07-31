@@ -283,9 +283,24 @@
                                                 </div>
                                                 <div class="event-content">
                                                     <div class="event-details">
-                                                        <div class="location-info">
+                                                        <!-- PC용 location-info -->
+                                                        <div class="location-info pc-location-info">
                                                             <div class="location-name">{{ location.name }}</div>
                                                             <div class="event-time">{{ location.time }}</div>
+                                                            <div class="activity-description">
+                                                                {{ location.activity }}
+                                                                <div v-if="location.caution" class="caution-note">
+                                                                    <span class="caution-text">{{ location.caution }}</span>
+                                                                </div>
+                                                            </div>                                                            
+                                                        </div>
+                                                        
+                                                        <!-- 모바일용 location-info -->
+                                                        <div class="location-info mobile-location-info">
+                                                            <div class="mobile-time-name">
+                                                                <div class="event-time">{{ location.time }}</div>
+                                                                <div class="location-name">{{ location.name }}</div>
+                                                            </div>
                                                             <div class="activity-description">
                                                                 {{ location.activity }}
                                                                 <div v-if="location.caution" class="caution-note">
@@ -946,16 +961,23 @@ const handleImageError = (event) => {
         height: 1px;
         background-color: black;
     }
+
+    /* PC에서 모바일용 location-info 숨기기 */
+    .mobile-location-info {
+        display: none !important;
+    }
+
+    /* PC에서 PC용 location-info 표시 */
+    .pc-location-info {
+        display: flex !important;
+    }
 }
 
 /* 모바일용 상품 헤더 */
 @media (max-width: 1199px) {
     .mobile-header {
         background: white;
-        padding: 1.25rem;
-        border: 1px solid var(--border-color);
-        border-radius: var(--border-radius);
-        margin-bottom: 1.5rem;
+        padding: 0 0.7rem;
     }
 }
 
@@ -1199,6 +1221,7 @@ const handleImageError = (event) => {
     .main-content .container {
         display: flex;
         flex-direction: column;
+        padding: 0;
     }
     
     /* 모바일에서만 mobile-only 컨테이너 보이기 */
@@ -1237,6 +1260,10 @@ const handleImageError = (event) => {
     .mobile-summary {
         margin-bottom: 1.5rem;
     }
+
+    .image-container {
+        border-radius: 0;
+    }
     
     /* 768px 이하에서는 이미지와 요약정보를 붙여서 하나의 카드처럼 만들기 */
     @media (max-width: 768px) {
@@ -1248,11 +1275,6 @@ const handleImageError = (event) => {
             margin-top: 0;
             border-top-left-radius: 0;
             border-top-right-radius: 0;
-        }
-        
-        .mobile-only .image-container {
-            border-bottom-left-radius: 0;
-            border-bottom-right-radius: 0;
         }
     }
 }
@@ -1284,12 +1306,6 @@ const handleImageError = (event) => {
 .summary-value.price {
     color: var(--primary-color);
     font-size: 1.1rem;
-    font-weight: 600;
-}
-
-/* 행사 내용 스타일 */
-.event-content-summary .summary-value {
-    color: var(--primary-color);
     font-weight: 600;
 }
 
@@ -1342,7 +1358,6 @@ const handleImageError = (event) => {
 
 /* 식사 정보 */
 .meal-info {
-    background: #f8f9fa;
     border-bottom: 1px solid var(--border-color);
 }
 
@@ -1598,13 +1613,91 @@ const handleImageError = (event) => {
 }
 
 /* 반응형 디자인 */
+/* 여행지정보 모바일뷰 */
 @media (max-width: 768px) {
+    .section-title {
+        margin: 0 !important;
+        padding: 0 !important;
+    }
+
+    .meal-keyword {
+        padding: 0.25rem 0.5rem;
+        font-size: 0.5rem;
+    }
+
+    .meal-menu {
+        font-size: 0.7rem;
+    }
+
+    /* 모바일에서 border 제거하고 구분선으로 변경 */
+    .product-summary,
+    .schedule-selection,
+    .base-price-section,
+    .tab-section,
+    .content-section,
+    .day-section {
+        border: none !important;
+        /* border-bottom: 1px solid var(--border-color) !important; */
+        margin-bottom: 0 !important;
+    }
+
+    .day-section:last-child,
+    .timeline-event:last-child,
+    .detail-section:last-child {
+        border-bottom: none !important;
+    }
+
+    .product-summary {
+        border-bottom: 1px solid var(--border-color) !important;
+    }
+
+    .schedule-selection {
+        border-bottom: 1px solid var(--border-color) !important;
+        border-radius: 0 !important;
+        box-shadow: none !important;
+    }
+
+    .base-price-section {
+        border-bottom: 1px solid var(--border-color) !important;
+        border-radius: 0 !important;
+        box-shadow: none !important;
+    }
+
+    .tab-section {
+        border-bottom: 1px solid var(--border-color) !important;
+        border-radius: 0 !important;
+        box-shadow: none !important;
+    }
+
+    .content-section {
+        border-bottom: 1px solid var(--border-color) !important;
+        border-radius: 0 !important;
+        box-shadow: none !important;
+    }
+
+    .day-section {
+        border-radius: 0 !important;
+        box-shadow: none !important;
+    }
+
+    .timeline-event {
+        border-radius: 0 !important;
+        box-shadow: none !important;
+    }
+
+    .detail-section {
+        box-shadow: none;
+        padding: 0.5rem;
+    }
+
     .day-header {
-        padding: 0.75rem 1rem;
+        padding: 0.5rem 0.5rem;
+        border-radius: 5px;
     }
     
     .meal-row {
-        padding: 0.75rem 1rem;
+        padding: 0.5rem 0.5rem;
+        border-radius: 5px;
     }
     
     .meal-content {
@@ -1614,21 +1707,22 @@ const handleImageError = (event) => {
     }
     
     .timeline-container {
-        padding: 1.5rem 0;
+        padding: 0.5rem 0;
     }
     
     .timeline-line {
-        left: 20px;
+        left: 6px;
     }
     
     .area-header,
     .timeline-event {
-        padding-left: 50px;
+        padding-left: 20px;
     }
     
     .area-marker,
     .event-marker {
-        left: calc(50px/2 - 18px/2);
+        left: 2px;
+        top: 5px;
     }
     
     .area-marker {
@@ -1648,6 +1742,49 @@ const handleImageError = (event) => {
     .detail-image {
         width: 100%;
         height: 170px;
+    }
+    .location-icon-img {
+        width: 16px;
+        height: 16px;
+        object-fit: contain;
+    }
+
+    /* PC용 location-info 숨기기 */
+    .pc-location-info {
+        display: none !important;
+    }
+
+    /* 모바일용 location-info 표시 */
+    .mobile-location-info {
+        display: flex !important;
+        flex-direction: column !important;
+        align-items: flex-start !important;
+        gap: 0 !important;
+    }
+
+    .mobile-time-name {
+        display: flex !important;
+        align-items: center !important;
+        gap: 0.5rem !important;
+    }
+
+    .mobile-time-name .event-time {
+        order: 1;
+        width: 3rem;
+    }
+
+    .mobile-time-name .location-name {
+        order: 2;
+    }
+
+    .mobile-location-info .activity-description {
+        width: 100% !important;
+        text-align: left !important;
+        margin-top: 0.25rem;
+    }
+
+    .detail-sections {
+        padding: 0 0 0 0;
     }
 }
 
@@ -2006,6 +2143,7 @@ const handleImageError = (event) => {
 @media (max-width: 768px) {
     .main-content {
         padding-top: 1.5rem;
+        padding-bottom: 0;
     }
 
     .product-title {
@@ -2069,7 +2207,7 @@ const handleImageError = (event) => {
     }
 
     .content-section {
-        padding: 1rem;
+        padding: 0.7rem;
         scroll-margin-top: 160px;
         /* 헤더(80px) + 탭섹션(약 80px) */
     }
@@ -2094,6 +2232,9 @@ const handleImageError = (event) => {
 
     .next {
         right: 0.5rem;
+    }
+    .meal-icon, .meal-label {
+        display: none;
     }
 }
 
@@ -2313,12 +2454,12 @@ const handleImageError = (event) => {
     }
 
     .product-image-section {
-        width: calc(100% * 4/7); /* 7분의 4 */
+        
         margin: 0;
     }
 
     .product-summary {
-        width: calc(100% * 3/7);
+        /* width: calc(100% * 3/7); */
         flex-shrink: 0;
         margin: 0;
         align-self: stretch;
@@ -2334,17 +2475,15 @@ const handleImageError = (event) => {
         margin-bottom: 0rem;
     }
 
-    .image-container {
-        border-radius: var(--border-radius);
-    }
-
     .product-image-section {
         width: 100%;
     }
 
     .product-summary {
-        border-radius: var(--border-radius);
+        border: none;
         width: 100%;
+        border-radius: 0 !important;
+        box-shadow: none !important;
     }
 }
 </style>
