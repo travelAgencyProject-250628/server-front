@@ -1623,17 +1623,19 @@ const handleImageError = (event) => {
     }
 
     .booking-section {
-        padding: 0.75rem 1rem;
+        padding: 0 0 1rem 1rem;
         display: flex;
         flex-direction: column;
         align-items: center;
     }
 
     .booking-info {
-        gap: 0.5rem;
+        /* gap: 0.5rem;
         align-items: center;
         margin-bottom: 0.75rem;
-        width: 100%;
+        width: 100%; */
+        gap: 0;
+        padding: rem 0rem;
     }
 
     .btn-booking {
