@@ -225,13 +225,10 @@
 
                     <!-- 여행일정표 섹션 -->
                     <section id="detail" class="content-section itinerary-section" ref="detailSection">
-                        <!-- 디버깅용 -->
-                        <div style="display: none;">
-                            {{ console.log('템플릿에서 itinerary 확인:', productDetail.itinerary) }}
-                        </div>
+
                         <h2 class="section-title">여행일정표</h2>
-                        <div v-if="productDetail.itinerary && productDetail.itinerary.itinerary" class="itinerary-container">
-                            <div v-for="day in productDetail.itinerary.itinerary" :key="day.day" class="day-section">
+                        <div v-if="productDetail.itinerary" class="itinerary-container">
+                            <div v-for="day in (Array.isArray(productDetail.itinerary) ? productDetail.itinerary : productDetail.itinerary.itinerary)" :key="day.day" class="day-section">
                                 <div class="day-header">
                                     <h3 class="day-title">{{ day.day }}일차</h3>
                                 </div>
@@ -674,7 +671,31 @@ const fetchProductDetail = async (productId) => {
                 closingThreshold: product.closingThreshold,
                 images: product.images.length > 0 ? product.images : ['/images/default-product.jpg'],
                 main_image_url: product.main_image_url, // 새로 추가된 필드
-                itinerary: typeof product.itinerary === 'string' ? JSON.parse(product.itinerary) : product.itinerary // 여행일정표 JSON 데이터
+                itinerary: (() => {
+                    let itinerary = product.itinerary
+                    
+                    // 문자열인 경우 파싱
+                    if (typeof itinerary === 'string') {
+                        try {
+                            itinerary = JSON.parse(itinerary)
+                        } catch (error) {
+                            console.error('itinerary JSON 파싱 오류:', error)
+                            return null
+                        }
+                    }
+                    
+                    // 배열 형태로 저장된 경우 그대로 사용
+                    if (Array.isArray(itinerary)) {
+                        return itinerary
+                    }
+                    
+                    // {days: ..., itinerary: [...]} 형태인 경우
+                    if (itinerary && itinerary.itinerary && Array.isArray(itinerary.itinerary)) {
+                        return itinerary
+                    }
+                    
+                    return null
+                })()
             }
             
             console.log('매핑된 productDetail:', productDetail.value)

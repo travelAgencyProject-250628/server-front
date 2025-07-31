@@ -45,19 +45,13 @@
             </div>
           </div>
 
-          <!-- 장소 정보 -->
-          <div class="locations-section">
-            <div class="locations-header">
-              <h6>방문 장소</h6>
-              <button type="button" class="btn-add-location" @click="addLocation(dayIndex)">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
-                  <path d="M12 5v14M5 12h14" stroke="currentColor" stroke-width="2"/>
-                </svg>
-                장소 추가
-              </button>
-            </div>
+                        <!-- 장소 정보 -->
+              <div class="locations-section">
+                <div class="locations-header">
+                  <h6>방문 장소</h6>
+                </div>
 
-            <div v-for="(location, locationIndex) in day.locations" :key="locationIndex" class="location-item">
+                <div v-for="(location, locationIndex) in day.locations" :key="locationIndex" class="location-item">
               <div class="location-header">
                 <h6>장소 {{ locationIndex + 1 }}</h6>
                 <button type="button" class="btn-remove-location" @click="removeLocation(dayIndex, locationIndex)">
@@ -119,18 +113,65 @@
                         <textarea v-model="detail.description" placeholder="상세 설명을 입력하세요"></textarea>
                       </div>
                       <div class="form-group">
-                        <label>이미지 URL (한 줄에 하나씩)</label>
-                        <textarea v-model="detail.imagesText" placeholder="이미지 URL을 한 줄에 하나씩 입력하세요"></textarea>
+                        <label>이미지</label>
+                        <div class="image-upload-section">
+                          <div class="image-upload-area">
+                            <input 
+                              type="file" 
+                              :id="`image-upload-${detail.id}`"
+                              @change="handleFileSelect($event, detail.id)"
+                              multiple 
+                              accept="image/*"
+                              style="display: none;"
+                            >
+                            <label :for="`image-upload-${detail.id}`" class="upload-button">
+                              <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+                                <path d="M12 5v14M5 12h14" stroke="currentColor" stroke-width="2"/>
+                              </svg>
+                              이미지 추가
+                            </label>
+                            <div v-if="uploadingImages[detail.id]" class="uploading-indicator">
+                              업로드 중...
+                            </div>
+                          </div>
+                          
+                          <div v-if="detail.images && detail.images.length > 0" class="image-preview-grid">
+                            <div 
+                              v-for="(imageUrl, imageIndex) in detail.images" 
+                              :key="imageIndex" 
+                              class="image-preview-item"
+                            >
+                              <img :src="imageUrl" :alt="`이미지 ${imageIndex + 1}`" class="preview-image">
+                              <button 
+                                type="button" 
+                                class="delete-image-btn"
+                                @click="handleImageDelete(detail.id, imageUrl)"
+                              >
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+                                  <path d="M18 6L6 18M6 6l12 12" stroke="currentColor" stroke-width="2"/>
+                                </svg>
+                              </button>
+                            </div>
+                          </div>
+                        </div>
                       </div>
                     </div>
                   </div>
                 </div>
               </div>
+                            </div>
+                
+                <!-- 장소 추가 버튼 -->
+                <button type="button" class="btn-add-location" @click="addLocation(dayIndex)">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+                    <path d="M12 5v14M5 12h14" stroke="currentColor" stroke-width="2"/>
+                  </svg>
+                  장소 추가
+                </button>
+              </div>
             </div>
-          </div>
-        </div>
 
-        <button type="button" class="btn-add-day" @click="addDay">
+            <button type="button" class="btn-add-day" @click="addDay">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
             <path d="M12 5v14M5 12h14" stroke="currentColor" stroke-width="2"/>
           </svg>
@@ -146,6 +187,7 @@ import { ref, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { supabase } from '@/lib/supabase.js'
 import { updateProduct } from '@/lib/products.js'
+import { uploadProductImagesToR2, deleteImageFromR2 } from '@/lib/r2-upload.js'
 
 const route = useRoute()
 const router = useRouter()
@@ -153,6 +195,8 @@ const router = useRouter()
 // 상태 변수
 const selectedProduct = ref(null)
 const saving = ref(false)
+const uploadingImages = ref({}) // { detailId: boolean }
+const imageFiles = ref({}) // { detailId: File[] }
 const itineraryData = ref({
   itinerary: [
     {
@@ -188,7 +232,7 @@ const loadProduct = async (productId) => {
   try {
     const { data, error } = await supabase
       .from('Products')
-      .select('id, title, subtitle, itinerary')
+      .select('id, title, subtitle, product_number, itinerary')
       .eq('id', productId)
       .single()
     
@@ -227,19 +271,29 @@ const loadProduct = async (productId) => {
       // 깊은 복사로 itinerary 설정
       const copiedItinerary = JSON.parse(JSON.stringify(itinerary))
       
-      // 이미지 URL 배열을 텍스트로 변환 (편집용)
+      // detail에 ID 부여 및 이미지 처리
       copiedItinerary.forEach(day => {
         if (day.locations) {
           day.locations.forEach(location => {
-            if (location.details) {
-              location.details.forEach(detail => {
-                if (detail.images && Array.isArray(detail.images)) {
-                  detail.imagesText = detail.images.join('\n')
-                } else {
-                  detail.imagesText = ''
-                }
-              })
+            // details 배열이 없으면 초기화
+            if (!location.details) {
+              location.details = []
             }
+            
+            location.details.forEach(detail => {
+              // ID가 없으면 생성
+              if (!detail.id) {
+                detail.id = generateDetailId()
+              }
+              // imagesText 제거 (더 이상 사용하지 않음)
+              if (detail.imagesText) {
+                delete detail.imagesText
+              }
+              // images 배열이 없으면 초기화
+              if (!detail.images) {
+                detail.images = []
+              }
+            })
           })
         }
       })
@@ -273,6 +327,17 @@ const loadProduct = async (productId) => {
           }
         ]
       }
+      
+      // 새로운 일정표에도 ID 부여
+      itineraryData.value.itinerary.forEach(day => {
+        day.locations.forEach(location => {
+          location.details.forEach(detail => {
+            if (!detail.id) {
+              detail.id = generateDetailId()
+            }
+          })
+        })
+      })
     }
   } catch (error) {
     console.error('상품 로드 오류:', error)
@@ -326,13 +391,28 @@ const removeLocation = (dayIndex, locationIndex) => {
   itineraryData.value.itinerary[dayIndex].locations.splice(locationIndex, 1)
 }
 
+const generateDetailId = () => {
+  return `detail_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
+}
+
 const addDetail = (dayIndex, locationIndex) => {
+  console.log('상세 추가 시도:', { dayIndex, locationIndex })
+  console.log('현재 location:', itineraryData.value.itinerary[dayIndex].locations[locationIndex])
+  
   const newDetail = {
+    id: generateDetailId(),
     title: '',
     description: '',
     images: []
   }
+  
+  // details 배열이 없으면 초기화
+  if (!itineraryData.value.itinerary[dayIndex].locations[locationIndex].details) {
+    itineraryData.value.itinerary[dayIndex].locations[locationIndex].details = []
+  }
+  
   itineraryData.value.itinerary[dayIndex].locations[locationIndex].details.push(newDetail)
+  console.log('상세 추가 완료:', newDetail)
 }
 
 const removeDetail = (dayIndex, locationIndex, detailIndex) => {
@@ -342,18 +422,6 @@ const removeDetail = (dayIndex, locationIndex, detailIndex) => {
 const saveItinerary = async () => {
   saving.value = true
   try {
-    // 이미지 URL 텍스트를 배열로 변환
-    itineraryData.value.itinerary.forEach(day => {
-      day.locations.forEach(location => {
-        location.details.forEach(detail => {
-          if (detail.imagesText) {
-            detail.images = detail.imagesText.split('\n').filter(url => url.trim())
-            delete detail.imagesText
-          }
-        })
-      })
-    })
-
     const updateData = {
       itinerary: itineraryData.value.itinerary
     }
@@ -375,6 +443,81 @@ const saveItinerary = async () => {
 
 const goBack = () => {
   router.push('/admin/products')
+}
+
+// 이미지 업로드 관련 함수들
+const handleImageUpload = async (detailId, files) => {
+  if (!selectedProduct.value) return
+  
+  uploadingImages.value[detailId] = true
+  
+  try {
+    const productNumber = selectedProduct.value.product_number || `product_${selectedProduct.value.id}`
+    const result = await uploadProductImagesToR2(files, `${productNumber}/itinerary`)
+    
+    if (result.success) {
+      // 이미지 URL을 detail에 추가
+      const detail = findDetailById(detailId)
+      if (detail) {
+        if (!detail.images) detail.images = []
+        detail.images.push(...result.urls)
+      }
+    } else {
+      alert(`이미지 업로드 실패: ${result.error}`)
+    }
+  } catch (error) {
+    console.error('이미지 업로드 오류:', error)
+    alert('이미지 업로드 중 오류가 발생했습니다.')
+  } finally {
+    uploadingImages.value[detailId] = false
+  }
+}
+
+const handleImageDelete = async (detailId, imageUrl) => {
+  if (!selectedProduct.value) return
+  
+  try {
+    // URL에서 키 추출
+    const urlParts = imageUrl.split('/')
+    const key = urlParts.slice(-2).join('/') // product_number/itinerary/filename
+    
+    const result = await deleteImageFromR2(key)
+    
+    if (result.success) {
+      // 이미지 URL을 detail에서 제거
+      const detail = findDetailById(detailId)
+      if (detail && detail.images) {
+        detail.images = detail.images.filter(url => url !== imageUrl)
+      }
+    } else {
+      alert(`이미지 삭제 실패: ${result.error}`)
+    }
+  } catch (error) {
+    console.error('이미지 삭제 오류:', error)
+    alert('이미지 삭제 중 오류가 발생했습니다.')
+  }
+}
+
+const findDetailById = (detailId) => {
+  for (const day of itineraryData.value.itinerary) {
+    for (const location of day.locations) {
+      for (const detail of location.details) {
+        if (detail.id === detailId) {
+          return detail
+        }
+      }
+    }
+  }
+  return null
+}
+
+const handleFileSelect = async (event, detailId) => {
+  const files = Array.from(event.target.files)
+  if (files.length > 0) {
+    await handleImageUpload(detailId, files)
+    // 파일 입력 초기화
+    event.target.value = ''
+  }
 }
 </script>
 
@@ -516,14 +659,20 @@ const goBack = () => {
 .btn-add-location {
   display: flex;
   align-items: center;
-  gap: 0.25rem;
-  padding: 0.5rem 0.75rem;
+  gap: 0.5rem;
+  padding: 0.75rem 1rem;
   background: #e8f5e8;
   color: #2e7d32;
   border: none;
-  border-radius: 6px;
+  border-radius: 8px;
   font-size: 0.875rem;
   cursor: pointer;
+  margin-top: 1rem;
+  transition: all 0.2s;
+}
+
+.btn-add-location:hover {
+  background: #c8e6c9;
 }
 
 .location-item {
@@ -711,5 +860,84 @@ const goBack = () => {
 
 .btn-secondary:hover {
   background: #4b5563;
+}
+
+/* 이미지 업로드 스타일 */
+.image-upload-section {
+  margin-top: 1rem;
+}
+
+.image-upload-area {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+.upload-button {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1rem;
+  background: #e8f5e8;
+  color: #2e7d32;
+  border: 2px dashed #2e7d32;
+  border-radius: 6px;
+  font-size: 0.875rem;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.upload-button:hover {
+  background: #c8e6c9;
+  border-color: #1b5e20;
+}
+
+.uploading-indicator {
+  color: #1976d2;
+  font-size: 0.875rem;
+  font-style: italic;
+}
+
+.image-preview-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  gap: 1rem;
+  margin-top: 1rem;
+}
+
+.image-preview-item {
+  position: relative;
+  border: 1px solid #e5e7eb;
+  border-radius: 6px;
+  overflow: hidden;
+}
+
+.preview-image {
+  width: 100%;
+  height: 120px;
+  object-fit: cover;
+  display: block;
+}
+
+.delete-image-btn {
+  position: absolute;
+  top: 0.25rem;
+  right: 0.25rem;
+  background: rgba(239, 68, 68, 0.9);
+  color: white;
+  border: none;
+  border-radius: 50%;
+  width: 24px;
+  height: 24px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s;
+}
+
+.delete-image-btn:hover {
+  background: rgba(239, 68, 68, 1);
 }
 </style> 
