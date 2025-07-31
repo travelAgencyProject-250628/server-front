@@ -1,10 +1,10 @@
 <template>
   <div class="footer-wrapper">
-    <!-- 카카오 배너 -->
+    <!-- 카카오 배너
     <div class="kakao-banner">
       <img src="/kakao_banner.png" alt="카카오톡 채널 추가" class="kakao-banner-image desktop-banner">
       <img src="/kakao_banner_m.jpg" alt="카카오톡 채널 추가" class="kakao-banner-image mobile-banner">
-    </div>
+    </div> -->
     
   <footer class="footer">
     <div class="container">
