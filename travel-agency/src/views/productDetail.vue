@@ -323,19 +323,23 @@
             <div v-if="productDetail" class="product-summary">
                 <div class="summary-content">
                     <div class="summary-item">
-                        <span class="summary-label">여행 기간</span>
+                        <span class="summary-label">상품코드</span>
+                        <span class="summary-value">{{ productDetail.productCode }}</span>
+                    </div>
+                    <div class="summary-item">
+                        <span class="summary-label">여행기간</span>
                         <span class="summary-value">{{ productDetail.travelDuration }}</span>
                     </div>
                     <div class="summary-item">
-                        <span class="summary-label">포함 내역</span>
+                        <span class="summary-label">포함내역</span>
                         <span class="summary-value">{{ productDetail.includedItems }}</span>
+                    </div>                                        
+                    <div v-if="productDetail.eventContent" class="summary-item event-content">
+                        <span class="summary-label">행사내용</span>
+                        <span class="summary-value">{{ productDetail.eventContent }}</span>
                     </div>
                     <div class="summary-item">
-                        <span class="summary-label">불포함 내역</span>
-                        <span class="summary-value">{{ productDetail.excludedItems }}</span>
-                    </div>
-                    <div class="summary-item">
-                        <span class="summary-label">출발 날짜</span>
+                        <span class="summary-label">출발날짜</span>
                         <span class="summary-value">2024.03.15 (금)</span>
                     </div>
                 </div>
@@ -1180,6 +1184,12 @@ const handleImageError = (event) => {
 .summary-value.price {
     color: var(--primary-color);
     font-size: 1.1rem;
+    font-weight: 600;
+}
+
+/* 행사 내용 스타일 */
+.event-content .summary-value {
+    color: var(--primary-color);
     font-weight: 600;
 }
 
