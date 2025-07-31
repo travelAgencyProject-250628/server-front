@@ -1,0 +1,75 @@
+{
+    "days": 3,
+    "itinerary": [
+        {
+            "day": 1,
+            "meals": "조식: 시루떡, 중식: 한우불고기, 석식: 광주떡갈비",
+            "locations": [
+                {
+                    "name": "경복궁",
+                    "time": "10:00",
+                    "activity": "궁 투어"
+                },
+                {
+                    "time": "11:00",
+                    "activity": "궁 투어"
+                },
+                {
+                    "time": "12:00",
+                    "activity": "궁 투어"
+                },
+                {
+                    "name": "경복궁",
+                    "time": "10:00",
+                    "caution": "햇빛이 강하니 모자 필수",
+                    "details": [
+                        {
+                            "title": "입장",
+                            "images": [
+                                "https://picsum.photos/200",
+                                "https://picsum.photos/200"
+                            ],
+                            "description": "경복궁 정문에서 입장"
+                        },
+                        {
+                            "title": "사진 촬영",
+                            "images": [
+                                "https://picsum.photos/200"
+                            ],
+                            "description": "경회루 앞에서 단체 사진"
+                        }
+                    ],
+                    "activity": "궁 투어"
+                },
+                {
+                    "name": "인사동",
+                    "time": "13:30",
+                    "caution": "소지품 주의",
+                    "details": [
+                        {
+                            "title": "전통음식점 방문",
+                            "images": [
+                                "https://picsum.photos/200"
+                            ],
+                            "description": "비빔밥 전문점 방문"
+                        }
+                    ],
+                    "activity": "점심 및 쇼핑"
+                }
+            ]
+        },
+        {
+            "day": 2,
+            "meals": "조식: 한식, 중식: 산채한정식뷔페, 석식: 자유식",
+            "locations": [
+                {
+                    "name": "남산타워",
+                    "time": "09:00",
+                    "caution": "케이블카 시간 확인",
+                    "details": [],
+                    "activity": "전망대 관람"
+                }
+            ]
+        }
+    ]
+}

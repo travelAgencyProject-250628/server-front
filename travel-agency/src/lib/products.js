@@ -148,6 +148,7 @@ export async function getProductDetail(productId) {
         likely_departure_threshold,
         confirmed_departure_threshold,
         closing_threshold,
+        itinerary,
         category:category_id(id, name)
       `)
       .eq('id', productId)
@@ -186,6 +187,7 @@ export async function getProductDetail(productId) {
       confirmedDepartureThreshold: data.confirmed_departure_threshold || 40,
       closingThreshold: data.closing_threshold || 44,
       meetingPoint: '', // Products 테이블에 meeting_point 없음. 필요시 location 조인 등으로 확장 가능
+      itinerary: data.itinerary || null,
       images
     }
 

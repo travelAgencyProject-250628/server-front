@@ -223,16 +223,92 @@
                         </div>
                     </section>
 
-                    <!-- 상세 이미지 섹션 -->
-                    <section id="detail" v-if="productDetail.detailImage" class="content-section detail-image-section" ref="detailSection">
+                    <!-- 여행일정표 섹션 -->
+                    <section id="detail" class="content-section itinerary-section" ref="detailSection">
+                        <!-- 디버깅용 -->
+                        <div style="display: none;">
+                            {{ console.log('템플릿에서 itinerary 확인:', productDetail.itinerary) }}
+                        </div>
                         <h2 class="section-title">여행일정표</h2>
-                        <div class="detail-image-container">
-                            <img 
-                                :src="productDetail.detailImage" 
-                                :alt="productDetail.title + ' 상세 이미지'"
-                                class="detail-image"
-                                @error="handleImageError"
-                            />
+                        <div v-if="productDetail.itinerary && productDetail.itinerary.itinerary" class="itinerary-container">
+                            <div v-for="day in productDetail.itinerary.itinerary" :key="day.day" class="day-section">
+                                <div class="day-header">
+                                    <h3 class="day-title">{{ day.day }}일차</h3>
+                                </div>
+                                
+                                <!-- 식사 정보 -->
+                                <div class="meal-info" v-if="day.meals">
+                                    <div class="meal-row">
+                                        <div class="meal-icon">🍽️</div>
+                                        <div class="meal-content">
+                                            <span class="meal-label">식사</span>
+                                            <span class="meal-details">{{ day.meals }}</span>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <!-- 타임라인 일정 -->
+                                <div class="timeline-container">
+                                    <div class="timeline-line"></div>
+                                    <div class="timeline-events">
+                                        <template v-for="(location, index) in day.locations" :key="index">
+                                            <!-- 지역 헤더 -->
+                                            <div v-if="location.isAreaHeader" class="area-header">
+                                                <div class="area-marker"></div>
+                                                <div class="area-content">
+                                                    <div class="area-icon">📍</div>
+                                                    <span class="area-name">{{ location.name }}</span>
+                                                </div>
+                                            </div>
+                                            
+                                            <!-- 일정 항목 -->
+                                            <div class="timeline-event">
+                                                <div v-if="location.name" class="event-marker">
+                                                    <div class="location-icon">
+                                                        <img src="/place_icon.png" alt="장소" class="location-icon-img" />
+                                                    </div>
+                                                </div>
+                                                <div class="event-content">
+                                                    <div class="event-time">{{ location.time }}</div>
+                                                    <div class="event-details">
+                                                        <div class="location-info">
+                                                            <div class="location-name">{{ location.name }}</div>
+                                                            <div class="activity-description">{{ location.activity }}</div>
+                                                        </div>
+                                                        
+                                                        <!-- 주의사항 -->
+                                                        <div v-if="location.caution" class="caution-note">
+                                                            <span class="caution-icon">⚠️</span>
+                                                            <span class="caution-text">{{ location.caution }}</span>
+                                                        </div>
+                                                        
+                                                        <!-- 상세 정보 -->
+                                                        <div v-if="location.details && location.details.length > 0" class="detail-sections">
+                                                            <div v-for="(detail, detailIndex) in location.details" :key="detailIndex" class="detail-section">
+                                                                <h4 class="detail-title">{{ detail.title }}</h4>
+                                                                <p class="detail-description">{{ detail.description }}</p>
+                                                                <div v-if="detail.images && detail.images.length > 0" class="detail-images">
+                                                                    <img 
+                                                                        v-for="(image, imageIndex) in detail.images" 
+                                                                        :key="imageIndex"
+                                                                        :src="image"
+                                                                        :alt="detail.title + ' 이미지'"
+                                                                        class="detail-image"
+                                                                        @error="handleImageError"
+                                                                    />
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </template>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div v-else class="no-itinerary">
+                            <p>여행일정표 정보가 준비 중입니다.</p>
                         </div>
                     </section>
 
@@ -561,10 +637,13 @@ const fetchProductDetail = async (productId) => {
                 confirmedDepartureThreshold: product.confirmedDepartureThreshold,
                 closingThreshold: product.closingThreshold,
                 images: product.images.length > 0 ? product.images : ['/images/default-product.jpg'],
-                main_image_url: product.main_image_url // 새로 추가된 필드
+                main_image_url: product.main_image_url, // 새로 추가된 필드
+                itinerary: typeof product.itinerary === 'string' ? JSON.parse(product.itinerary) : product.itinerary // 여행일정표 JSON 데이터
             }
             
             console.log('매핑된 productDetail:', productDetail.value)
+            console.log('API에서 받아온 원본 데이터:', product)
+            console.log('itinerary 데이터:', productDetail.value.itinerary)
             
             // 예약 데이터 로드 (실제 데이터)
             await loadBookingData(productId)
@@ -1203,8 +1282,8 @@ const handleImageError = (event) => {
     overflow-x: auto;
 }
 
-/* 상세 이미지 섹션 */
-.detail-image-section {
+/* 여행일정표 섹션 */
+.itinerary-section {
     background: white;
     padding: 1.5rem;
     border-radius: var(--border-radius);
@@ -1212,19 +1291,334 @@ const handleImageError = (event) => {
     margin-bottom: 1.5rem;
 }
 
-.detail-image-container {
-    width: 100%;
-    display: flex;
-    justify-content: center;
-    align-items: center;
+.itinerary-container {
     margin-top: 1rem;
 }
 
-.detail-image {
-    max-width: 100%;
-    height: auto;
+.day-section {
+    margin-bottom: 2rem;
+    background: white;
     border-radius: var(--border-radius);
-    box-shadow: var(--shadow-sm);
+    border: 1px solid var(--border-color);
+    overflow: hidden;
+}
+
+.day-section:last-child {
+    margin-bottom: 0;
+}
+
+.day-header {
+    background: var(--primary-color);
+    color: white;
+    padding: 1rem 1.5rem;
+}
+
+.day-title {
+    font-size: 1.2rem;
+    font-weight: 700;
+    margin: 0;
+}
+
+/* 식사 정보 */
+.meal-info {
+    background: #f8f9fa;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.meal-row {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 1rem 1.5rem;
+}
+
+.meal-icon {
+    font-size: 1.2rem;
+}
+
+.meal-content {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.meal-label {
+    font-weight: 600;
+    color: var(--text-primary);
+}
+
+.meal-details {
+    color: var(--text-secondary);
+}
+
+/* 타임라인 컨테이너 */
+.timeline-container {
+    position: relative;
+    padding: 2rem 0;
+}
+
+.timeline-line {
+    position: absolute;
+    left: 30px;
+    top: 0;
+    bottom: 0;
+    width: 2px;
+    background: var(--primary-color);
+    z-index: 1;
+}
+
+.timeline-events {
+    position: relative;
+    z-index: 2;
+}
+
+/* 지역 헤더 */
+.area-header {
+    display: flex;
+    align-items: center;
+    margin-bottom: 1.5rem;
+    padding: 0 0 0 60px;
+}
+
+.area-marker {
+    position: absolute;
+    left: 20px;
+    width: 20px;
+    height: 20px;
+    background: var(--primary-color);
+    border-radius: 50%;
+    border: 4px solid white;
+    box-shadow: 0 0 0 2px var(--primary-color);
+    z-index: 3;
+}
+
+.area-content {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    background: #f8f9fa;
+    padding: 0.75rem 1rem;
+    border-radius: 8px;
+    border: 1px solid var(--border-color);
+    font-weight: 600;
+    color: var(--text-primary);
+}
+
+.area-icon {
+    font-size: 1.2rem;
+}
+
+.area-name {
+    font-size: 1.1rem;
+}
+
+/* 타임라인 이벤트 */
+.timeline-event {
+    display: flex;
+    align-items: flex-start;
+    margin-bottom: 1.5rem;
+    padding: 0 0 0 60px;
+    position: relative;
+}
+
+.timeline-event:last-child {
+    margin-bottom: 0;
+}
+
+.event-marker {
+    position: absolute;
+    left: calc(60px/2 - 24px/2);
+    top: 14px;
+    z-index: 2;
+}
+
+.location-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    height: 100%;
+}
+
+.location-icon-img {
+    width: 26px;
+    height: 26px;
+    object-fit: contain;
+}
+
+.event-content {
+    flex: 1;
+    background: white;
+    border-radius: 8px;
+    border: 1px solid var(--border-color);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    overflow: hidden;
+    display: flex;
+    flex-direction: row;
+}
+
+.event-time {
+    background: var(--primary-color);
+    color: white;
+    padding: 1rem 0.75rem;
+    font-weight: 600;
+    font-size: 0.9rem;
+    text-align: center;
+    min-width: 80px;
+    display: flex;
+    justify-content: center;
+}
+
+.event-details {
+    padding: 1rem;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 1rem;
+}
+
+.location-info {
+    flex: 1;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.location-name {
+    font-weight: 600;
+    color: var(--text-primary);
+    font-size: 1rem;
+}
+
+.activity-description {
+    color: var(--text-secondary);
+    font-size: 0.9rem;
+    line-height: 1.4;
+}
+
+/* 주의사항 */
+.caution-note {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem;
+    background: #fff3cd;
+    border: 1px solid #ffeaa7;
+    border-radius: 4px;
+    margin-top: 0.5rem;
+}
+
+.caution-icon {
+    font-size: 0.9rem;
+}
+
+.caution-text {
+    font-size: 0.85rem;
+    color: #856404;
+    font-weight: 500;
+}
+
+/* 상세 정보 */
+.detail-sections {
+    margin-top: 1rem;
+    padding-top: 1rem;
+    border-top: 1px solid var(--border-color);
+}
+
+.detail-section {
+    margin-bottom: 1.5rem;
+    padding: 1rem;
+    background: #f8f9fa;
+    border-radius: 4px;
+    border: 1px solid var(--border-color);
+}
+
+.detail-section:last-child {
+    margin-bottom: 0;
+}
+
+.detail-title {
+    font-size: 1rem;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin-bottom: 0.5rem;
+}
+
+.detail-description {
+    font-size: 0.9rem;
+    color: var(--text-secondary);
+    line-height: 1.5;
+    margin-bottom: 0.75rem;
+}
+
+.detail-images {
+    display: flex;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+}
+
+.detail-image {
+    width: 120px;
+    height: 80px;
+    object-fit: cover;
+    border-radius: 4px;
+    border: 1px solid var(--border-color);
+}
+
+/* 반응형 디자인 */
+@media (max-width: 768px) {
+    .day-header {
+        padding: 0.75rem 1rem;
+    }
+    
+    .meal-row {
+        padding: 0.75rem 1rem;
+    }
+    
+    .meal-content {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 0.25rem;
+    }
+    
+    .timeline-container {
+        padding: 1.5rem 0;
+    }
+    
+    .timeline-line {
+        left: 20px;
+    }
+    
+    .area-header,
+    .timeline-event {
+        padding-left: 50px;
+    }
+    
+    .area-marker,
+    .event-marker {
+        left: calc(50px/2 - 18px/2);
+    }
+    
+    .area-marker {
+        width: 16px;
+        height: 16px;
+    }
+    
+    .event-marker {
+        width: 10px;
+        height: 10px;
+    }
+    
+    .detail-images {
+        justify-content: center;
+    }
+    
+    .detail-image {
+        width: 100px;
+        height: 70px;
+    }
 }
 
 /* 기본 가격표 추가 */
@@ -1630,10 +2024,6 @@ const handleImageError = (event) => {
     }
 
     .booking-info {
-        /* gap: 0.5rem;
-        align-items: center;
-        margin-bottom: 0.75rem;
-        width: 100%; */
         gap: 0;
         padding: rem 0rem;
     }
