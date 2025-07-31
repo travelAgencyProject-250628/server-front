@@ -22,8 +22,8 @@
         </div>
         
         <div class="phone-numbers">
-          <div class="phone-number primary">02)6745-0110</div>
-          <div class="phone-number secondary">02)853-0110</div>
+          <div class="phone-number primary">031)376-0597</div>
+          <!-- <div class="phone-number secondary">0504-228-9300</div> -->
         </div>
         
         <div class="operating-hours">
