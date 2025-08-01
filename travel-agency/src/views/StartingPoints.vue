@@ -96,9 +96,9 @@
                   <p>카카오맵이 여기에 표시됩니다</p>
                   <p class="map-note">* 카카오 개발자 센터에서 localhost:5173 도메인을 등록해주세요</p>
                   <div class="map-controls">
-                    <button class="map-control-btn">+</button>
-                    <button class="map-control-btn">-</button>
-                    <button class="map-control-btn center-btn">
+                    <button class="map-control-btn" @click="zoomIn">+</button>
+                    <button class="map-control-btn" @click="zoomOut">-</button>
+                    <button class="map-control-btn center-btn" @click="centerMap">
                       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                         <path d="M12 2L2 7l10 5 10-5-10-5z"/>
                         <path d="M2 17l10 5 10-5"/>
@@ -310,6 +310,29 @@ const openKakaoMap = () => {
     const encodedAddress = encodeURIComponent(selectedPoint.value.address)
     const url = `https://map.kakao.com/link/search/${encodedAddress}`
     window.open(url, '_blank')
+  }
+}
+
+// 줌 인
+const zoomIn = () => {
+  if (map.value) {
+    const currentLevel = map.value.getLevel()
+    map.value.setLevel(currentLevel - 1)
+  }
+}
+
+// 줌 아웃
+const zoomOut = () => {
+  if (map.value) {
+    const currentLevel = map.value.getLevel()
+    map.value.setLevel(currentLevel + 1)
+  }
+}
+
+// 지도 중심 이동
+const centerMap = () => {
+  if (map.value && selectedPoint.value && selectedPoint.value.address) {
+    searchAddress(selectedPoint.value.address, selectedPoint.value.name)
   }
 }
 
