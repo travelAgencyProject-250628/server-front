@@ -1614,7 +1614,7 @@ const handleImageError = (event) => {
 
 .detail-description {
     font-size: 0.9rem;
-    color: var(--text-secondary);
+    color: black;
     line-height: 1.5;
     margin-bottom: 0.75rem;
 }
