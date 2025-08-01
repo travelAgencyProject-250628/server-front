@@ -82,3 +82,4 @@ VITE_R2_BUCKET_NAME=travel-agency-products
 
 # 수정사항
 // 광고 배너 표시 여부 (true: 표시, false: 숨김)
+// 이미지 업데이트
