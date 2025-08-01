@@ -92,6 +92,59 @@ export async function updateStartingPoint(id, name) {
 }
 
 /**
+ * 모든 출발장소 조회 (관련 상품 정보 포함)
+ * @returns {Promise<{success: boolean, startingPoints: Array, error?: string}>}
+ */
+export async function getAllStartingPoints() {
+  try {
+    // 모든 출발장소 조회
+    const { data: startingPoints, error: startingPointsError } = await supabase
+      .from('StartingPoints')
+      .select('id, name, address, description')
+      .order('name', { ascending: true })
+    
+    if (startingPointsError) throw startingPointsError
+    
+    // 각 출발장소에 대한 관련 상품 정보 조회
+    const startingPointsWithProducts = await Promise.all(
+      startingPoints.map(async (point) => {
+        const { data: productStartingPoints, error: productError } = await supabase
+          .from('ProductStartingPoints')
+          .select(`
+            time,
+            product:product_id(id, title)
+          `)
+          .eq('starting_point_id', point.id)
+          .order('time', { ascending: true })
+        
+        if (productError) {
+          console.error(`상품 정보 조회 오류 (출발장소 ID: ${point.id}):`, productError)
+          return {
+            ...point,
+            products: []
+          }
+        }
+        
+        // 상품 정보만 추출
+        const products = productStartingPoints.map(item => ({
+          id: item.product.id,
+          title: item.product.title
+        }))
+        
+        return {
+          ...point,
+          products
+        }
+      })
+    )
+    
+    return { success: true, startingPoints: startingPointsWithProducts }
+  } catch (error) {
+    return { success: false, startingPoints: [], error: error.message }
+  }
+}
+
+/**
  * 출발지 삭제
  * @param {number} id - 출발지 ID
  * @returns {Promise<{success: boolean, error?: string}>}

@@ -86,7 +86,6 @@
           </div>
         </div>
 
-        <!-- 버스대절 버튼 -->
         <div class="reservation-menu">
           <div class="menu-item" @click="handleBusRental">
             <div class="menu-icon">
@@ -101,6 +100,16 @@
               </svg>
             </div>
             <span class="menu-text">버스대절</span>
+          </div>
+          <!-- 출발장소 버튼 -->
+          <div class="menu-item" @click="handleStartingPoints">
+            <div class="menu-icon">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/>
+                <circle cx="12" cy="10" r="3"/>
+              </svg>
+            </div>
+            <span class="menu-text">출발장소</span>
           </div>
            <!-- 예약확인 버튼 (항상 표시) -->
           <div class="menu-item" @click="handleReservation">
@@ -658,6 +667,11 @@ const handleReservation = () => {
 const handleBusRental = () => {
   // 버스대절 페이지로 이동
   router.push('/bus-rental')
+}
+
+const handleStartingPoints = () => {
+  // 출발장소 페이지로 이동
+  router.push('/starting-points')
 }
 
 const handleGuestReservation = () => {

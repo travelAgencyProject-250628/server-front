@@ -52,6 +52,11 @@ const router = createRouter({
       component: () => import('@/views/busRental.vue')
     },
     {
+      path: '/starting-points',
+      name: 'startingPoints',
+      component: () => import('@/views/StartingPoints.vue')
+    },
+    {
       path: '/mypage',
       component: () => import('@/views/MyPage.vue'),
       meta: { requiresAuth: true },
