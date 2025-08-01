@@ -112,9 +112,10 @@ export async function getAllStartingPoints() {
           .from('ProductStartingPoints')
           .select(`
             time,
-            product:product_id(id, title)
+            product:product_id(id, title, status)
           `)
           .eq('starting_point_id', point.id)
+          .eq('product.status', true)
           .order('time', { ascending: true })
         
         if (productError) {
@@ -126,10 +127,12 @@ export async function getAllStartingPoints() {
         }
         
         // 상품 정보만 추출
-        const products = productStartingPoints.map(item => ({
-          id: item.product.id,
-          title: item.product.title
-        }))
+        const products = productStartingPoints
+          .filter(item => item.product !== null)
+          .map(item => ({
+            id: item.product.id,
+            title: item.product.title
+          }))
         
         return {
           ...point,
