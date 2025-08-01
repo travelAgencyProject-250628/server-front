@@ -73,6 +73,14 @@
         </div>
       </div>
 
+      <!-- 모바일에서 선택한 장소 표시 -->
+      <div v-if="selectedPoint" class="mobile-selected-location">
+        <div class="selected-location-bar">
+          <span class="location-square">■</span>
+          <span class="selected-location-name">{{ selectedPoint.name }}</span>
+        </div>
+      </div>
+
       <!-- 콘텐츠 영역 -->
       <div class="content-area">
         <!-- 로딩 상태 -->
@@ -118,16 +126,16 @@
           <!-- 정보 패널 -->
           <div class="info-panel">
             <div class="panel-content">
-              <!-- 출발 시간 -->
-              <div class="time-section">
-                <div class="time-icon">
-                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <circle cx="12" cy="12" r="10"/>
-                    <polyline points="12,6 12,12 16,14"/>
-                  </svg>
+                              <!-- 출발 시간 -->
+                <div class="time-section">
+                  <!-- <div class="time-icon"> -->
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--primary-color)" stroke-width="2">
+                      <circle cx="12" cy="12" r="10"/>
+                      <polyline points="12,6 12,12 16,14"/>
+                    </svg>
+                  <!-- </div> -->
+                  <span class="time-text">{{ selectedPoint.time || '시간 정보가 없습니다.' }}</span>
                 </div>
-                <span class="time-text">{{ selectedPoint.time || '시간 정보가 없습니다.' }}</span>
-              </div>
 
               <!-- 출발 장소 -->
               <div class="location-section">
@@ -136,17 +144,17 @@
               </div>
 
               <!-- 지하철 이용 안내 -->
-              <div class="subway-section">
-                <div class="subway-header">
-                  <div class="subway-icon">
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                      <rect x="2" y="3" width="20" height="14" rx="2" ry="2"/>
-                      <line x1="8" y1="21" x2="16" y2="21"/>
-                      <line x1="12" y1="17" x2="12" y2="21"/>
-                    </svg>
+                              <div class="subway-section">
+                  <div class="subway-header">
+                    <!-- <div class="subway-icon"> -->
+                      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#4CAF50" stroke-width="2">
+                        <rect x="2" y="3" width="20" height="14" rx="2" ry="2"/>
+                        <line x1="8" y1="21" x2="16" y2="21"/>
+                        <line x1="12" y1="17" x2="12" y2="21"/>
+                      </svg>
+                    <!-- </div> -->
+                    <span class="subway-title" style="color: var(--primary-color);">지하철 이용안내</span>
                   </div>
-                  <span class="subway-title">지하철 이용안내</span>
-                </div>
                 
                 <div class="subway-lines">
                   <span 
@@ -711,10 +719,18 @@ watch(selectedPoint, (newPoint) => {
   opacity: 0.7;
 }
 
-.content-area {
-  flex: 1;
-  /* padding: 1rem; */
-}
+  .content-area {
+    flex: 1;
+    /* padding: 1rem; */
+  }
+  
+  @media (max-width: 768px) {
+    .content-area {
+      width: 100%;
+      padding: 0;
+      margin: 0;
+    }
+  }
 
 .loading-state,
 .error-state {
@@ -1075,64 +1091,201 @@ watch(selectedPoint, (newPoint) => {
   color: var(--text-secondary);
 }
 
-/* 반응형 디자인 */
+/* 모바일 전용 반응형 디자인 */
 @media (max-width: 768px) {
   .product-list-page {
-    grid-template-columns: 1fr;
-    padding-top: 2rem;
+    display: block;
+    grid-template-columns: none;
+    padding-top: 1rem;
+    /* padding-left: 1rem; */
+    /* padding-right: 1rem; */
   }
   
+  /* 모바일에서 사이드바 숨기기 */
   .sidebar-section {
-    grid-column: 1;
-    order: 2;
-    width: 100%;
-    padding: 1rem;
+    display: none !important;
   }
   
   .main-content {
     grid-column: 1;
     order: 1;
+    width: 100%;
+    align-items: center;
+  }
+  
+  .page-header {
+    padding: 0;
+    margin-bottom: 0;
+    border-bottom: none;
+    text-align: center;
   }
   
   .header-content {
     flex-direction: column;
-    align-items: flex-start;
+    align-items: center;
     gap: 0.5rem;
+    padding: 0.5rem;
   }
   
   .page-title {
     font-size: 1.5rem;
-  }
-  
-  .page-subtitle {
-    font-size: 1rem;
+    margin: 0;
   }
   
   .page-slogan {
-    font-size: 0.8rem;
+    display: none;
   }
   
-  .content-layout {
-    grid-template-columns: 1fr;
-    gap: 1rem;
-    height: auto;
-  }
-  
-  .map-section {
-    height: 400px;
+  .tab-navigation {
+    padding: 0;
+    margin-bottom: 1rem;
+    border-bottom: none;
   }
   
   .tab-container {
-    padding: 0 0.5rem;
+    width: 100%;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    padding: 0;
+    justify-content: space-between;
   }
   
   .tab-button {
-    padding: 0.75rem 1rem;
+    padding: 0.5rem 0.5rem;
     font-size: 0.9rem;
+    border: 1px solid #e5e7eb;
+    background: #f0f0f0;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    word-break: keep-all;
+    line-height: 1.2;
+    width: 31%;
+    min-height: 50px;
+    box-sizing: border-box;
+    flex-shrink: 0;
+  }
+  
+  .tab-button.empty {
+    display: none;
+  }
+  
+  .mobile-selected-location {
+    width: 100%;
+    display: flex;
+    justify-content: flex-start;
+    align-items: center;
+    background: white;
+    padding: 0.5rem 0.1rem;
+    border-bottom: 1px solid #e5e7eb;
+  }
+  
+  .selected-location-bar {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+  
+  .location-square {
+    font-size: 1.2rem;
+    color: var(--primary-color);
+    font-weight: bold;
+  }
+  
+  .selected-location-name {
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: var(--text-primary);
+  }
+  
+  .content-layout {
+    display: flex;
+    flex-direction: column;
+    height: auto;
+    width: 100%;
+    border: none;
+    gap: 0;
+  }
+  
+  .map-section {
+    order: 1;
+    height: 40vh;
+    border-radius: 0;
+    overflow: hidden;
+    box-shadow: none;
+    margin-bottom: 0;
+  }
+  
+  .map-placeholder {
+    height: 100% !important;
+    width: 100% !important;
+    position: relative !important;
+    overflow: hidden;
+  }
+  
+  #map {
+    width: 100% !important;
+    height: 100% !important;
+    position: relative !important;
+    z-index: 1;
+  }
+  
+  .info-panel {
+    order: 2;
+    background: white;
+    border-radius: 0;
+    box-shadow: none;
+    margin-bottom: 0;
   }
   
   .panel-content {
+    padding: 0rem;
+    gap: 0.5rem;
+  }
+  
+  .time-section {
+    border-bottom: none;
+    padding-bottom: 0;
+    gap: 0.3rem;
+  }
+  
+  .time-text {
+    color: var(--primary-color);
+    font-size: 1rem;
+  }
+  
+  .location-section {
+    border-bottom: none;
+    padding-bottom: 0;
+  }
+  
+  .location-title {
+    display: none;
+  }
+  
+  .subway-section {
+    border-bottom: none;
+    padding-bottom: 0;
+  }
+  
+  .subway-lines {
+    margin-bottom: 0;
+  }
+  
+  .line-tag {
+    margin-right: 0.5rem;
+    margin-bottom: 0.5rem;
+  }
+  
+  .map-detail-btn {
+    width: 100%;
+    justify-content: center;
     padding: 1rem;
+    font-size: 1rem;
+    margin-top: 1rem;
   }
 }
 </style> 
