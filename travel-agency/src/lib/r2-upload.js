@@ -134,7 +134,16 @@ export async function deleteAllProductImagesFromR2(productNumber) {
       `${productNumber}/main`,
       `${productNumber}/detail`,
       // 서브 이미지들 (0-9까지 가능)
-      ...Array.from({ length: 10 }, (_, i) => `${productNumber}/${i}`)
+      ...Array.from({ length: 10 }, (_, i) => `${productNumber}/${i}`),
+      // 여행지정보(일정표) 이미지들 - 실제 저장 경로
+      `${productNumber}/itinerary/main`,
+      `${productNumber}/itinerary/detail`,
+      // 일정표 서브 이미지들 (0-9까지 가능)
+      ...Array.from({ length: 10 }, (_, i) => `${productNumber}/itinerary/${i}`),
+      // 일정표 상세 이미지들 (0-9까지 가능)
+      ...Array.from({ length: 10 }, (_, i) => `${productNumber}/itinerary/detail/${i}`),
+      // 일정표 전체 폴더 내 모든 이미지 (추가 안전장치)
+      `${productNumber}/itinerary`
     ];
     
     // 각 이미지 삭제 시도
