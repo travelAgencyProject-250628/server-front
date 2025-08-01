@@ -75,7 +75,7 @@
 
       <!-- 모바일에서 선택한 장소 표시 -->
       <div v-if="selectedPoint" class="mobile-selected-location">
-        <div class="selected-location-bar">
+        <div class="selected-location-bar mobile-only">
           <span class="location-square">■</span>
           <span class="selected-location-name">{{ selectedPoint.name }}</span>
         </div>
@@ -1286,6 +1286,18 @@ watch(selectedPoint, (newPoint) => {
     padding: 1rem;
     font-size: 1rem;
     margin-top: 1rem;
+  }
+
+  /* 모바일에서만 보이기 */
+  .mobile-only {
+    display: block;
+  }
+}
+
+/* PC에서 mobile-only 숨기기 */
+@media (min-width: 769px) {
+  .mobile-only {
+    display: none !important;
   }
 }
 </style> 

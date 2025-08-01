@@ -184,7 +184,7 @@
                             </button>
                             <button type="button" class="tab-button" :class="{ active: activeTab === 'notice' }"
                                 @click="scrollToSection('notice')">
-                                이용안내
+                                유의 및 취소사항
                             </button>
                             <button type="button" class="tab-button" :class="{ active: activeTab === 'insurance' }"
                                 @click="scrollToSection('insurance')">
@@ -343,10 +343,9 @@
 
                     <!-- 유의 및 취소사항 섹션 -->
                     <section id="notice" class="content-section" ref="noticeSection">
-                        <h2 class="section-title">이용안내</h2>
-                        <!-- <h2 class="section-title">유의 및 취소사항</h2> -->
-                        
-                        <!-- <div class="notice-content">
+                        <h2 class="section-title">유의 및 취소사항</h2>
+
+                        <div class="notice-content">
                             <div class="notice-item">
                                 <h3>예약 및 결제 안내</h3>
                                 <ul>
@@ -377,17 +376,14 @@
                                     <li>안전사고 예방을 위해 가이드의 안내에 따라 주시기 바랍니다.</li>
                                 </ul>
                             </div>
-                        </div> -->
-                        <div class="notice-content-image">
-                            <img src="/public/productUsageGuide.jpeg" alt="이용안내" class="notice-image">
                         </div>
                     </section>
 
                     <!-- 여행자보험 섹션 -->
                     <section id="insurance" class="content-section" ref="insuranceSection">
-                        <h2 class="section-title">취소 및 환불</h2>
+                        <h2 class="section-title">여행자보험</h2>
 
-                        <!-- <div class="insurance-content">
+                        <div class="insurance-content">
                             <div class="insurance-info">
                                 <div class="info-title">
                                     <i class="info-icon">i</i>
@@ -403,9 +399,6 @@
                                     여행자보험 가입 희망자 개별 신청해주세요!
                                 </a>
                             </div>
-                        </div> -->
-                        <div class="insurance-content-image">
-                            <img src="/public/refundPolicy.jpeg" alt="취소 및 환불" class="insurance-image">
                         </div>
                     </section>
 
@@ -1306,6 +1299,7 @@ const handleImageError = (event) => {
         }
     }
 }
+
 
 .summary-content {
     display: flex;
@@ -2512,33 +2506,6 @@ const handleImageError = (event) => {
         width: 100%;
         border-radius: 0 !important;
         box-shadow: none !important;
-    }
-}
-
-/* 이용안내 이미지 스타일 */
-.notice-content-image {
-    width: 100%;
-    margin: 1rem 0;
-    text-align: center;
-}
-
-.notice-image, .insurance-image {
-    max-width: 100%;
-    height: auto;
-}
-
-/* PC에서 이미지 크기 조정 */
-@media (min-width: 769px) {
-    .notice-image {
-        /* max-width: 800px; */
-    }
-}
-
-/* 모바일에서 이미지 크기 조정 */
-@media (max-width: 768px) {
-    .notice-image {
-        max-width: 100%;
-        width: 100%;
     }
 }
 </style>
