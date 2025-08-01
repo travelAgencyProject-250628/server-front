@@ -237,11 +237,17 @@ const initKakaoMap = () => {
       return
     }
 
+    // kakao.maps가 완전히 로드되었는지 확인
+    if (typeof window.kakao.maps.LatLng !== 'function') {
+      console.error('kakao.maps.LatLng이 로드되지 않았습니다.')
+      return
+    }
+
     const options = {
-      center: new kakao.maps.LatLng(37.5665, 126.9780), // 서울시청
+      center: new window.kakao.maps.LatLng(37.5665, 126.9780), // 서울시청
       level: 3
     }
-    map.value = new kakao.maps.Map(container, options)
+    map.value = new window.kakao.maps.Map(container, options)
     console.log('카카오맵 초기화 성공')
   } catch (error) {
     console.error('카카오맵 초기화 실패:', error)
@@ -267,21 +273,21 @@ const searchAddress = (address, name) => {
     }
 
     // 주소-좌표 변환 객체 생성
-    const geocoder = new kakao.maps.services.Geocoder()
+    const geocoder = new window.kakao.maps.services.Geocoder()
 
     // 주소로 좌표 검색
     geocoder.addressSearch(address, (result, status) => {
-      if (status === kakao.maps.services.Status.OK) {
-        const coords = new kakao.maps.LatLng(result[0].y, result[0].x)
+      if (status === window.kakao.maps.services.Status.OK) {
+        const coords = new window.kakao.maps.LatLng(result[0].y, result[0].x)
 
         // 결과값으로 받은 위치를 마커로 표시
-        marker.value = new kakao.maps.Marker({
+        marker.value = new window.kakao.maps.Marker({
           map: map.value,
           position: coords
         })
 
         // 인포윈도우로 장소에 대한 설명 표시
-        const infowindow = new kakao.maps.InfoWindow({
+        const infowindow = new window.kakao.maps.InfoWindow({
           content: `<div style="padding:5px;font-size:12px;">${name}</div>`
         })
         infowindow.open(map.value, marker.value)
@@ -333,40 +339,16 @@ const loadStartingPoints = async () => {
 
 // 카카오맵 스크립트 로드
 const loadKakaoMapScript = () => {
-  return new Promise((resolve, reject) => {
+  return new Promise((resolve) => {
+    // 이미 index.html에 로드되어 있으므로 바로 확인
     if (window.kakao && window.kakao.maps) {
+      console.log('카카오맵 SDK가 이미 로드되어 있습니다.')
       resolve()
       return
     }
 
-    const apiKey = 'c942aa80de6493b4f989ace473ed4c2b'
-    console.log('카카오맵 API 키 설정됨')
-    
-    // 이미 로드된 스크립트가 있는지 확인
-    const existingScript = document.querySelector('script[src*="dapi.kakao.com"]')
-    if (existingScript) {
-      console.log('카카오맵 스크립트가 이미 로드되어 있습니다.')
-      resolve()
-      return
-    }
-
-    const script = document.createElement('script')
-    script.type = 'text/javascript'
-    script.src = `//dapi.kakao.com/v2/maps/sdk.js?appkey=${apiKey}&libraries=services`
-    script.async = true
-    
-    script.onload = () => {
-      console.log('카카오맵 SDK 로드 성공')
-      resolve()
-    }
-    
-    script.onerror = (error) => {
-      console.error('카카오맵 SDK 로드 실패:', error)
-      console.warn('카카오맵 로드에 실패했지만 앱은 계속 실행됩니다.')
-      resolve() // 에러가 있어도 앱이 중단되지 않도록 함
-    }
-    
-    document.head.appendChild(script)
+    console.warn('카카오맵 SDK가 로드되지 않았습니다.')
+    resolve() // 에러 없이 진행
   })
 }
 
