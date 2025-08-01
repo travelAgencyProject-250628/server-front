@@ -91,7 +91,7 @@
           <div class="map-section">
             <div class="map-container">
               <div id="map" class="map-placeholder">
-                <div class="map-fallback">
+                <div v-if="!map" class="map-fallback">
                   <h3>{{ selectedPoint.name }} 지도</h3>
                   <p>카카오맵이 여기에 표시됩니다</p>
                   <p class="map-note">* 카카오 개발자 센터에서 localhost:5173 도메인을 등록해주세요</p>
@@ -126,7 +126,7 @@
                     <polyline points="12,6 12,12 16,14"/>
                   </svg>
                 </div>
-                <span class="time-text">{{ formatTime(selectedPoint.time) }}</span>
+                <span class="time-text">{{ selectedPoint.time || '시간 정보가 없습니다.' }}</span>
               </div>
 
               <!-- 출발 장소 -->
@@ -149,26 +149,17 @@
                 </div>
                 
                 <div class="subway-lines">
-                  <span class="line-tag line-2">2호선</span>
-                  <span class="line-tag line-8">8호선</span>
+                  <span 
+                    v-for="line in (selectedPoint.subway_lines && selectedPoint.subway_lines.length > 0 ? selectedPoint.subway_lines : ['2호선', '8호선'])" 
+                    :key="line"
+                    :class="['line-tag', `line-${line.replace('호선', '')}`]"
+                  >
+                    {{ line }}
+                  </span>
                 </div>
                 
                 <div class="subway-direction">
-                  <p>{{ selectedPoint.description || '잠실역 4번 출구에서 롯데월드 방향으로 200m 직진' }}</p>
-                </div>
-              </div>
-
-              <!-- 관련 상품 -->
-              <div v-if="selectedPoint.products && selectedPoint.products.length > 0" class="products-section">
-                <h4 class="products-title">관련 상품</h4>
-                <div class="products-list">
-                  <span 
-                    v-for="product in selectedPoint.products" 
-                    :key="product.id" 
-                    class="product-tag"
-                  >
-                    {{ product.title }}
-                  </span>
+                  <p>{{ selectedPoint.subway_direction || selectedPoint.description || '출발지 설명이 없습니다.' }}</p>
                 </div>
               </div>
 
@@ -206,14 +197,6 @@ const selectedPoint = ref(null)
 const map = ref(null)
 const marker = ref(null)
 
-// 시간 포맷팅
-const formatTime = (timeString) => {
-  if (!timeString) return '7시 30분'
-  const time = timeString.substring(0, 5) // HH:MM 형식
-  const [hours, minutes] = time.split(':')
-  return `${hours}시 ${minutes}분`
-}
-
 // 출발장소 선택
 const selectPoint = (point) => {
   console.log('출발장소 선택:', point)
@@ -248,6 +231,11 @@ const initKakaoMap = () => {
       level: 3
     }
     map.value = new window.kakao.maps.Map(container, options)
+    
+    // 지도 크기를 정사각형으로 설정
+    const mapSize = new window.kakao.maps.Size(600, 300)
+    map.value.setSize(mapSize)
+    
     console.log('카카오맵 초기화 성공')
   } catch (error) {
     console.error('카카오맵 초기화 실패:', error)
@@ -286,11 +274,11 @@ const searchAddress = (address, name) => {
           position: coords
         })
 
-        // 인포윈도우로 장소에 대한 설명 표시
-        const infowindow = new window.kakao.maps.InfoWindow({
-          content: `<div style="padding:5px;font-size:12px;">${name}</div>`
-        })
-        infowindow.open(map.value, marker.value)
+        // 인포윈도우 제거 - 마커만 표시
+        // const infowindow = new window.kakao.maps.InfoWindow({
+        //   content: `<div style="padding:5px;font-size:12px;">${name}</div>`
+        // })
+        // infowindow.open(map.value, marker.value)
 
         // 지도의 중심을 결과값으로 받은 위치로 이동
         map.value.setCenter(coords)
@@ -336,6 +324,26 @@ const centerMap = () => {
   }
 }
 
+// subway_lines 데이터 파싱 함수
+const parseSubwayLines = (subwayLines) => {
+  if (!subwayLines) return []
+  
+  try {
+    // 문자열인 경우 JSON 파싱
+    if (typeof subwayLines === 'string') {
+      return JSON.parse(subwayLines)
+    }
+    // 이미 배열인 경우 그대로 반환
+    if (Array.isArray(subwayLines)) {
+      return subwayLines
+    }
+    return []
+  } catch (error) {
+    console.warn('subway_lines 파싱 실패:', error)
+    return []
+  }
+}
+
 // 출발장소 데이터 로드
 const loadStartingPoints = async () => {
   isLoading.value = true
@@ -344,7 +352,12 @@ const loadStartingPoints = async () => {
   try {
     const response = await getAllStartingPoints()
     if (response.success) {
-      startingPoints.value = response.startingPoints
+      // subway_lines 데이터 파싱
+      startingPoints.value = response.startingPoints.map(point => ({
+        ...point,
+        subway_lines: parseSubwayLines(point.subway_lines)
+      }))
+      
       // 첫 번째 출발장소를 기본 선택
       if (startingPoints.value.length > 0) {
         selectedPoint.value = startingPoints.value[0]
@@ -363,15 +376,36 @@ const loadStartingPoints = async () => {
 // 카카오맵 스크립트 로드
 const loadKakaoMapScript = () => {
   return new Promise((resolve) => {
-    // 이미 index.html에 로드되어 있으므로 바로 확인
-    if (window.kakao && window.kakao.maps) {
+    // 이미 로드되어 있는지 확인
+    if (window.kakao && window.kakao.maps && typeof window.kakao.maps.LatLng === 'function') {
       console.log('카카오맵 SDK가 이미 로드되어 있습니다.')
       resolve()
       return
     }
 
-    console.warn('카카오맵 SDK가 로드되지 않았습니다.')
-    resolve() // 에러 없이 진행
+    // 스크립트가 아직 로드 중인 경우 대기
+    let attempts = 0
+    const maxAttempts = 50 // 5초 대기 (100ms * 50)
+    
+    const checkKakaoMap = () => {
+      attempts++
+      
+      if (window.kakao && window.kakao.maps && typeof window.kakao.maps.LatLng === 'function') {
+        console.log('카카오맵 SDK 로드 완료')
+        resolve()
+        return
+      }
+      
+      if (attempts >= maxAttempts) {
+        console.warn('카카오맵 SDK 로드 시간 초과')
+        resolve() // 에러 없이 진행
+        return
+      }
+      
+      setTimeout(checkKakaoMap, 100)
+    }
+    
+    checkKakaoMap()
   })
 }
 
@@ -384,6 +418,11 @@ onMounted(async () => {
     try {
       await loadKakaoMapScript()
       initKakaoMap()
+      
+      // 카카오맵 초기화 완료 후 첫 번째 출발장소의 주소 검색
+      if (selectedPoint.value && selectedPoint.value.address) {
+        searchAddress(selectedPoint.value.address, selectedPoint.value.name)
+      }
     } catch (mapError) {
       console.warn('카카오맵 로드 실패, 지도 기능이 제한됩니다:', mapError)
     }
@@ -456,23 +495,26 @@ watch(selectedPoint, (newPoint) => {
 
 /* 여행 상담 & 예약 센터 정보 */
 .contact-info-section {
-  display: flex;
-  flex-direction: column;
-  justify-content: space-between;
-  align-items: stretch;
-  margin-top: 1rem;
-  padding-left: 2px;
-  background: white;
-  border-radius: var(--border-radius);
-  padding: 1.5rem;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    align-items: stretch;
+    margin-top: 1rem;
+    padding-left: 2px;
 }
 
 .contact-header h3 {
-  font-size: 1.1rem;
-  font-weight: 600;
-  color: var(--text-primary);
-  margin: 0 0 1rem 0;
+    font-size: 1.1rem;
+    font-weight: 900;
+    color: var(--text-primary);
+    text-align: left;
+    margin-bottom: .4rem;
+}
+
+.phone-number.primary {
+    color: var(--primary-color);
+    font-size: 1.4rem;
+    line-height: 1;
 }
 
 .phone-numbers {
@@ -498,59 +540,70 @@ watch(selectedPoint, (newPoint) => {
 }
 
 .hours-item {
-  margin-bottom: 0.25rem;
+    display: flex;
+    align-items: center;
+    margin-bottom: .2rem;
 }
 
 .hours-label {
-  font-size: 0.9rem;
-  color: var(--text-secondary);
+    font-size: .9rem;
+    font-weight: 500;
+    color: var(--text-secondary);
 }
 
 .cancellation-policy {
-  margin-bottom: 1rem;
+    margin-bottom: 1.5rem;
+    padding: .75rem;
+    background: #fef2f2;
+    border: 1px solid #fecaca;
+    border-radius: var(--border-radius);
 }
 
 .cancellation-policy p {
-  font-size: 0.8rem;
-  color: var(--text-secondary);
-  line-height: 1.4;
-  margin: 0;
+    margin: 0;
+    font-size: .8rem;
+    color: #dc2626;
+    line-height: 1.4;
+    text-align: left;
 }
 
 .bank-info {
-  border-top: 1px solid var(--border-color);
-  padding-top: 1rem;
+    padding: 1rem;
+    background: #f9f9f9;
+    border-radius: var(--border-radius);
 }
 
 .bank-header {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  margin-bottom: 0.5rem;
+    display: flex;
+    align-items: center;
+    gap: .2rem;
 }
 
 .bank-logo-image {
-  width: 24px;
+  width: auto;
   height: 24px;
   object-fit: contain;
 }
 
 .bank-name {
-  font-size: 0.9rem;
-  font-weight: 600;
-  color: var(--text-primary);
+    font-size: 1rem;
+    font-weight: 600;
+    color: #5757ff;
 }
 
 .account-number {
-  font-size: 1rem;
-  font-weight: 600;
-  color: var(--text-primary);
-  margin-bottom: 0.25rem;
+    font-size: 1.3rem;
+    font-weight: 700;
+    color: #5757ff;
+    text-align: left;
+    margin: .2rem 0rem;
 }
 
 .account-holder {
-  font-size: 0.8rem;
-  color: var(--text-secondary);
+    font-size: .8rem;
+    color: var(--text-secondary);
+    text-align: left;
+    line-height: 1.3;
 }
 
 /* 메인 콘텐츠 */
@@ -601,6 +654,7 @@ watch(selectedPoint, (newPoint) => {
   background: white;
   border-bottom: 1px solid #e5e7eb;
   padding: 0;
+  padding-bottom: 1rem;
 }
 
 .tab-container {
@@ -659,8 +713,7 @@ watch(selectedPoint, (newPoint) => {
 
 .content-area {
   flex: 1;
-  padding: 2rem 1rem;
-  background-color: #f8f9fa;
+  /* padding: 1rem; */
 }
 
 .loading-state,
@@ -679,16 +732,15 @@ watch(selectedPoint, (newPoint) => {
 .content-layout {
   display: grid;
   grid-template-columns: 2fr 1fr;
-  gap: 2rem;
-  height: calc(100vh - 200px);
-  min-height: 600px;
+  height: 400px;
+  width: 850px;
+  border: 1px solid #e5e7eb;
 }
 
 .map-section {
-  background: white;
-  border-radius: var(--border-radius);
   overflow: hidden;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  /* box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1); */
+  
 }
 
 .map-container {
@@ -706,6 +758,7 @@ watch(selectedPoint, (newPoint) => {
   justify-content: center;
   color: white;
   position: relative;
+  aspect-ratio: 1; /* 정사각형 비율 */
 }
 
 .map-fallback {
@@ -803,17 +856,16 @@ watch(selectedPoint, (newPoint) => {
 
 .info-panel {
   background: white;
-  border-radius: var(--border-radius);
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+
   overflow: hidden;
 }
 
 .panel-content {
-  padding: 1.5rem;
+  padding: 1rem;
   height: 100%;
   display: flex;
   flex-direction: column;
-  gap: 1.5rem;
+  gap: 1rem;
 }
 
 .time-section {
@@ -888,44 +940,111 @@ watch(selectedPoint, (newPoint) => {
   color: white;
 }
 
+.line-1 {
+  background: #0052A4;
+}
+
 .line-2 {
   background: #4CAF50;
+}
+
+.line-3 {
+  background: #FFA000;
+}
+
+.line-4 {
+  background: #00A5DE;
+}
+
+.line-5 {
+  background: #996CAC;
+}
+
+.line-6 {
+  background: #CD7C2F;
+}
+
+.line-7 {
+  background: #6D0E0A;
 }
 
 .line-8 {
   background: #E91E63;
 }
 
+.line-9 {
+  background: #AA9872;
+}
+
+.line-10 {
+  background: #0065B3;
+}
+
+.line-11 {
+  background: #8B4513;
+}
+
+.line-12 {
+  background: #7B68EE;
+}
+
+/* 추가 지하철 호선들 */
+.line-수인분당선 {
+  background: #FF6B35;
+}
+
+.line-신분당선 {
+  background: #D4003D;
+}
+
+.line-경의중앙선 {
+  background: #77C4A3;
+}
+
+.line-공항철도 {
+  background: #0065B3;
+}
+
+.line-우이신설경전철 {
+  background: #B7C452;
+}
+
+.line-서해선 {
+  background: #8B4513;
+}
+
+.line-김포골드라인 {
+  background: #A0522D;
+}
+
+.line-신림선 {
+  background: #4B0082;
+}
+
+.line-우이신설경전철 {
+  background: #B7C452;
+}
+
+.line-경춘선 {
+  background: #0C4DA2;
+}
+
+.line-경강선 {
+  background: #0052A4;
+}
+
+.line-동탄인덕원선 {
+  background: #FF6B35;
+}
+
+.line-서울경전철 {
+  background: #FF6B35;
+}
+
 .subway-direction {
   color: var(--text-secondary);
   font-size: 0.9rem;
   line-height: 1.4;
-}
-
-.products-section {
-  flex: 1;
-}
-
-.products-title {
-  font-size: 1rem;
-  font-weight: 600;
-  color: var(--text-primary);
-  margin: 0 0 0.75rem 0;
-}
-
-.products-list {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.5rem;
-}
-
-.product-tag {
-  font-size: 0.8rem;
-  padding: 0.25rem 0.5rem;
-  background: #f0f0f0;
-  color: var(--text-secondary);
-  border-radius: 12px;
-  font-weight: 500;
 }
 
 .map-detail-btn {

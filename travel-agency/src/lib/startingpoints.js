@@ -100,46 +100,18 @@ export async function getAllStartingPoints() {
     // 모든 출발장소 조회
     const { data: startingPoints, error: startingPointsError } = await supabase
       .from('StartingPoints')
-      .select('id, name, address, description')
-      .order('name', { ascending: true })
+      .select('id, name, time, address, description, subway_lines')
+      .order('id', { ascending: true })
     
     if (startingPointsError) throw startingPointsError
     
-    // 각 출발장소에 대한 관련 상품 정보 조회
-    const startingPointsWithProducts = await Promise.all(
-      startingPoints.map(async (point) => {
-        const { data: productStartingPoints, error: productError } = await supabase
-          .from('ProductStartingPoints')
-          .select(`
-            time,
-            product:product_id(id, title, status)
-          `)
-          .eq('starting_point_id', point.id)
-          .eq('product.status', true)
-          .order('time', { ascending: true })
-        
-        if (productError) {
-          console.error(`상품 정보 조회 오류 (출발장소 ID: ${point.id}):`, productError)
-          return {
-            ...point,
-            products: []
-          }
-        }
-        
-        // 상품 정보만 추출
-        const products = productStartingPoints
-          .filter(item => item.product !== null)
-          .map(item => ({
-            id: item.product.id,
-            title: item.product.title
-          }))
-        
-        return {
-          ...point,
-          products
-        }
-      })
-    )
+    // 각 출발장소에 대한 관련 상품 정보 조회 제거
+    const startingPointsWithProducts = startingPoints.map((point) => {
+      return {
+        ...point,
+        products: [] // 빈 배열로 설정
+      }
+    })
     
     return { success: true, startingPoints: startingPointsWithProducts }
   } catch (error) {
