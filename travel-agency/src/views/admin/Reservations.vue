@@ -12,6 +12,16 @@
         </select>
       </div>
 
+      <div class="filter-group">
+        <label for="product-filter">상품별 필터:</label>
+        <select id="product-filter" v-model="filters.productId" @change="onProductChange">
+          <option value="">전체 상품</option>
+          <option v-for="product in allProducts" :key="product.id" :value="product.id">
+            {{ product.title }} ({{ formatCurrency(product.adult_price) }})
+          </option>
+        </select>
+      </div>
+
       <div class="search-group">
         <div class="search-input-wrapper">
           <input 
@@ -110,8 +120,18 @@
     <div class="reservations-section">
       <div class="section-header">
         <h3>예약 목록</h3>
-        <div class="pagination-info">
-          총 {{ paginationInfo.total }}건 중 {{ paginationInfo.startIndex + 1 }}-{{ paginationInfo.endIndex }}건
+        <div class="header-actions">
+          <button 
+            @click="downloadExcel" 
+            class="download-btn"
+            :disabled="filteredReservations.length === 0"
+            title="엑셀 다운로드"
+          >
+            📊 엑셀 다운로드
+          </button>
+          <div class="pagination-info">
+            총 {{ paginationInfo.total }}건 중 {{ paginationInfo.startIndex + 1 }}-{{ paginationInfo.endIndex }}건
+          </div>
         </div>
       </div>
 
@@ -228,6 +248,8 @@
 import { ref, onMounted, computed } from 'vue'
 import { useRouter } from 'vue-router'
 import { getAllReservations, updateReservationStatus } from '@/lib/reservations.js'
+import { getAllProducts } from '@/lib/products.js'
+import * as XLSX from 'xlsx'
 
 const router = useRouter()
 
@@ -236,7 +258,8 @@ const loading = ref(false)
 const reservations = ref([])
 const filters = ref({
   status: '',
-  search: ''
+  search: '',
+  productId: ''
 })
 const pagination = ref({
   page: 1,
@@ -251,6 +274,9 @@ const searchTimeout = ref(null)
 const searchHistory = ref([])
 const showSearchHistory = ref(false)
 const searchInputRef = ref(null)
+
+// 상품 관련 데이터
+const allProducts = ref([])
 
 // 통계 데이터
 const stats = ref({
@@ -305,13 +331,32 @@ const paginationInfo = computed(() => {
   return { startIndex, endIndex, total }
 })
 
+const selectedProduct = computed(() => {
+  if (!filters.value.productId) return null
+  return allProducts.value.find(product => product.id === filters.value.productId)
+})
+
 // 메서드
+const loadProducts = async () => {
+  try {
+    const result = await getAllProducts()
+    if (result.success) {
+      allProducts.value = result.products
+    } else {
+      console.error('상품 조회 실패:', result.error)
+    }
+  } catch (error) {
+    console.error('상품 조회 오류:', error)
+  }
+}
+
 const loadReservations = async () => {
   loading.value = true
   try {
     const result = await getAllReservations({
       status: filters.value.status,
       search: filters.value.search,
+      productId: filters.value.productId,
       page: pagination.value.page,
       limit: pagination.value.limit
     })
@@ -506,6 +551,83 @@ const handlePageClick = (event) => {
   }
 }
 
+const onProductChange = () => {
+  // 페이지를 1로 리셋하고 예약 목록 새로고침
+  pagination.value.page = 1
+  loadReservations()
+}
+
+const downloadExcel = () => {
+  try {
+    // 엑셀 데이터 준비
+    const excelData = filteredReservations.value.map(reservation => ({
+      '예약번호': reservation.id,
+      '예약일': formatDate(reservation.created_at),
+      '예약자명': reservation.booker_name,
+      '예약자연락처': reservation.booker_phone,
+      '예약자이메일': reservation.booker_email,
+      '상품명': reservation.product?.title || '',
+      '출발일': formatDate(reservation.departure_date),
+      '출발지': reservation.starting_point?.name || '',
+      '성인인원': reservation.adult_count || 0,
+      '아동인원': reservation.child_count || 0,
+      '여행자명': formatTravelersNames(reservation.travelers_name),
+      '여행자연락처': formatTravelersPhones(reservation.travelers_phone),
+      '비상연락처': reservation.emergency_contact || '',
+      '입금자명': reservation.depositor_name || '',
+      '성인단가': formatCurrency(reservation.product?.adult_price || 0),
+      '아동단가': formatCurrency(reservation.product?.child_price || 0),
+      '총액': formatCurrency(calculateTotal(reservation)),
+      '상태': getStatusText(reservation.status)
+    }))
+
+    // 워크북 생성
+    const wb = XLSX.utils.book_new()
+    const ws = XLSX.utils.json_to_sheet(excelData)
+
+    // 컬럼 너비 자동 조정
+    const colWidths = [
+      { wch: 10 }, // 예약번호
+      { wch: 12 }, // 예약일
+      { wch: 15 }, // 예약자명
+      { wch: 15 }, // 예약자연락처
+      { wch: 25 }, // 예약자이메일
+      { wch: 30 }, // 상품명
+      { wch: 12 }, // 출발일
+      { wch: 15 }, // 출발지
+      { wch: 10 }, // 성인인원
+      { wch: 10 }, // 아동인원
+      { wch: 25 }, // 여행자명
+      { wch: 25 }, // 여행자연락처
+      { wch: 15 }, // 비상연락처
+      { wch: 15 }, // 입금자명
+      { wch: 12 }, // 성인단가
+      { wch: 12 }, // 아동단가
+      { wch: 15 }, // 총액
+      { wch: 12 }  // 상태
+    ]
+    ws['!cols'] = colWidths
+
+    // 파일명 생성
+    let fileName = '예약목록'
+    if (filters.value.productId && selectedProduct.value) {
+      fileName = `${selectedProduct.value.title}_예약목록`
+    }
+    fileName += `_${new Date().toISOString().split('T')[0]}`
+
+    // 워크시트를 워크북에 추가
+    XLSX.utils.book_append_sheet(wb, ws, '예약목록')
+
+    // 엑셀 파일 다운로드
+    XLSX.writeFile(wb, `${fileName}.xlsx`)
+
+    alert('엑셀 파일이 다운로드되었습니다.')
+  } catch (error) {
+    console.error('엑셀 다운로드 오류:', error)
+    alert('엑셀 파일 생성 중 오류가 발생했습니다.')
+  }
+}
+
 const highlightText = (text, searchTerm) => {
   if (!searchTerm || !text) return text
   
@@ -515,6 +637,7 @@ const highlightText = (text, searchTerm) => {
 
 // 라이프사이클
 onMounted(() => {
+  loadProducts()
   loadReservations()
 })
 </script>
@@ -531,12 +654,14 @@ onMounted(() => {
   gap: 1rem;
   margin-bottom: 1.5rem;
   align-items: end;
+  flex-wrap: wrap;
 }
 
 .filter-group {
   display: flex;
   flex-direction: column;
   gap: 0.5rem;
+  min-width: 200px;
 }
 
 .filter-group label {
@@ -550,6 +675,7 @@ onMounted(() => {
   border: 1px solid #e5e7eb;
   border-radius: 4px;
   font-size: 0.875rem;
+  max-width: 300px;
 }
 
 .search-group {
@@ -753,6 +879,38 @@ mark {
   font-weight: 600;
   color: #1f2937;
   margin: 0;
+}
+
+.header-actions {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.download-btn {
+  padding: 0.5rem 1rem;
+  background: #059669;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  font-size: 0.875rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.download-btn:hover:not(:disabled) {
+  background: #047857;
+  transform: translateY(-1px);
+}
+
+.download-btn:disabled {
+  background: #9ca3af;
+  cursor: not-allowed;
+  transform: none;
 }
 
 .pagination-info {
@@ -998,6 +1156,16 @@ td {
     flex-direction: column;
     gap: 1rem;
     align-items: stretch;
+  }
+  
+  .header-actions {
+    flex-direction: column;
+    gap: 0.5rem;
+    align-items: stretch;
+  }
+  
+  .download-btn {
+    justify-content: center;
   }
   
   .reservations-table {

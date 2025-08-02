@@ -48,6 +48,10 @@ npm install @unhead/vue
 npm install @aws-sdk/client-s3 @aws-sdk/s3-request-presigner
 ```
 
+```sh
+npm install xlsx
+```
+
 ## Cloudflare R2 설정
 
 이 프로젝트는 이미지 저장을 위해 Cloudflare R2를 사용합니다.
@@ -83,3 +87,4 @@ VITE_R2_BUCKET_NAME=travel-agency-products
 # 수정사항
 // 광고 배너 표시 여부 (true: 표시, false: 숨김)
 // 이미지 업데이트
+

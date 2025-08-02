@@ -224,7 +224,7 @@ export async function getMyReservations() {
  */
 export async function getAllReservations(options = {}) {
   try {
-    const { status, search, page = 1, limit = 20 } = options
+    const { status, search, productId, page = 1, limit = 20 } = options
     const offset = (page - 1) * limit
 
     let query = supabase
@@ -250,6 +250,11 @@ export async function getAllReservations(options = {}) {
     // 상태별 필터링
     if (status) {
       query = query.eq('status', status)
+    }
+
+    // 상품별 필터링
+    if (productId) {
+      query = query.eq('product_id', productId)
     }
 
     // 검색 필터링
