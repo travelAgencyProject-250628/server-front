@@ -186,8 +186,8 @@
                                 @click="scrollToSection('notice')">
                                 이용안내
                             </button>
-                            <button type="button" class="tab-button" :class="{ active: activeTab === 'insurance' }"
-                                @click="scrollToSection('insurance')">
+                            <button type="button" class="tab-button" :class="{ active: activeTab === 'refund' }"
+                                @click="scrollToSection('refund')">
                                 취소 및 환불
                             </button>
                         </div>
@@ -385,6 +385,29 @@
 
                     <!-- 여행자보험 섹션 -->
                     <section id="insurance" class="content-section" ref="insuranceSection">
+                        <h2 class="section-title">여행자보험</h2>
+
+                        <div class="insurance-content">
+                            <div class="insurance-info">
+                                <div class="info-title">
+                                    <i class="info-icon">i</i>
+                                    국내여행자보험 서비스 제공 중지에 따른 안내
+                                </div>
+                                <p>
+                                    2012년 8월 18일부로 시행된 "개인정보통신법"은 인터넷상에서 개인정보(주민등록번호) 유출을 방지하고자 개인정보 수집을 금지토록 하고 있어
+                                    여행자보험가입이 안됨을 알려드립니다.이에 따라 2012년 8월 20일 이후 출발하는 국내여행상품의 여행자보험 가입을 원하는 경우에는 개별 가입을
+                                    권장합니다.
+                                </p>
+                                <a href="https://web.travelover.co.kr/insu/intro/dom?" target="_blank"
+                                    class="insurance-button">
+                                    여행자보험 가입 희망자 개별 신청해주세요!
+                                </a>
+                            </div>
+                        </div>
+                    </section>
+
+                    <!-- 취소 및 환불 섹션 -->
+                    <section id="refund" class="content-section" ref="refundSection">
                         <h2 class="section-title">취소 및 환불</h2>
 
                         <!-- <div class="insurance-content">
@@ -604,7 +627,7 @@ const startingPoints = ref([])
 // 섹션 refs
 const basicSection = ref(null)
 const noticeSection = ref(null)
-const insuranceSection = ref(null)
+const refundSection = ref(null)
 const detailSection = ref(null) // 상세 이미지 섹션을 위한 ref 추가
 
 // 가격 포맷팅
@@ -739,7 +762,7 @@ const handleScroll = () => {
         { name: 'basic', element: basicSection.value },
         { name: 'detail', element: detailSection.value }, // 상세정보는 이미지 섹션에 포함되므로 별도 처리
         { name: 'notice', element: noticeSection.value },
-        { name: 'insurance', element: insuranceSection.value }
+        { name: 'refund', element: refundSection.value }
     ]
 
     const scrollPosition = window.scrollY + 200
@@ -763,7 +786,7 @@ const scrollToSection = (sectionName) => {
         basic: basicSection.value,
         detail: detailSection.value, // 상세정보는 이미지 섹션에 포함되므로 별도 처리
         notice: noticeSection.value,
-        insurance: insuranceSection.value
+        refund: refundSection.value
     }
 
     const section = sectionMap[sectionName]
@@ -2397,6 +2420,31 @@ const handleImageError = (event) => {
 
 .insurance-button:hover {
     background: var(--primary-dark);
+}
+
+/* 여행자보험 섹션 스타일 */
+.info-title {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin-bottom: 1rem;
+    font-size: 1.1rem;
+}
+
+.info-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 20px;
+    height: 20px;
+    background: var(--primary-color);
+    color: white;
+    border-radius: 50%;
+    font-size: 12px;
+    font-weight: bold;
+    font-style: normal;
 }
 
 /* 로딩 및 에러 상태 스타일 */
