@@ -96,7 +96,7 @@
     <!-- 인기 상품 섹션 -->
     <section class="popular-tours">
       <div class="container">
-        <h2 class="section-title">인기 버스 여행 상품</h2>
+        <h2 class="section-title">인기 여행 상품</h2>
         
         <!-- 로딩 상태 -->
         <div v-if="isLoading" class="tours-loading">
