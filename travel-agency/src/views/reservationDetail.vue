@@ -127,7 +127,7 @@
                                 </div>
                                 <div class="account-row">
                                     <span class="account-label">입금계좌</span>
-                                    <span class="account-value">{{ reservationDetail.bankAccount || '신한은행 110-566-753667 (예금주: 김태훈)' }}</span>
+                                    <span class="account-value">{{ reservationDetail.bankAccount || '신한은행 110-566-753667 (예금주: 더쉼투어)' }}</span>
                                 </div>
                                 <div class="account-row">
                                     <span class="account-label">입금자명</span>

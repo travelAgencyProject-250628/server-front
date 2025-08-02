@@ -45,7 +45,7 @@
             <span class="bank-name">신한은행</span>
           </div>
           <div class="account-number">110-566-753667</div>
-          <div class="account-holder">예금주 : 김태훈</div>
+          <div class="account-holder">예금주 : 더쉼투어</div>
         </div>
       </div>
     </aside>
