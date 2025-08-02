@@ -31,8 +31,8 @@ const scrollToTop = () => {
 
 // 카카오톡 상담 열기
 const openKakaoTalk = () => {
-  // 실제 카카오톡 상담 링크로 변경하세요
-  const kakaoUrl = 'https://pf.kakao.com/_xcxmgG/chat' // 예시 링크
+  // 실제 카카오톡 상담 링크
+  const kakaoUrl = 'http://pf.kakao.com/_qyyWn'
   
   // 모바일에서는 카카오톡 앱으로, 데스크톱에서는 웹 버전으로
   if (/Android|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)) {
