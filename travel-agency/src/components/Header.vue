@@ -89,7 +89,7 @@
         <div class="reservation-menu">
           <div class="menu-item" @click="handleBusRental">
             <div class="menu-icon">
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                 <path d="M4 6h16"/>
                 <path d="M4 10h16"/>
                 <path d="M4 14h16"/>
@@ -104,7 +104,7 @@
           <!-- 출발장소 버튼 -->
           <div class="menu-item" @click="handleStartingPoints">
             <div class="menu-icon">
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                 <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/>
                 <circle cx="12" cy="10" r="3"/>
               </svg>
@@ -114,7 +114,7 @@
            <!-- 예약확인 버튼 (항상 표시) -->
           <div class="menu-item" @click="handleReservation">
             <div class="menu-icon">
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                 <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
                 <polyline points="14,2 14,8 20,8"/>
                 <line x1="16" y1="13" x2="8" y2="13"/>
@@ -877,7 +877,7 @@ onMounted(async () => {
 .top-link {
   padding: 0;
   text-decoration: none;
-  color: var(--text-secondary);
+  color: black;
   font-size: 0.8rem;
   background: none;
   border: none;
@@ -1057,12 +1057,12 @@ onMounted(async () => {
 }
 
 .menu-icon svg {
-  color: var(--text-secondary);
+  color: black;
 }
 
 .menu-text {
   font-size: 0.8rem;
-  color: var(--text-secondary);
+  color: black;
 }
 
 /* 네비게이션 바 */

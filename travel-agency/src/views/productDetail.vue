@@ -2134,7 +2134,7 @@ const handleImageError = (event) => {
     bottom: 0;
     background: white;
     border-top: 1px solid var(--border-color);
-    z-index: 2;
+    z-index: 100;
 }
 
 .booking-info {
@@ -2164,8 +2164,8 @@ const handleImageError = (event) => {
 }
 
 .selected-date {
-    font-size: 1rem;
-    color: var(--text-primary);
+    font-size: 1.3rem;
+    color: black;
 }
 
 .btn-booking {
