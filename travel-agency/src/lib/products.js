@@ -67,6 +67,7 @@ export async function getPopularTours() {
         adult_price, 
         child_price, 
         duration, 
+        display_departure_date,
         location_id,
         location:location_id(id, name), 
         badge_id,
@@ -106,6 +107,7 @@ export async function getPopularTours() {
         title: item.title || '',
         description: item.subtitle || '',
         duration: item.duration || '',
+        displayDepartureDate: item.display_departure_date || '',
         location: item.location?.name || '지역 미정',
         price: item.adult_price || 0,
         badge: item.badge?.name || '',
@@ -140,6 +142,7 @@ export async function getProductDetail(productId) {
         product_code,
         product_number,
         duration,
+        display_departure_date,
         event_content,
         adult_price,
         child_price,
@@ -178,6 +181,7 @@ export async function getProductDetail(productId) {
       productCode: data.product_code || '',
       productNumber: data.product_number || '',
       travelDuration: data.duration || '',
+      displayDepartureDate: data.display_departure_date || '',
       eventContent: data.event_content || '',
       adultPrice: data.adult_price || 0,
       childPrice: data.child_price || 0,
@@ -226,7 +230,7 @@ export async function getProductsByCategory(categoryId, tagId = null, sortBy = '
     
     let query = supabase
       .from('Products')
-      .select('id, title, subtitle, main_image_url, adult_price, child_price, duration, tag_id, included_items, location:location_id(id, name), badge:badge_id(id, name)')
+      .select('id, title, subtitle, main_image_url, adult_price, child_price, duration, display_departure_date, tag_id, included_items, location:location_id(id, name), badge:badge_id(id, name)')
       .eq('category_id', categoryId)
       .eq('status', true)
       .range(from, to)
@@ -304,6 +308,7 @@ export async function getProductsByCategory(categoryId, tagId = null, sortBy = '
       title: item.title || '',
       description: item.subtitle || '',
       duration: item.duration || '',
+      displayDepartureDate: item.display_departure_date || '',
       location: item.location?.name || '',
       price: item.adult_price || 0,
       badge: item.badge?.name || '',
@@ -338,6 +343,7 @@ export async function searchProducts(keyword) {
         adult_price,
         child_price,
         duration,
+        display_departure_date,
         event_content,
         location:location_id(id, name),
         badge:badge_id(id, name)
@@ -347,7 +353,8 @@ export async function searchProducts(keyword) {
         `title.ilike.%${keyword}%`,
         `subtitle.ilike.%${keyword}%`,
         `event_content.ilike.%${keyword}%`,
-        `duration.ilike.%${keyword}%`
+        `duration.ilike.%${keyword}%`,
+        `display_departure_date.ilike.%${keyword}%`
       ].join(','))
 
     if (error) throw error
@@ -358,12 +365,14 @@ export async function searchProducts(keyword) {
       item.title?.includes(keyword) ||
       item.subtitle?.includes(keyword) ||
       item.event_content?.includes(keyword) ||
-      item.duration?.includes(keyword)
+      item.duration?.includes(keyword) ||
+      item.display_departure_date?.includes(keyword)
     ).map(item => ({
       id: item.id,
       title: item.title || '',
       description: item.subtitle || '',
       duration: item.duration || '',
+      displayDepartureDate: item.display_departure_date || '',
       location: item.location?.name || '',
       price: item.adult_price || 0,
       badge: item.badge?.name || '',
@@ -608,6 +617,7 @@ export async function getAllProducts() {
         product_code,
         product_number,
         duration,
+        display_departure_date,
         adult_price,
         child_price,
         event_content,

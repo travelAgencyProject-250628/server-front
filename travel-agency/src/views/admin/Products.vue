@@ -268,6 +268,19 @@
                   class="form-input"
                 >
               </div>
+              
+              <div class="form-group">
+                <label for="displayDepartureDate">출발일 표시</label>
+                <input 
+                  type="text" 
+                  id="displayDepartureDate"
+                  v-model="formData.display_departure_date"
+                  placeholder="예: 매주 토요일, 매일, 특정 날짜"
+                  class="form-input"
+                >
+                <small class="form-help">고객에게 표시할 출발일 정보를 입력하세요</small>
+              </div>
+              
               <div class="form-group">
                 <label for="productStatus">상품 상태</label>
                 <select 
@@ -859,6 +872,7 @@ const openCreateModal = () => {
     badge_id: '',
     location_id: '',
     duration: '',
+    display_departure_date: '',
     adult_price: '',
     child_price: '',
     event_content: '',
@@ -887,6 +901,7 @@ const openEditModal = (product) => {
     badge_id: product.badge_id || '',
     location_id: product.location_id || '',
     duration: product.duration,
+    display_departure_date: product.display_departure_date || '',
     adult_price: product.adult_price,
     child_price: product.child_price,
     event_content: product.event_content,
@@ -1747,6 +1762,12 @@ const openItineraryEdit = (product) => {
 textarea.form-input {
   resize: vertical;
   min-height: 80px;
+}
+
+.form-help {
+  font-size: 0.75rem;
+  color: #6b7280;
+  margin-top: 0.25rem;
 }
 
 /* 모이는 장소 스타일 */

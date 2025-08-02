@@ -98,20 +98,20 @@
                         <div class="product-summary mobile-summary">
                             <div class="summary-content">
                                 <div class="summary-item">
+                                    <span class="summary-label">상품코드</span>
+                                    <span class="summary-value">{{ productDetail.productCode }}</span>
+                                </div>
+                                <div class="summary-item">
                                     <span class="summary-label">여행 기간</span>
                                     <span class="summary-value">{{ productDetail.travelDuration }}</span>
                                 </div>
                                 <div class="summary-item">
-                                    <span class="summary-label">포함 내역</span>
-                                    <span class="summary-value">{{ productDetail.includedItems }}</span>
-                                </div>
-                                <div class="summary-item">
-                                    <span class="summary-label">불포함 내역</span>
-                                    <span class="summary-value">{{ productDetail.excludedItems }}</span>
+                                    <span class="summary-label">행사 내용</span>
+                                    <span class="summary-value">{{ productDetail.eventContent || '-' }}</span>
                                 </div>
                                 <div class="summary-item">
                                     <span class="summary-label">출발 날짜</span>
-                                    <span class="summary-value">2024.03.15 (금)</span>
+                                    <span class="summary-value">{{ productDetail.displayDepartureDate || '출발일 문의' }}</span>
                                 </div>
                             </div>
                             <div class="share-buttons">
@@ -444,13 +444,13 @@
                         <span class="summary-label">포함내역</span>
                         <span class="summary-value">{{ productDetail.includedItems }}</span>
                     </div>                                         -->
-                    <div v-if="productDetail.eventContent" class="summary-item event-content-summary">
+                    <div class="summary-item event-content-summary">
                         <span class="summary-label">행사내용</span>
-                        <span class="summary-value">{{ productDetail.eventContent }}</span>
+                        <span class="summary-value">{{ productDetail.eventContent || '-' }}</span>
                     </div>
                     <div class="summary-item">
                         <span class="summary-label">출발날짜</span>
-                        <span class="summary-value">2024.03.15 (금)</span>
+                        <span class="summary-value">{{ productDetail.displayDepartureDate || '출발일 문의' }}</span>
                     </div>
                 </div>
                 <div class="share-buttons">
@@ -667,6 +667,7 @@ const fetchProductDetail = async (productId) => {
                 productCode: product.productCode,
                 productNumber: product.productNumber,
                 travelDuration: product.travelDuration,
+                displayDepartureDate: product.displayDepartureDate,
                 eventContent: product.eventContent,
                 adultPrice: product.adultPrice,
                 childPrice: product.childPrice,
