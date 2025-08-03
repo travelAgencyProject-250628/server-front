@@ -20,7 +20,7 @@
           <input 
             type="text" 
             v-model="searchTerm" 
-            placeholder="연락처 또는 주소로 검색..."
+            placeholder="연락처, 주소, 버스타입, 고객유형, 이용목적으로 검색..."
             class="search-input"
           >
         </div>
@@ -60,29 +60,50 @@
           <div class="rental-header">
             <div class="rental-info">
               <h3 class="rental-title">
-                {{ rental.content.tripType === 'round' ? '왕복' : '편도' }} 버스 대절
+                {{ rental.content.busTypeName }} - {{ rental.content.tripTypeName }}
               </h3>
-              <span class="rental-date">{{ formatDate(rental.created_at) }}</span>
+              <div class="rental-meta">
+                <span class="rental-date">{{ formatDate(rental.created_at) }}</span>
+                <span class="rental-customer">{{ rental.content.customerTypeName }}</span>
+                <span class="rental-purpose">{{ rental.content.purposeName }}</span>
+              </div>
             </div>
-                      <div class="rental-status">
-            <span 
-              class="status-badge"
-              :class="rental.status ? 'contacted' : 'pending'"
-            >
-              {{ rental.status ? '연락완료' : '대기중' }}
-            </span>
-          </div>
+            <div class="rental-status">
+              <span 
+                class="status-badge"
+                :class="rental.status ? 'contacted' : 'pending'"
+              >
+                {{ rental.status ? '연락완료' : '대기중' }}
+              </span>
+            </div>
           </div>
 
           <div class="rental-details">
             <div class="detail-row">
               <span class="detail-label">연락처:</span>
-              <span class="detail-value">{{ rental.content.phone }}</span>
+              <span class="detail-value">{{ rental.content.phoneNumber }}</span>
             </div>
             
             <div class="detail-row">
+              <span class="detail-label">버스 타입:</span>
+              <span class="detail-value">{{ rental.content.busTypeName }}</span>
+            </div>
+
+            <div class="detail-row">
+              <span class="detail-label">고객 유형:</span>
+              <span class="detail-value">{{ rental.content.customerTypeName }}</span>
+            </div>
+
+            <div class="detail-row">
+              <span class="detail-label">이용 목적:</span>
+              <span class="detail-value">{{ rental.content.purposeName }}</span>
+            </div>
+
+            <div class="detail-row">
               <span class="detail-label">인원:</span>
-              <span class="detail-value">{{ rental.content.passengers }}명</span>
+              <span class="detail-value">
+                {{ rental.content.unknownPassengerCount ? '정확한 인원 모름' : rental.content.passengerCount + '명' }}
+              </span>
             </div>
 
             <div class="detail-row">
@@ -92,27 +113,20 @@
 
             <div class="detail-row">
               <span class="detail-label">도착지:</span>
-              <span class="detail-value">{{ rental.content.arrival }}</span>
+              <span class="detail-value">{{ rental.content.destination }}</span>
             </div>
 
             <div class="detail-row">
-              <span class="detail-label">가는날:</span>
+              <span class="detail-label">출발일:</span>
               <span class="detail-value">
                 {{ formatDate(rental.content.departureDate) }} {{ rental.content.departureTime }}
               </span>
             </div>
 
-            <div v-if="rental.content.tripType === 'round'" class="detail-row">
-              <span class="detail-label">오는날:</span>
+            <div v-if="rental.content.tripType === 'round' && rental.content.returnDate" class="detail-row">
+              <span class="detail-label">도착일:</span>
               <span class="detail-value">
                 {{ formatDate(rental.content.returnDate) }} {{ rental.content.returnTime }}
-              </span>
-            </div>
-
-            <div v-if="rental.content.stopovers && rental.content.stopovers.length > 0" class="detail-row">
-              <span class="detail-label">경유지:</span>
-              <span class="detail-value">
-                {{ rental.content.stopovers.join(', ') }}
               </span>
             </div>
           </div>
@@ -201,9 +215,12 @@ const filteredRentals = computed(() => {
   if (searchTerm.value) {
     const term = searchTerm.value.toLowerCase()
     filtered = filtered.filter(rental => 
-      rental.content.phone?.toLowerCase().includes(term) ||
+      rental.content.phoneNumber?.toLowerCase().includes(term) ||
       rental.content.departure?.toLowerCase().includes(term) ||
-      rental.content.arrival?.toLowerCase().includes(term)
+      rental.content.destination?.toLowerCase().includes(term) ||
+      rental.content.busTypeName?.toLowerCase().includes(term) ||
+      rental.content.customerTypeName?.toLowerCase().includes(term) ||
+      rental.content.purposeName?.toLowerCase().includes(term)
     )
   }
 
@@ -431,6 +448,22 @@ onMounted(loadBusRentals)
   color: #6b7280;
 }
 
+.rental-meta {
+  display: flex;
+  gap: 1rem;
+  align-items: center;
+  margin-top: 0.25rem;
+}
+
+.rental-customer,
+.rental-purpose {
+  font-size: 0.8rem;
+  color: #6b7280;
+  background: #f3f4f6;
+  padding: 0.2rem 0.5rem;
+  border-radius: 12px;
+}
+
 .status-badge {
   padding: 0.25rem 0.75rem;
   border-radius: 20px;
@@ -449,8 +482,8 @@ onMounted(loadBusRentals)
 }
 
 .rental-details {
-  display: flex;
-  flex-direction: column;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
   gap: 0.75rem;
   margin-bottom: 1rem;
 }
@@ -459,18 +492,22 @@ onMounted(loadBusRentals)
   display: flex;
   align-items: center;
   gap: 0.5rem;
+  padding: 0.5rem;
+  background: #f9fafb;
+  border-radius: 6px;
 }
 
 .detail-label {
-  font-weight: 500;
-  color: #6b7280;
-  font-size: 0.9rem;
-  min-width: 60px;
+  font-weight: 600;
+  color: #374151;
+  font-size: 0.85rem;
+  min-width: 80px;
 }
 
 .detail-value {
   color: #1f2937;
   font-size: 0.9rem;
+  font-weight: 500;
 }
 
 .rental-actions {
