@@ -1469,7 +1469,7 @@ const submitQuote = async () => {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 3rem;
+  gap: 1rem;
   width: 100%;
   margin: 0 auto;
   max-width: 350px;
@@ -1490,8 +1490,16 @@ const submitQuote = async () => {
 
 .date-time-wrapper {
   display: flex;
+  flex-direction: column;
   gap: 0.5rem;
   width: 90%;
+}
+
+/* 데스크톱에서는 가로 배치 */
+@media (min-width: 768px) {
+  .date-time-wrapper {
+    flex-direction: row;
+  }
 }
 
 .date-input-container,
@@ -1503,10 +1511,10 @@ const submitQuote = async () => {
 .date-input,
 .time-input {
   width: 100%;
-  padding: 0.3rem;
+  padding: 0.5rem;
   border: 2px solid rgba(255, 255, 255, 0.8);
   border-radius: 12px;
-  font-size: 1.1rem;
+  font-size: 1rem;
   font-weight: 500;
   background: rgba(255, 255, 255, 0.9);
   backdrop-filter: blur(10px);
