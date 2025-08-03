@@ -868,7 +868,8 @@ const submitQuote = async () => {
 <style scoped>
 .bus-rental-page {
   height: calc(100vh - 80px);
-  background: linear-gradient(135deg, #60a5fa 0%, #3b82f6 100%);
+  /* background: linear-gradient(135deg, #60a5fa 0%, #3b82f6 100%); */
+  background-color: #60a5fa;
   position: relative;
   overflow: hidden;
   display: flex;
@@ -910,7 +911,8 @@ const submitQuote = async () => {
 .section {
   width: 100%;
   height: calc(100vh - 80px);
-  background: linear-gradient(135deg, #60a5fa 0%, #3b82f6 100%);
+  /* background: linear-gradient(135deg, #60a5fa 0%, #3b82f6 100%); */
+  background-color: #60a5fa;
   padding: 0 1rem;
   display: flex;
   flex-direction: column;
