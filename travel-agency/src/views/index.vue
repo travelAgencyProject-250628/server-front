@@ -113,7 +113,7 @@
           >
             <div class="tour-image">
               <img :src="tour.image" :alt="tour.title" />
-              <div class="tour-badge">{{ tour.badge }}</div>
+              <div v-if="tour.badge && tour.badge.trim() !== ''" class="tour-badge">{{ tour.badge }}</div>
             </div>
             <div class="tour-content">
               <div class="tour-info">
