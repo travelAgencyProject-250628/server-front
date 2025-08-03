@@ -46,7 +46,7 @@
                       </div>
                     </div>
                     <div class="bus-image">
-                      <img src="/bus-red.png" alt="우등버스" class="bus-img">
+                      <img src="/bus-blue.png" alt="우등버스" class="bus-img">
                     </div>
                   </div>
                   <button class="compare-btn" @click="comparePrice('premium')">
@@ -65,7 +65,7 @@
                       </div>
                     </div>
                     <div class="bus-image">
-                      <img src="/bus-red.png" alt="미니버스" class="bus-img">
+                      <img src="/bus-yellow.png" alt="미니버스" class="bus-img">
                     </div>
                   </div>
                   <button class="compare-btn" @click="comparePrice('minibus')">
