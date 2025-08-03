@@ -413,6 +413,21 @@
 
           <!-- 전화번호 입력 컨텐츠 -->
           <div class="phone-content">
+            <!-- 동영상 섹션 -->
+            <div class="video-section">
+              <video 
+                src="https://pub-5d84e73636f44524b9cc63f124cda236.r2.dev/bus_rental_video/video.mp4"
+                autoplay
+                muted
+                loop
+                playsinline
+                class="intro-video"
+                preload="metadata"
+              >
+                브라우저가 비디오를 지원하지 않습니다.
+              </video>
+            </div>
+
             <div class="phone-form">
               <!-- 제목 -->
               <div class="phone-title">
@@ -1652,7 +1667,7 @@ const submitQuote = async () => {
 .phone-content {
   display: flex;
   flex-direction: column;
-  justify-content: center;
+  justify-content: flex-start;
   align-items: center;
   min-height: calc(100vh - 80px);
   padding: 2rem 0;
@@ -1662,7 +1677,7 @@ const submitQuote = async () => {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 2rem;
+  gap: 1rem;
   width: 100%;
   margin: 0 auto;
   max-width: 350px;
@@ -1679,7 +1694,7 @@ const submitQuote = async () => {
   font-size: 1.5rem;
   font-weight: 700;
   color: black;
-  margin: 0 0 0.5rem 0;
+  margin: 1rem 0 0.5rem 0;
 }
 
 .phone-subtitle {
@@ -1717,5 +1732,24 @@ const submitQuote = async () => {
 
 .phone-input::placeholder {
   color: #9ca3af;
+}
+
+/* 동영상 섹션 */
+.video-section {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  margin-top: 4rem;
+}
+
+.intro-video {
+  width: 50%;
+  max-width: 400px;
+  border-radius: 12px 12px 0 0;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15);
+  background: #000;
+  object-fit: cover;
+  object-position: center 10%;
+  overflow: hidden;
 }
 </style>
