@@ -971,6 +971,7 @@ const submitQuote = async () => {
   display: flex;
   flex-direction: column;
   min-height: 100%;
+  justify-content: center;
 }
 
 /* 옵션 선택 컨텐츠 */
