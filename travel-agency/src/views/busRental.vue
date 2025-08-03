@@ -1,136 +1,160 @@
 <template>
   <div class="bus-rental-page">
-    <!-- 상단 빨간색 헤더 -->
-    <div class="header-section">
-      <div class="header-content">
-        <h1 class="main-title">단체 이동, 쉽고 빠르게</h1>
-        <p class="subtitle">원하는 일정과 조건만 입력하세요! 직접 연락드립니다.</p>
-      </div>
-    </div>
+    <div class="container">
+      <div class="sections-wrapper" :style="{ transform: `translateY(${getSectionTransform})` }">
+        <!-- 첫 번째 섹션: 버스 선택 -->
+        <div class="section bus-selection-section">
+          <div class="bus-selection-content">
+            <!-- 상단 헤더 섹션 -->
+            <div class="header-section">
+              <div class="header-content">
+                <h1 class="header-subtitle">70만 고객 후기 다 모았다.</h1>
+                <h2 class="header-title">친절버스 골라주는 더쉼투어</h2>
+              </div>
+            </div>
 
-    <!-- 하단 흰색 폼 -->
-    <div class="form-section">
-      <div class="form-container">
-        <!-- 탭 -->
-        <div class="tabs">
-          <button 
-            class="tab-button" 
-            :class="{ active: tripType === 'round' }"
-            @click="tripType = 'round'"
-          >
-            왕복
-          </button>
-          <button 
-            class="tab-button" 
-            :class="{ active: tripType === 'oneway' }"
-            @click="tripType = 'oneway'"
-          >
-            편도
-          </button>
-        </div>
+            <!-- 버스 타입 카드 섹션 -->
+            <div class="bus-cards-section">
+              <div class="bus-cards-container">
+                <!-- 대형버스 카드 -->
+                <div class="bus-card-container">
+                  <div class="bus-card">
+                    <div class="bus-card-header">
+                      <h3 class="bus-type">대형버스</h3>
+                      <div class="bus-info">
+                        <span class="passenger-count">45인</span>
+                        <span class="price">14만원~</span>
+                      </div>
+                    </div>
+                    <div class="bus-image">
+                      <img src="/bus-red.png" alt="대형버스" class="bus-img">
+                    </div>
+                  </div>
+                  <button class="compare-btn" @click="comparePrice('large')">
+                    가격비교 >
+                  </button>
+                </div>
 
-        <!-- 입력 폼 -->
-        <div class="input-fields">
-          <div class="field-group">
-            <label class="field-label">출발지</label>
-            <input 
-              type="text" 
-              v-model="formData.departure" 
-              placeholder="출발지를 클릭하여 검색하세요" 
-              class="field-input address-clickable"
-              readonly
-              @click="searchAddress('departure')"
-            >
-          </div>
+                <!-- 우등버스 카드 -->
+                <div class="bus-card-container">
+                  <div class="bus-card">
+                    <div class="bus-card-header">
+                      <h3 class="bus-type">우등버스</h3>
+                      <div class="bus-info">
+                        <span class="passenger-count">28인</span>
+                        <span class="price">17만원~</span>
+                      </div>
+                    </div>
+                    <div class="bus-image">
+                      <img src="/bus-red.png" alt="우등버스" class="bus-img">
+                    </div>
+                  </div>
+                  <button class="compare-btn" @click="comparePrice('premium')">
+                    가격비교 >
+                  </button>
+                </div>
 
-          <!-- 경유지 추가 버튼 -->
-          <div class="field-group">
-            <button class="add-stopover-btn" @click="addStopover">
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <line x1="12" y1="5" x2="12" y2="19"></line>
-                <line x1="5" y1="12" x2="19" y2="12"></line>
-              </svg>
-              경유지 추가
-            </button>
-          </div>
-
-          <!-- 경유지 섹션 -->
-          <div v-if="formData.stopovers.length > 0" class="stopovers-section">
-            <h3 class="stopovers-title">경유지</h3>
-            <div v-for="(stopover, index) in formData.stopovers" :key="index" class="stopover-item">
-              <div class="field-group">
-                <label class="field-label">경유지 {{ index + 1 }}</label>
-                <div class="stopover-input-group">
-                  <input 
-                    type="text" 
-                    v-model="formData.stopovers[index]" 
-                    :placeholder="`경유지 ${index + 1}을 클릭하여 검색하세요`" 
-                    class="field-input address-clickable"
-                    readonly
-                    @click="searchStopoverAddress(index)"
-                  >
-                  <button type="button" class="remove-stopover-btn" @click="removeStopover(index)">
-                    삭제
+                <!-- 미니버스 카드 -->
+                <div class="bus-card-container">
+                  <div class="bus-card">
+                    <div class="bus-card-header">
+                      <h3 class="bus-type">미니버스·밴</h3>
+                      <div class="bus-info">
+                        <span class="passenger-count">18인</span>
+                        <span class="price">10만원~</span>
+                      </div>
+                    </div>
+                    <div class="bus-image">
+                      <img src="/bus-red.png" alt="미니버스" class="bus-img">
+                    </div>
+                  </div>
+                  <button class="compare-btn" @click="comparePrice('minibus')">
+                    가격비교 >
                   </button>
                 </div>
               </div>
             </div>
-          </div>
 
-          <div class="field-group">
-            <label class="field-label">도착지</label>
-            <input 
-              type="text" 
-              v-model="formData.arrival" 
-              placeholder="도착지를 클릭하여 검색하세요" 
-              class="field-input address-clickable"
-              readonly
-              @click="searchAddress('arrival')"
-            >
-          </div>
-
-          <div class="field-group">
-            <label class="field-label">가는 날짜 및 시간</label>
-            <DateTimePicker 
-              v-model="formData.departureDateTime" 
-              placeholder="가는 날짜와 시간을 선택해주세요"
-              label="가는 날짜 및 시간 선택"
-            />
-          </div>
-
-          <div class="field-group" v-if="tripType === 'round'">
-            <label class="field-label">오는 날짜 및 시간</label>
-            <DateTimePicker 
-              v-model="formData.returnDateTime" 
-              placeholder="오는 날짜와 시간을 선택해주세요"
-              label="오는 날짜 및 시간 선택"
-            />
-          </div>
-
-          <div class="field-group">
-            <label class="field-label">인원수</label>
-            <select v-model="formData.passengers" class="field-input">
-              <option value="">인원수 입력 미정</option>
-              <option v-for="i in 50" :key="i" :value="i">{{ i }}명</option>
-            </select>
-          </div>
-
-          <div class="field-group">
-            <label class="field-label">연락처</label>
-            <input 
-              type="tel" 
-              v-model="formData.phone" 
-              placeholder="연락처 입력 (예: 010-1234-5678)" 
-              class="field-input"
-            >
+            <!-- 하단 정보 섹션 -->
+            <div class="info-section">
+              <div class="info-container">
+                <div class="info-item">
+                  <div class="info-icon">✓</div>
+                  <span class="info-text">70만명이 가격비교를 진행했습니다.</span>
+                </div>
+                <div class="info-item">
+                  <div class="info-icon">✓</div>
+                  <span class="info-text">예약한 고객님 96%가 만족했습니다.</span>
+                </div>
+                <div class="info-item">
+                  <div class="info-icon">✓</div>
+                  <span class="info-text">콜버스는 시중가보다 23% 저렴합니다.</span>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
 
-        <!-- 견적 신청 버튼 -->
-        <div class="submit-section">
-          <button class="submit-button" @click="requestQuote" :disabled="isSubmitting">
-            {{ isSubmitting ? '신청 중...' : '견적 신청' }}
-          </button>
+        <!-- 두 번째 섹션: 옵션 선택 -->
+        <div class="section options-section">
+          <!-- 뒤로가기 버튼 -->
+          <div class="back-button" @click="goBack">
+            <span>^</span>
+          </div>
+
+          <!-- 옵션 선택 컨텐츠 -->
+          <div class="options-content">
+
+            <!-- 고객 유형 선택 -->
+            <div class="options-group">
+              <div class="section-title section-title-top">고객님은 누구신가요?</div>
+              <div class="type-selector">
+                <button 
+                  class="type-btn" 
+                  :class="{ active: selectedCustomerType === 'individual' }"
+                  @click="selectedCustomerType = 'individual'"
+                >
+                  개인
+                </button>
+                <button 
+                  class="type-btn" 
+                  :class="{ active: selectedCustomerType === 'corporate' }"
+                  @click="selectedCustomerType = 'corporate'"
+                >
+                  법인
+                </button>
+                <button 
+                  class="type-btn" 
+                  :class="{ active: selectedCustomerType === 'travel' }"
+                  @click="selectedCustomerType = 'travel'"
+                >
+                  여행사
+                </button>
+              </div>
+            </div>
+
+            <!-- 이용 목적 선택 -->
+            <div class="options-group">
+              <div class="section-title">어떤 목적으로 이용하시나요?</div>
+              <div class="purpose-grid">
+                <button 
+                  v-for="purpose in purposes" 
+                  :key="purpose.id"
+                  class="purpose-btn"
+                  :class="{ active: selectedPurpose === purpose.id }"
+                  @click="selectedPurpose = purpose.id"
+                >
+                  {{ purpose.name }}
+                </button>
+              </div>
+            </div>
+
+            <!-- 자동 이동 안내 메시지 -->
+            <div v-if="selectedCustomerType && selectedPurpose" class="auto-move-message">
+              <div class="loading-spinner"></div>
+              <span>견적 신청 처리 중...</span>
+            </div>
+          </div>
         </div>
       </div>
     </div>
@@ -138,549 +162,460 @@
 </template>
 
 <script setup>
-import { ref, reactive, onMounted } from 'vue'
-import { createBusRental } from '@/lib/busRentals.js'
-import DateTimePicker from '@/components/DateTimePicker.vue'
+import { ref, watch, computed } from 'vue'
 
-// 여행 타입 (왕복/편도)
-const tripType = ref('round')
+// 현재 섹션 상태
+const currentSection = ref('bus-selection')
+const selectedBusType = ref('')
 
-// 제출 상태
-const isSubmitting = ref(false)
+// 선택된 값들
+const selectedCustomerType = ref('')
+const selectedPurpose = ref('')
 
-// 폼 데이터
-const formData = reactive({
-  departure: '',
-  arrival: '',
-  departureDateTime: '',
-  returnDateTime: '',
-  passengers: '',
-  phone: '',
-  stopovers: []
+// 이용 목적 목록
+const purposes = [
+  { id: 'wedding_guest', name: '결혼식 하객버스' },
+  { id: 'corporate_event', name: '기업행사/워크샵' },
+  { id: 'wedding_car', name: '웨딩카' },
+  { id: 'commuter', name: '통근버스 정기운행' },
+  { id: 'group_travel', name: '단체여행' },
+  { id: 'school_event', name: '학교 행사/MT' },
+  { id: 'field_trip', name: '현장학습' },
+  { id: 'club', name: '동호회' },
+  { id: 'concert', name: '콘서트/페스티발' },
+  { id: 'golf', name: '골프모임' },
+  { id: 'mountain', name: '산악회' },
+  { id: 'religious', name: '종교행사' },
+  { id: 'airport', name: '공항이용' },
+  { id: 'other', name: '기타' }
+]
+
+// 섹션 변환 계산
+const getSectionTransform = computed(() => {
+  if (currentSection.value === 'options') {
+    return '-100vh'
+  }
+  return '0'
 })
 
-// 카카오 주소 API 초기화
-onMounted(() => {
-  // 카카오 주소 API 스크립트 로드
-  if (!window.daum) {
-    const script = document.createElement('script')
-    script.src = '//t1.daumcdn.net/mapjsapi/bundle/postcode/prod/postcode.v2.js'
-    document.head.appendChild(script)
+// 고객 타입과 목적이 모두 선택되면 자동으로 견적 신청 완료
+watch([selectedCustomerType, selectedPurpose], ([customerType, purpose]) => {
+  if (customerType && purpose && currentSection.value === 'options') {
+    setTimeout(() => {
+      console.log('견적 신청:', {
+        busType: selectedBusType.value,
+        customerType: customerType,
+        purpose: purpose
+      })
+      
+      alert(`견적 신청이 완료되었습니다!\n버스 타입: ${getBusTypeName(selectedBusType.value)}\n고객 유형: ${getCustomerTypeName(customerType)}\n이용 목적: ${getPurposeName(purpose)}\n\n곧 연락드리겠습니다.`)
+      
+      // 첫 번째 페이지로 돌아가기
+      currentSection.value = 'bus-selection'
+      selectedCustomerType.value = ''
+      selectedPurpose.value = ''
+      selectedBusType.value = ''
+    }, 1000)
   }
 })
 
-// 주소 검색
-const searchAddress = (type) => {
-  if (!window.daum) {
-    alert('주소 검색 서비스를 불러오는 중입니다. 잠시 후 다시 시도해주세요.')
-    return
-  }
-
-  new window.daum.Postcode({
-    oncomplete: function(data) {
-      // 주소 정보를 해당 필드에 설정
-      if (type === 'departure') {
-        formData.departure = data.address
-      } else if (type === 'arrival') {
-        formData.arrival = data.address
-      }
-    },
-    onclose: function(state) {
-      // 팝업이 닫힐 때 실행될 코드
-      if (state === 'FORCE_CLOSE') {
-        // 사용자가 검색결과를 선택하지 않고 팝업을 닫은 경우
-      } else if (state === 'COMPLETE_CLOSE') {
-        // 검색결과를 선택한 경우
-      }
-    }
-  }).open()
+// 가격 비교 함수
+const comparePrice = (busType) => {
+  selectedBusType.value = busType
+  currentSection.value = 'options'
 }
 
-// 경유지 주소 검색
-const searchStopoverAddress = (index) => {
-  if (!window.daum) {
-    alert('주소 검색 서비스를 불러오는 중입니다. 잠시 후 다시 시도해주세요.')
-    return
-  }
-
-  new window.daum.Postcode({
-    oncomplete: function(data) {
-      // 경유지 주소 정보를 해당 인덱스에 설정
-      formData.stopovers[index] = data.address
-    },
-    onclose: function(state) {
-      // 팝업이 닫힐 때 실행될 코드
-    }
-  }).open()
+// 뒤로가기 함수
+const goBack = () => {
+  currentSection.value = 'bus-selection'
+  selectedCustomerType.value = ''
+  selectedPurpose.value = ''
 }
 
-// 경유지 추가
-const addStopover = () => {
-  formData.stopovers.push('')
+// 버스 타입 이름 변환
+const getBusTypeName = (type) => {
+  const types = {
+    'large': '대형버스',
+    'premium': '우등버스',
+    'minibus': '미니버스·밴'
+  }
+  return types[type] || type
 }
 
-// 경유지 삭제
-const removeStopover = (index) => {
-  formData.stopovers.splice(index, 1)
+// 고객 유형 이름 변환
+const getCustomerTypeName = (type) => {
+  const types = {
+    'individual': '개인',
+    'corporate': '법인',
+    'travel': '여행사'
+  }
+  return types[type] || type
 }
 
-// 견적 신청
-const requestQuote = async () => {
-  // 필수 필드 검증
-  if (!formData.departure || !formData.arrival || !formData.departureDateTime) {
-    alert('출발지, 도착지, 가는 날짜 및 시간을 입력해주세요.')
-    return
+// 이용 목적 이름 변환
+const getPurposeName = (purpose) => {
+  const purposes = {
+    'wedding_guest': '결혼식 하객버스',
+    'corporate_event': '기업행사/워크샵',
+    'wedding_car': '웨딩카',
+    'commuter': '통근버스 정기운행',
+    'group_travel': '단체여행',
+    'school_event': '학교 행사/MT',
+    'field_trip': '현장학습',
+    'club': '동호회',
+    'concert': '콘서트/페스티발',
+    'golf': '골프모임',
+    'mountain': '산악회',
+    'religious': '종교행사',
+    'airport': '공항이용',
+    'other': '기타'
   }
-
-  if (tripType.value === 'round' && !formData.returnDateTime) {
-    alert('오는 날짜 및 시간을 입력해주세요.')
-    return
-  }
-
-  if (!formData.passengers) {
-    alert('인원수를 선택해주세요.')
-    return
-  }
-
-  if (!formData.phone) {
-    alert('연락처를 입력해주세요.')
-    return
-  }
-
-  // 전화번호 형식 검증
-  const phoneRegex = /^[0-9-]+$/
-  if (!phoneRegex.test(formData.phone)) {
-    alert('올바른 전화번호 형식으로 입력해주세요.')
-    return
-  }
-
-  isSubmitting.value = true
-
-  try {
-    // 날짜 시간 파싱
-    const departureDate = new Date(formData.departureDateTime)
-    const returnDate = formData.returnDateTime ? new Date(formData.returnDateTime) : null
-
-    // JSON 형태로 데이터 구성
-    const rentalData = {
-      tripType: tripType.value,
-      departure: formData.departure,
-      arrival: formData.arrival,
-      departureDate: departureDate.toISOString().split('T')[0],
-      departureTime: `${departureDate.getHours().toString().padStart(2, '0')}:${departureDate.getMinutes().toString().padStart(2, '0')}`,
-      returnDate: returnDate ? returnDate.toISOString().split('T')[0] : null,
-      returnTime: returnDate ? `${returnDate.getHours().toString().padStart(2, '0')}:${returnDate.getMinutes().toString().padStart(2, '0')}` : null,
-      passengers: formData.passengers,
-      phone: formData.phone,
-      stopovers: formData.stopovers.filter(stopover => stopover.trim() !== ''),
-      submittedAt: new Date().toISOString()
-    }
-
-    // 데이터베이스에 저장
-    const result = await createBusRental(rentalData)
-    
-    if (result.success) {
-      alert('견적 신청이 완료되었습니다. 곧 연락드리겠습니다.')
-      
-      // 폼 초기화
-      formData.departure = ''
-      formData.arrival = ''
-      formData.departureDateTime = ''
-      formData.returnDateTime = ''
-      formData.passengers = ''
-      formData.phone = ''
-      formData.stopovers = []
-      
-      console.log('버스 대절 신청 저장 완료:', result.data)
-    } else {
-      alert(`견적 신청 중 오류가 발생했습니다: ${result.error}`)
-    }
-      } catch (error) {
-      console.error('견적 신청 오류:', error)
-      alert('견적 신청 중 오류가 발생했습니다. 다시 시도해주세요.')
-    } finally {
-      isSubmitting.value = false
-    }
+  return purposes[purpose] || purpose
 }
 </script>
 
 <style scoped>
 .bus-rental-page {
-  min-height: calc(100vh - 250px);
+  height: calc(100vh - 80px);
+  background: linear-gradient(135deg, #60a5fa 0%, #3b82f6 100%);
+  position: relative;
+  overflow: hidden;
   display: flex;
   flex-direction: column;
 }
 
-/* 상단 파란색 헤더 */
-.header-section {
-  background: var(--primary-color);
-  color: white;
-  padding: 4rem 2rem;
-  text-align: center;
-  flex: 1;
+.bus-rental-page::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-image: radial-gradient(circle at 1px 1px, rgba(255, 255, 255, 0.1) 1px, transparent 0);
+  background-size: 20px 20px;
+  pointer-events: none;
+}
+
+.container {
+  max-width: 400px;
+  margin: 0 auto;
+  padding: 0;
+  width: 100%;
+  height: 100%;
+  position: relative;
+  overflow: hidden;
+}
+
+/* 섹션들을 감싸는 래퍼 - 세로 배치 */
+.sections-wrapper {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  height: 200vh;
+  transition: transform 0.5s ease-in-out;
+}
+
+/* 섹션 공통 스타일 */
+.section {
+  width: 100%;
+  height: 100vh;
+  background: linear-gradient(135deg, #60a5fa 0%, #3b82f6 100%);
+  padding: 0 1rem;
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto;
+  overflow-x: hidden;
+  position: relative;
+}
+
+/* 뒤로가기 버튼 */
+.back-button {
+  position: absolute;
+  top: 1rem;
+  left: 50%;
+  transform: translateX(-50%);
+  color: black;
+  font-weight: 600;
+  cursor: pointer;
+  z-index: 10;
+  padding: 0.5rem;
+  font-size: 1.5rem;
   display: flex;
   align-items: center;
   justify-content: center;
 }
 
-.header-content {
-  max-width: 800px;
+/* 버스 선택 컨텐츠 */
+.bus-selection-content {
+  display: flex;
+  flex-direction: column;
+  min-height: 100%;
 }
 
-.main-title {
-  font-size: 2.5rem;
-  font-weight: bold;
-  margin-bottom: 1rem;
-  line-height: 1.2;
+/* 옵션 선택 컨텐츠 */
+.options-content {
+  display: flex;
+  flex-direction: column;
+  min-height: 100%;
+  padding-top: 1rem;
 }
 
-.subtitle {
+.options-group {
+  margin-bottom: 2rem;
+  position: relative;
+  z-index: 1;
+}
+
+.section-title {
   font-size: 1.2rem;
+  font-weight: 700;
+  color: black;
+  margin: 1rem 0;
+  text-align: center;
+}
+
+.section-title-top {
+  margin-top: 3rem;
+}
+
+.type-selector {
+  display: flex;
+  gap: 0.5rem;
+  background: rgba(255, 255, 255, 0.9);
+  padding: 0.5rem;
+  border-radius: 12px;
+  backdrop-filter: blur(10px);
+}
+
+.type-btn {
+  flex: 1;
+  padding: 0.8rem;
+  border: none;
+  border-radius: 8px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  background: transparent;
+  color: #6b7280;
+}
+
+.type-btn.active {
+  background: #3b82f6;
+  color: white;
+}
+
+.type-btn:hover:not(.active) {
+  background: rgba(59, 130, 246, 0.1);
+  color: #3b82f6;
+}
+
+.purpose-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 0.8rem;
+}
+
+.purpose-btn {
+  padding: 1rem 0.8rem;
+  border: 2px solid rgba(255, 255, 255, 0.8);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.9);
+  color: #374151;
+  font-size: 0.85rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  text-align: center;
+  backdrop-filter: blur(10px);
+}
+
+.purpose-btn.active {
+  border-color: #3b82f6;
+  background: #3b82f6;
+  color: white;
+}
+
+.purpose-btn:hover:not(.active) {
+  border-color: #3b82f6;
+  background: rgba(59, 130, 246, 0.1);
+  color: #3b82f6;
+}
+
+/* 자동 이동 안내 메시지 */
+.auto-move-message {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+  padding: 2rem;
+  background: rgba(255, 255, 255, 0.9);
+  border-radius: 12px;
+  backdrop-filter: blur(10px);
+  margin-top: 2rem;
+  color: #3b82f6;
+  font-weight: 600;
+}
+
+/* 로딩 스피너 */
+.loading-spinner {
+  width: 20px;
+  height: 20px;
+  border: 2px solid #e5e7eb;
+  border-top: 2px solid #3b82f6;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+/* 헤더 섹션 */
+.header-section {
+  padding: 6rem 1rem 3rem;
+  text-align: center;
+  color: black;
+  position: relative;
+  z-index: 1;
+  flex-shrink: 0;
+}
+
+.header-content {
+  margin: 0 auto;
+}
+
+.header-subtitle {
+  font-size: 1rem;
+  font-weight: 400;
   margin-bottom: 0.5rem;
   opacity: 0.9;
 }
 
-/* 하단 흰색 폼 */
-.form-section {
-  background: white;
-  padding: 2rem;
-  border-radius: 20px 20px 0 0;
-  margin-top: -20px;
-  position: relative;
-  z-index: 10;
-  box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.1);
+.header-title {
+  font-size: 1.8rem;
+  font-weight: 700;
+  line-height: 1.2;
 }
 
-.form-container {
-  max-width: 1200px;
+.bus-cards-container {
   margin: 0 auto;
-}
-
-/* 탭 */
-.tabs {
-  display: flex;
-  gap: 1rem;
-  margin-bottom: 2rem;
-}
-
-.tab-button {
-  padding: 0.75rem 2rem;
-  border: none;
-  background: none;
-  font-size: 1rem;
-  font-weight: 500;
-  cursor: pointer;
-  border-radius: 8px;
-  transition: all 0.3s ease;
-}
-
-.tab-button.active {
-  background: var(--primary-color);
-  color: white;
-}
-
-.tab-button:not(.active) {
-  color: #333;
-}
-
-.tab-button:hover:not(.active) {
-  background: #f7f7f7;
-}
-
-/* 입력 필드 */
-.input-fields {
   display: grid;
-  /* grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); */
-  gap: 1.5rem;
-  margin-bottom: 2rem;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0.5rem;
+  width: 100%;
 }
 
-.field-group {
+.bus-card-container {
+  border-radius: 5px;
+  overflow: hidden;
+}
+
+.bus-card {
+  background: white;
+  padding: 0.5rem;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+  transition: all 0.3s ease;
+  position: relative;
+  overflow: hidden;
+  border-radius: 5px 5px 0 0;
+}
+
+.bus-type {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: #1f2937;
+}
+
+.bus-info {
+  display: flex;
+  gap: 0.3rem;
+  align-items: center;
+}
+
+.passenger-count {
+  font-size: 0.7rem;
+  color: #374151;
+  font-weight: 500;
+}
+
+.price {
+  background: #f3f4f6;
+  color: #1f2937;
+  padding: 0.2rem 0.5rem;
+  border-radius: 20px;
+  font-weight: 600;
+  font-size: 0.7rem;
+}
+
+.bus-image {
+  display: flex;
+  align-items: flex-end;
+  justify-content: flex-start;
+  margin-top: 1.2rem;
+}
+
+.bus-img {
+  width: 80px;
+  object-fit: contain;
+}
+
+.compare-btn {
+  width: 100%;
+  background: #3b82f6;
+  color: white;
+  border: none;
+  padding: 0.6rem;
+  font-size: 0.8rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  border-radius: 0 0 5px 5px;
+}
+
+.compare-btn:hover {
+  background: #2563eb;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+}
+
+.info-section {
+  padding: 5rem 2rem 3rem;
+  position: relative;
+  z-index: 1;
+  flex-shrink: 0;
+}
+
+.info-container {
+  margin: 0 auto;
   display: flex;
   flex-direction: column;
+  gap: 1rem;
 }
 
-.field-label {
-  font-weight: 600;
-  margin-bottom: 0.5rem;
-  color: #333;
-  font-size: 0.9rem;
-}
-
-.field-input {
-  padding: 0.75rem;
-  border: 2px solid #e2e8f0;
-  border-radius: 8px;
-  font-size: 1rem;
-  transition: border-color 0.3s ease;
-}
-
-.field-input:focus {
-  outline: none;
-  border-color: #3182ce;
-}
-
-.field-input::placeholder {
-  color: #a0aec0;
-}
-
-/* 클릭 가능한 주소 입력 필드 */
-.address-clickable {
-  cursor: pointer;
-  position: relative;
-}
-
-.address-clickable:hover {
-  border-color: var(--primary-color);
-  box-shadow: 0 0 0 3px rgba(49, 130, 206, 0.1);
-}
-
-.address-clickable::after {
-  content: "📍";
-  position: absolute;
-  right: 12px;
-  top: 50%;
-  transform: translateY(-50%);
-  pointer-events: none;
-  opacity: 0.6;
-}
-
-/* 경유지 입력 그룹 */
-.stopover-input-group {
-  display: flex;
-  gap: 0.5rem;
-  align-items: center;
-}
-
-.stopover-input-group .field-input {
-  flex: 1;
-}
-
-
-
-/* 경유지 섹션 */
-.stopovers-section {
-  margin: 1rem 0;
-  padding: 1.5rem;
-  background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
-  border-radius: 12px;
-  border: 1px solid #e2e8f0;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
-  max-width: 100%;
-}
-
-.stopovers-title {
-  font-size: 1.1rem;
-  font-weight: 600;
-  color: #2d3748;
-  margin-bottom: 1.5rem;
+.info-item {
   display: flex;
   align-items: center;
-  gap: 0.75rem;
-  padding-bottom: 0.75rem;
-  border-bottom: 2px solid #e2e8f0;
+  gap: 1rem;
+  color: black;
 }
 
-
-
-.stopover-item {
-  margin-bottom: 1.25rem;
-  padding: 1rem;
+.info-icon {
   background: white;
-  border-radius: 8px;
-  border: 1px solid #e2e8f0;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
-  max-width: 100%;
-  transition: all 0.3s ease;
-}
-
-.stopover-item:hover {
-  transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
-}
-
-.stopover-item:last-child {
-  margin-bottom: 0;
-}
-
-.stopover-item .field-group {
-  width: 100%;
-  margin-bottom: 0;
-}
-
-/* 경유지 추가 버튼 */
-.add-stopover-btn {
+  color: black;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 0.5rem;
-  width: 100%;
-  padding: 0.75rem 1rem;
-  background: #f8fafc;
-  border: 2px dashed var(--primary-color);
-  color: var(--primary-color);
-  border-radius: 8px;
-  cursor: pointer;
-  font-size: 0.95rem;
-  font-weight: 500;
-  transition: all 0.3s ease;
-}
-
-.add-stopover-btn:hover {
-  background: var(--primary-color);
-  color: white;
-  border-style: solid;
-  transform: translateY(-1px);
-}
-
-/* 경유지 삭제 버튼 */
-.remove-stopover-btn {
-  padding: 0.75rem 1rem;
-  background: var(--secondary-color);
-  color: white;
-  border: none;
-  border-radius: 8px;
-  font-size: 0.9rem;
-  font-weight: 500;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  white-space: nowrap;
-  min-width: 70px;
-}
-
-.remove-stopover-btn:hover {
-  background: #e53e3e;
-  transform: translateY(-1px);
-  box-shadow: 0 2px 8px rgba(245, 101, 101, 0.3);
-}
-
-/* 견적 신청 버튼 */
-.submit-section {
-  text-align: right;
-}
-
-.submit-button {
-  background: #333;
-  color: white;
-  border: none;
-  padding: 1rem 3rem;
-  font-size: 1.1rem;
   font-weight: 600;
-  border-radius: 8px;
-  cursor: pointer;
-  transition: all 0.3s ease;
+  font-size: 0.8rem;
 }
 
-.submit-button:hover {
-  background: #555;
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
-}
-
-/* PC 뷰 최적화 */
-@media (min-width: 769px) {
-  .form-container {
-    max-width: 1000px;
-  }
-  
-  /* .input-fields {
-    grid-template-columns: repeat(2, 1fr);
-  } */
-  
-  .stopovers-section {
-    grid-column: 1 / -1;
-  }
-  
-  .submit-section {
-    grid-column: 1 / -1;
-  }
-}
-
-/* 반응형 디자인 */
-@media (max-width: 768px) {
-  .header-section {
-    padding: 2rem 1rem;
-  }
-
-  .main-title {
-    font-size: 1.8rem;
-  }
-
-  .subtitle {
-    font-size: 1rem;
-  }
-
-  .form-section {
-    padding: 1.5rem;
-    border-radius: 15px 15px 0 0;
-  }
-
-  .input-fields {
-    /* grid-template-columns: 1fr; */
-    gap: 1rem;
-  }
-
-  .tabs {
-    justify-content: center;
-  }
-
-  .submit-section {
-    text-align: center;
-  }
-
-  .submit-button {
-    width: 100%;
-    padding: 1rem;
-  }
-
-  /* 모바일에서 주소 입력 반응형 처리 */
-  .address-clickable::after {
-    right: 8px;
-    font-size: 0.9rem;
-  }
-
-  /* 경유지 추가 버튼 모바일 */
-  .add-stopover-btn {
-    padding: 1rem;
-    font-size: 1rem;
-  }
-
-  /* 경유지 입력 그룹 모바일 처리 */
-  .stopover-input-group {
-    flex-direction: column;
-    gap: 0.75rem;
-  }
-
-  .stopover-input-group .field-input {
-    width: 100%;
-    margin-bottom: 0;
-  }
-
-  .remove-stopover-btn {
-    width: 100%;
-    padding: 0.8rem;
-    font-size: 1rem;
-  }
-
-  /* 경유지 섹션 모바일 최적화 */
-  .stopovers-section {
-    padding: 1rem;
-    margin: 0.75rem 0;
-  }
-
-  .stopovers-title {
-    font-size: 1rem;
-    margin-bottom: 1rem;
-    padding-bottom: 0.5rem;
-  }
-
-  .stopover-item {
-    margin-bottom: 1rem;
-    padding: 0.75rem;
-  }
-
-  .stopover-item:hover {
-    transform: none;
-  }
+.info-text {
+  font-size: 1rem;
+  font-weight: 500;
 }
 </style> 
