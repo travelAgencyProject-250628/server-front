@@ -20,7 +20,7 @@
           <input 
             type="text" 
             v-model="searchTerm" 
-            placeholder="연락처, 주소, 버스타입, 고객유형, 이용목적으로 검색..."
+            placeholder="연락처, 주소, 버스타입, 고객유형, 이용목적, 결제방식, 기사님동행, 특이사항으로 검색..."
             class="search-input"
           >
         </div>
@@ -129,6 +129,29 @@
                 {{ formatDate(rental.content.returnDate) }} {{ rental.content.returnTime }}
               </span>
             </div>
+
+            <!-- 기사님 동행 정보 (왕복인 경우에만 표시) -->
+            <div v-if="rental.content.tripType === 'round' && rental.content.driverAccompaniment" class="detail-row">
+              <span class="detail-label">기사님 동행:</span>
+              <span class="detail-value">{{ rental.content.driverAccompanimentName || '미선택' }}</span>
+            </div>
+
+            <!-- 결제 정보 -->
+            <div v-if="rental.content.paymentMethod" class="detail-row">
+              <span class="detail-label">결제방식:</span>
+              <span class="detail-value">{{ rental.content.paymentMethodName }}</span>
+            </div>
+
+            <div v-if="rental.content.needReceipt !== undefined" class="detail-row">
+              <span class="detail-label">세금계산서:</span>
+              <span class="detail-value">{{ rental.content.needReceipt ? '신청' : '미신청' }}</span>
+            </div>
+
+            <!-- 특이사항 -->
+            <div v-if="rental.content.specialNotes" class="detail-row special-notes">
+              <span class="detail-label">특이사항:</span>
+              <span class="detail-value">{{ rental.content.specialNotes }}</span>
+            </div>
           </div>
 
           <div class="rental-actions">
@@ -220,7 +243,10 @@ const filteredRentals = computed(() => {
       rental.content.destination?.toLowerCase().includes(term) ||
       rental.content.busTypeName?.toLowerCase().includes(term) ||
       rental.content.customerTypeName?.toLowerCase().includes(term) ||
-      rental.content.purposeName?.toLowerCase().includes(term)
+      rental.content.purposeName?.toLowerCase().includes(term) ||
+      rental.content.paymentMethodName?.toLowerCase().includes(term) ||
+      rental.content.driverAccompanimentName?.toLowerCase().includes(term) ||
+      rental.content.specialNotes?.toLowerCase().includes(term)
     )
   }
 
@@ -508,6 +534,20 @@ onMounted(loadBusRentals)
   color: #1f2937;
   font-size: 0.9rem;
   font-weight: 500;
+}
+
+/* 특이사항 스타일 */
+.special-notes {
+  grid-column: 1 / -1;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.25rem;
+}
+
+.special-notes .detail-value {
+  white-space: pre-wrap;
+  line-height: 1.4;
+  word-break: break-word;
 }
 
 .rental-actions {

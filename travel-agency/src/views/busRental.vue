@@ -177,7 +177,7 @@
                   <button 
                     class="trip-type-btn" 
                     :class="{ active: tripType === 'round' }"
-                    @click="tripType = 'round'"
+                    @click="selectRoundTrip"
                   >
                     왕복
                   </button>
@@ -265,7 +265,7 @@
               <div class="next-section">
                 <button 
                   class="next-btn" 
-                  @click="goToDateStep"
+                  @click="handleNextFromRoute"
                   :disabled="!routeData.departure.trim() || !routeData.destination.trim()"
                 >
                   다음
@@ -449,19 +449,122 @@
                 </div>
               </div>
 
-              <!-- 견적 신청 버튼 -->
+              <!-- 다음 버튼 -->
               <div class="next-section">
                 <button 
                   class="next-btn" 
-                  @click="submitQuote"
+                  @click="goToDetailsStep"
                   :disabled="!isPhoneValid"
                 >
-                  견적 신청
+                  다음
                 </button>
               </div>
             </div>
           </div>
         </div>
+
+        <!-- 일곱 번째 섹션: 세부사항 입력 -->
+        <div class="section details-section">
+          <!-- 뒤로가기 버튼 -->
+          <div class="back-button" @click="goBackToPhone">
+            <span>^</span>
+          </div>
+
+          <!-- 세부사항 입력 컨텐츠 -->
+          <div class="details-content">
+            <div class="details-form">
+              <!-- 제목 -->
+              <div class="details-title">
+                <h2>세부사항을 입력하세요.</h2>
+              </div>
+
+              <!-- 결제 방식 선택 -->
+              <div class="form-group">
+                <div class="payment-section">
+                  <div class="section-label">결제방식</div>
+                  <div class="payment-selector">
+                    <button 
+                      class="payment-btn" 
+                      :class="{ active: paymentMethod === 'cash' }"
+                      @click="paymentMethod = 'cash'"
+                    >
+                      만나서 현금결제
+                    </button>
+                    <button 
+                      class="payment-btn" 
+                      :class="{ active: paymentMethod === 'card' }"
+                      @click="paymentMethod = 'card'"
+                    >
+                      만나서 카드결제
+                    </button>
+                  </div>
+                  <div class="receipt-checkbox">
+                    <label class="checkbox-label">
+                      <input 
+                        type="checkbox" 
+                        v-model="needReceipt"
+                        class="checkbox-input"
+                      >
+                      <span class="checkbox-text">세금계산서/현금영수증을 신청합니다.</span>
+                    </label>
+                  </div>
+                </div>
+              </div>
+
+              <!-- 특이사항 입력 -->
+              <div class="form-group">
+                <div class="special-notes-section">
+                  <div class="section-label">
+                    <span class="label-icon">💬</span>
+                    경유지 등 특이사항
+                  </div>
+                  <div class="notes-input-container">
+                    <textarea 
+                      v-model="specialNotes" 
+                      placeholder="*추가요금이 발생하지 않도록 경유지를 상세히 알려주세요. (예: 부산 시내 호텔 도착 후 해운대, 자갈치시장을 투어합니다.)&#10;&#10;*예산이 정해졌다면 희망가격도 알려주세요."
+                      class="notes-input"
+                      rows="8"
+                    ></textarea>
+                  </div>
+                </div>
+              </div>
+
+              <!-- 견적 신청 완료 버튼 -->
+              <div class="next-section">
+                <button 
+                  class="next-btn final-btn" 
+                  @click="submitFinalQuote"
+                >
+                  견적신청 완료
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 기사님 동행 모달 -->
+  <div v-if="showDriverModal" class="modal-overlay" @click="closeDriverModal">
+    <div class="modal-content" @click.stop>
+      <div class="modal-header">
+        <h3 class="modal-title">기사님 동행이 필요하신가요?</h3>
+        <p class="modal-description">출발/귀환 운송 외에 전체 기간 동행이 필요하신지 알려주세요</p>
+      </div>
+      <div class="modal-buttons">
+        <button 
+          class="modal-btn full-accompaniment"
+          @click="selectDriverAccompaniment('full')"
+        >
+          전체 기간 동행
+        </button>
+        <button 
+          class="modal-btn departure-only"
+          @click="selectDriverAccompaniment('departure')"
+        >
+          출발/귀환 운송만
+        </button>
       </div>
     </div>
   </div>
@@ -498,6 +601,15 @@ const unknownPassengerCount = ref(false)
 
 // 전화번호 관련 데이터
 const phoneNumber = ref('')
+
+// 세부사항 관련 데이터
+const paymentMethod = ref('cash')
+const needReceipt = ref(false)
+const specialNotes = ref('')
+
+// 기사님 동행 관련 데이터
+const showDriverModal = ref(false)
+const driverAccompaniment = ref('')
 
 // 오늘 날짜 (최소 선택 가능 날짜)
 const todayDate = computed(() => {
@@ -675,6 +787,8 @@ const getSectionTransform = computed(() => {
     return 'calc(-400vh + 320px)'
   } else if (currentSection.value === 'phone') {
     return 'calc(-500vh + 400px)'
+  } else if (currentSection.value === 'details') {
+    return 'calc(-600vh + 480px)'
   }
   return '0'
 })
@@ -736,6 +850,43 @@ const goToPhoneStep = () => {
   currentSection.value = 'phone'
 }
 
+// 세부사항 단계로 이동
+const goToDetailsStep = () => {
+  currentSection.value = 'details'
+}
+
+// 뒤로가기 함수 (전화번호 페이지로)
+const goBackToPhone = () => {
+  currentSection.value = 'phone'
+}
+
+// 기사님 동행 모달 관련 함수들
+const openDriverModal = () => {
+  showDriverModal.value = true
+}
+
+const closeDriverModal = () => {
+  showDriverModal.value = false
+}
+
+const selectDriverAccompaniment = (type) => {
+  driverAccompaniment.value = type
+  showDriverModal.value = false
+  goToDateStep()
+}
+
+const selectRoundTrip = () => {
+  tripType.value = 'round'
+}
+
+const handleNextFromRoute = () => {
+  if (tripType.value === 'round') {
+    openDriverModal()
+  } else {
+    goToDateStep()
+  }
+}
+
 // 최종 단계로 이동
 const goToContactStep = () => {
   console.log('견적 신청 데이터:', {
@@ -780,6 +931,10 @@ const resetForm = () => {
   passengerCount.value = ''
   unknownPassengerCount.value = false
   phoneNumber.value = ''
+  paymentMethod.value = 'cash'
+  needReceipt.value = false
+  specialNotes.value = ''
+  driverAccompaniment.value = ''
   departureSuggestions.value = []
   destinationSuggestions.value = []
 }
@@ -828,10 +983,8 @@ const handlePhoneInput = (event) => {
   phoneNumber.value = formatted
 }
 
-// 견적 신청
-const submitQuote = async () => {
-  if (!isPhoneValid.value) return
-  
+// 최종 견적 신청
+const submitFinalQuote = async () => {
   // 견적 신청 데이터 구성
   const quoteData = {
     busType: selectedBusType.value,
@@ -851,6 +1004,12 @@ const submitQuote = async () => {
     passengerCount: unknownPassengerCount.value ? '정확한 인원 모름' : passengerCount.value,
     unknownPassengerCount: unknownPassengerCount.value,
     phoneNumber: phoneNumber.value,
+    paymentMethod: paymentMethod.value,
+    paymentMethodName: paymentMethod.value === 'cash' ? '만나서 현금결제' : '만나서 카드결제',
+    needReceipt: needReceipt.value,
+    specialNotes: specialNotes.value,
+    driverAccompaniment: driverAccompaniment.value,
+    driverAccompanimentName: driverAccompaniment.value === 'full' ? '전체 기간 동행' : (driverAccompaniment.value === 'departure' ? '출발/귀환 운송만' : ''),
     submittedAt: new Date().toISOString()
   }
   
@@ -864,8 +1023,11 @@ const submitQuote = async () => {
         ? `출발: ${routeData.departureDate} ${routeData.departureTime}\n도착: ${routeData.returnDate} ${routeData.returnTime}`
         : `출발: ${routeData.departureDate} ${routeData.departureTime}`
       const passengerText = unknownPassengerCount.value ? '정확한 인원 모름' : `${passengerCount.value}명`
+      const paymentText = paymentMethod.value === 'cash' ? '만나서 현금결제' : '만나서 카드결제'
+      const receiptText = needReceipt.value ? '신청' : '미신청'
+      const driverText = driverAccompaniment.value === 'full' ? '전체 기간 동행' : (driverAccompaniment.value === 'departure' ? '출발/귀환 운송만' : '미선택')
       
-      alert(`견적 신청이 완료되었습니다!\n버스 타입: ${getBusTypeName(selectedBusType.value)}\n고객 유형: ${getCustomerTypeName(selectedCustomerType.value)}\n이용 목적: ${getPurposeName(selectedPurpose.value)}\n여행 타입: ${tripTypeText}\n출발지: ${routeData.departure}\n도착지: ${routeData.destination}\n${dateText}\n인원수: ${passengerText}\n전화번호: ${phoneNumber.value}\n\n곧 연락드리겠습니다.`)
+      alert(`견적 신청이 완료되었습니다!\n버스 타입: ${getBusTypeName(selectedBusType.value)}\n고객 유형: ${getCustomerTypeName(selectedCustomerType.value)}\n이용 목적: ${getPurposeName(selectedPurpose.value)}\n여행 타입: ${tripTypeText}\n출발지: ${routeData.departure}\n도착지: ${routeData.destination}\n${dateText}\n인원수: ${passengerText}\n전화번호: ${phoneNumber.value}\n기사님 동행: ${driverText}\n결제방식: ${paymentText}\n세금계산서: ${receiptText}\n특이사항: ${specialNotes.value || '없음'}\n\n곧 연락드리겠습니다.`)
       
       // 처음으로 돌아가기
       resetForm()
@@ -918,7 +1080,7 @@ const submitQuote = async () => {
   display: flex;
   flex-direction: column;
   width: 100%;
-  height: calc(600vh - 480px); /* 6개 섹션 * (100vh - 80px) */
+  height: calc(700vh - 560px); /* 7개 섹션 * (100vh - 80px) */
   transition: transform 0.5s ease-in-out;
 }
 
@@ -1762,6 +1924,230 @@ const submitQuote = async () => {
   display: flex;
   justify-content: center;
   margin-top: 2rem;
+}
+
+/* 세부사항 입력 컨텐츠 */
+.details-content {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  min-height: calc(100vh - 80px);
+  padding: 2rem 0;
+}
+
+.details-form {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
+  margin: 0 auto;
+  max-width: 350px;
+  justify-content: center;
+}
+
+/* 세부사항 제목 */
+.details-title {
+  text-align: center;
+  margin-bottom: 1rem;
+}
+
+.details-title h2 {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: black;
+  margin: 0;
+}
+
+/* 섹션 라벨 */
+.section-label {
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: black;
+  margin: 0.2rem 0;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.label-icon {
+  font-size: 1.2rem;
+}
+
+/* 결제 방식 선택 */
+.payment-section {
+  width: 100%;
+}
+
+.payment-selector {
+  display: flex;
+  gap: 0.5rem;
+  background: rgba(255, 255, 255, 0.9);
+  padding: 0.3rem;
+  border-radius: 12px;
+  backdrop-filter: blur(10px);
+  /* margin-bottom: 1rem; */
+}
+
+.payment-btn {
+  flex: 1;
+  padding: 0.8rem;
+  border: none;
+  border-radius: 8px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  background: transparent;
+  color: #6b7280;
+}
+
+.payment-btn.active {
+  background: #374151;
+  color: white;
+}
+
+.payment-btn:hover:not(.active) {
+  background: rgba(55, 65, 81, 0.1);
+  color: #374151;
+}
+
+/* 특이사항 섹션 */
+.special-notes-section {
+  width: 100%;
+  margin-top: 1rem;
+}
+
+.notes-input-container {
+  width: 100%;
+}
+
+.notes-input {
+  width: 100%;
+  padding: 1rem;
+  border: 2px solid rgba(255, 255, 255, 0.8);
+  border-radius: 12px;
+  font-size: 0.9rem;
+  font-weight: 500;
+  background: rgba(255, 255, 255, 0.9);
+  backdrop-filter: blur(10px);
+  resize: vertical;
+  min-height: 120px;
+  transition: all 0.3s ease;
+  box-sizing: border-box;
+  color: #374151;
+  font-family: inherit;
+}
+
+.notes-input:focus {
+  outline: none;
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+.notes-input::placeholder {
+  color: #9ca3af;
+  line-height: 1.5;
+}
+
+/* 최종 버튼 */
+.final-btn {
+  background: #1f2937 !important;
+  font-weight: 700;
+  padding: 1.2rem 3rem;
+}
+
+/* 모달 오버레이 */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  backdrop-filter: blur(5px);
+}
+
+/* 모달 컨텐츠 */
+.modal-content {
+  background: white;
+  border-radius: 16px;
+  padding: 2rem;
+  max-width: 90%;
+  width: 400px;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+  animation: modalSlideIn 0.3s ease-out;
+}
+
+@keyframes modalSlideIn {
+  from {
+    opacity: 0;
+    transform: translateY(-20px) scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+/* 모달 헤더 */
+.modal-header {
+  text-align: center;
+  margin-bottom: 2rem;
+}
+
+.modal-title {
+  font-size: 1.3rem;
+  font-weight: 700;
+  color: #1f2937;
+  margin: 0 0 0.5rem 0;
+}
+
+.modal-description {
+  font-size: 0.95rem;
+  color: #6b7280;
+  margin: 0;
+  line-height: 1.5;
+}
+
+/* 모달 버튼들 */
+.modal-buttons {
+  display: flex;
+  gap: 1rem;
+}
+
+.modal-btn {
+  flex: 1;
+  padding: 0.5rem;
+  border: none;
+  border-radius: 12px;
+  font-size: 0.95rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  text-align: center;
+}
+
+.full-accompaniment {
+  background: #f3f4f6;
+  color: #374151;
+}
+
+.full-accompaniment:hover {
+  background: #e5e7eb;
+}
+
+.departure-only {
+  background: #fbbf24;
+  color: #1f2937;
+}
+
+.departure-only:hover {
+  background: #f59e0b;
 }
 
 .intro-video {
