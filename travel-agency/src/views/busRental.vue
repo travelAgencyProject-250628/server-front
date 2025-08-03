@@ -148,11 +148,11 @@
               </div>
             </div>
 
-            <!-- 자동 이동 안내 메시지 -->
+            <!-- 자동 이동 안내 메시지
             <div v-if="selectedCustomerType && selectedPurpose" class="auto-move-message">
               <div class="loading-spinner"></div>
               <span>다음 단계로 이동 중...</span>
-            </div>
+            </div> -->
           </div>
         </div>
 
@@ -931,10 +931,23 @@ const submitQuote = async () => {
   padding: 0 1rem;
   display: flex;
   flex-direction: column;
-  overflow-y: auto;
   overflow-x: hidden;
   position: relative;
 }
+
+/* bus-selection-section만 스크롤 제거 */
+.bus-selection-section {
+  overflow-y: hidden;
+}
+
+/* 다른 섹션들은 스크롤 허용
+.options-section,
+.route-section,
+.date-section,
+.passenger-section,
+.phone-section {
+  overflow-y: auto;
+} */
 
 /* 뒤로가기 버튼 */
 .back-button {
@@ -966,6 +979,7 @@ const submitQuote = async () => {
   flex-direction: column;
   min-height: 100%;
   padding-top: 1rem;
+  justify-content: center;
 }
 
 .options-group {
@@ -978,7 +992,7 @@ const submitQuote = async () => {
   font-size: 1.2rem;
   font-weight: 700;
   color: black;
-  margin: 1rem 0;
+  margin: 0.4rem 0;
   text-align: center;
 }
 
@@ -990,14 +1004,14 @@ const submitQuote = async () => {
   display: flex;
   gap: 0.5rem;
   background: rgba(255, 255, 255, 0.9);
-  padding: 0.5rem;
+  padding: 0.3rem;
   border-radius: 12px;
   backdrop-filter: blur(10px);
 }
 
 .type-btn {
   flex: 1;
-  padding: 0.8rem;
+  padding: 0.5rem;
   border: none;
   border-radius: 8px;
   font-size: 1rem;
@@ -1025,7 +1039,7 @@ const submitQuote = async () => {
 }
 
 .purpose-btn {
-  padding: 1rem 0.8rem;
+  padding: 0.5rem 0.8rem;
   border: 2px solid rgba(255, 255, 255, 0.8);
   border-radius: 8px;
   background: rgba(255, 255, 255, 0.9);
@@ -1050,7 +1064,7 @@ const submitQuote = async () => {
   color: #3b82f6;
 }
 
-/* 자동 이동 안내 메시지 */
+/* 자동 이동 안내 메시지
 .auto-move-message {
   display: flex;
   align-items: center;
@@ -1063,7 +1077,7 @@ const submitQuote = async () => {
   margin-top: 2rem;
   color: #3b82f6;
   font-weight: 600;
-}
+} */
 
 /* 로딩 스피너 */
 .loading-spinner {
@@ -1082,7 +1096,7 @@ const submitQuote = async () => {
 
 /* 헤더 섹션 */
 .header-section {
-  padding: 6rem 1rem 3rem;
+  padding: 3rem 1rem 3rem;
   text-align: center;
   color: black;
   position: relative;
@@ -1102,7 +1116,7 @@ const submitQuote = async () => {
 }
 
 .header-title {
-  font-size: 1.8rem;
+  font-size: 1.5rem;
   font-weight: 700;
   line-height: 1.2;
 }
@@ -1189,7 +1203,7 @@ const submitQuote = async () => {
 }
 
 .info-section {
-  padding: 5rem 2rem 3rem;
+  padding: 3rem 2rem 3rem;
   position: relative;
   z-index: 1;
   flex-shrink: 0;
@@ -1231,7 +1245,7 @@ const submitQuote = async () => {
 .route-content {
   display: flex;
   flex-direction: column;
-  justify-content: flex-start;
+  justify-content: center;
   align-items: center;
   min-height: calc(100vh - 80px);
   padding: 2rem 0;
@@ -1241,12 +1255,12 @@ const submitQuote = async () => {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 3rem;
+  gap: 1rem;
   width: 100%;
   margin: 0 auto;
   max-width: 350px;
   justify-content: center;
-  margin-top: 8rem;
+  margin-top: 6rem;
 }
 
 /* 제목 */
@@ -1272,7 +1286,7 @@ const submitQuote = async () => {
   display: flex;
   background: rgba(255, 255, 255, 0.9);
   border-radius: 12px;
-  padding: 0.5rem;
+  padding: 0.3rem;
   backdrop-filter: blur(10px);
   width: 90%;
 }
@@ -1667,7 +1681,7 @@ const submitQuote = async () => {
 .phone-content {
   display: flex;
   flex-direction: column;
-  justify-content: flex-start;
+  justify-content: center;
   align-items: center;
   min-height: calc(100vh - 80px);
   padding: 2rem 0;
@@ -1687,7 +1701,6 @@ const submitQuote = async () => {
 /* 전화번호 제목 */
 .phone-title {
   text-align: center;
-  margin-bottom: 1rem;
 }
 
 .phone-title h2 {
@@ -1739,11 +1752,11 @@ const submitQuote = async () => {
   width: 100%;
   display: flex;
   justify-content: center;
-  margin-top: 4rem;
+  margin-top: 2rem;
 }
 
 .intro-video {
-  width: 50%;
+  width: 40%;
   max-width: 400px;
   border-radius: 12px 12px 0 0;
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15);
