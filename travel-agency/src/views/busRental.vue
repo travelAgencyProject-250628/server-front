@@ -6,12 +6,12 @@
         <div class="section bus-selection-section">
           <div class="bus-selection-content">
             <!-- 상단 헤더 섹션 -->
-            <div class="header-section">
-              <div class="header-content">
+    <div class="header-section">
+      <div class="header-content">
                 <h1 class="header-subtitle">70만 고객 후기 다 모았다.</h1>
                 <h2 class="header-title">친절버스 골라주는 더쉼투어</h2>
-              </div>
-            </div>
+      </div>
+    </div>
 
             <!-- 버스 타입 카드 섹션 -->
             <div class="bus-cards-section">
@@ -109,14 +109,14 @@
             <div class="options-group">
               <div class="section-title section-title-top">고객님은 누구신가요?</div>
               <div class="type-selector">
-                <button 
+          <button 
                   class="type-btn" 
                   :class="{ active: selectedCustomerType === 'individual' }"
                   @click="selectedCustomerType = 'individual'"
                 >
                   개인
-                </button>
-                <button 
+          </button>
+          <button 
                   class="type-btn" 
                   :class="{ active: selectedCustomerType === 'corporate' }"
                   @click="selectedCustomerType = 'corporate'"
@@ -129,9 +129,9 @@
                   @click="selectedCustomerType = 'travel'"
                 >
                   여행사
-                </button>
+          </button>
               </div>
-            </div>
+        </div>
 
             <!-- 이용 목적 선택 -->
             <div class="options-group">
@@ -147,7 +147,7 @@
                   {{ purpose.name }}
                 </button>
               </div>
-            </div>
+          </div>
 
             <!-- 자동 이동 안내 메시지 -->
             <div v-if="selectedCustomerType && selectedPurpose" class="auto-move-message">
@@ -188,31 +188,31 @@
                     @click="tripType = 'one-way'"
                   >
                     편도
-                  </button>
+            </button>
                 </div>
-              </div>
+          </div>
 
               <!-- 출발지 입력 -->
               <div class="form-group">
                 <div class="address-search-container">
                   <div class="input-wrapper">
-                    <input 
-                      type="text" 
+                  <input 
+                    type="text" 
                       v-model="routeData.departure" 
-                      @input="searchAddress"
-                      @focus="onInputFocus"
+                      @input="searchDepartureAddress"
+                      @focus="onDepartureInputFocus"
                       @blur="onInputBlur"
                       placeholder="출발지 입력" 
                       class="route-input"
                     >
                     
-                    <!-- 주소 검색 결과 -->
-                    <div v-if="showSuggestions && addressSuggestions.length > 0" class="address-suggestions">
+                    <!-- 출발지 검색 결과 -->
+                    <div v-if="showDepartureSuggestions && departureSuggestions.length > 0" class="address-suggestions">
                       <div 
-                        v-for="(address, index) in addressSuggestions" 
+                        v-for="(address, index) in departureSuggestions" 
                         :key="index"
                         class="address-item"
-                        @click="selectAddress(address)"
+                        @click="selectDepartureAddress(address)"
                       >
                         <div class="address-name">{{ address.place_name }}</div>
                         <div class="address-detail">
@@ -222,20 +222,55 @@
                           {{ address.category_name }}
                         </div>
                       </div>
-                    </div>
-                  </div>
                 </div>
               </div>
+            </div>
+          </div>
+
+              <!-- 도착지 입력 (출발지가 입력되면 표시) -->
+              <div v-if="routeData.departure.trim()" class="form-group destination-group">
+                <div class="address-search-container">
+                  <div class="input-wrapper">
+            <input 
+              type="text" 
+                      v-model="routeData.destination" 
+                      @input="searchDestinationAddress"
+                      @focus="onDestinationInputFocus"
+                      @blur="onInputBlur"
+                      placeholder="도착지 입력" 
+                      class="route-input destination-input"
+                    >
+                    
+                    <!-- 도착지 검색 결과 -->
+                    <div v-if="showDestinationSuggestions && destinationSuggestions.length > 0" class="address-suggestions">
+                      <div 
+                        v-for="(address, index) in destinationSuggestions" 
+                        :key="index"
+                        class="address-item"
+                        @click="selectDestinationAddress(address)"
+                      >
+                        <div class="address-name">{{ address.place_name }}</div>
+                        <div class="address-detail">
+                          {{ address.road_address_name || address.address_name }}
+          </div>
+                        <div v-if="address.category_name" class="address-category">
+                          {{ address.category_name }}
+          </div>
+          </div>
+                    </div>
+                  </div>
+          </div>
+        </div>
 
               <!-- 다음 버튼 -->
               <div class="next-section">
                 <button 
                   class="next-btn" 
                   @click="goToFinalStep"
-                  :disabled="!routeData.departure.trim()"
+                  :disabled="!routeData.departure.trim() || !routeData.destination.trim()"
                 >
                   다음
-                </button>
+          </button>
               </div>
             </div>
           </div>
@@ -261,14 +296,20 @@ const tripType = ref('round')
 
 // 경로 데이터
 const routeData = reactive({
-  departure: ''
+  departure: '',
+  destination: ''
 })
 
 // 주소 검색 관련
-const addressSuggestions = ref([])
-const showSuggestions = ref(false)
-const searchTimeout = ref(null)
-const geocoder = ref(null)
+const departureSuggestions = ref([])
+const showDepartureSuggestions = ref(false)
+const searchDepartureTimeout = ref(null)
+const geocoderDeparture = ref(null)
+
+const destinationSuggestions = ref([])
+const showDestinationSuggestions = ref(false)
+const searchDestinationTimeout = ref(null)
+const geocoderDestination = ref(null)
 
 // 이용 목적 목록
 const purposes = [
@@ -292,27 +333,28 @@ const purposes = [
 onMounted(() => {
   if (window.kakao && window.kakao.maps) {
     // 지도 서비스 객체 생성
-    geocoder.value = new window.kakao.maps.services.Geocoder()
+    geocoderDeparture.value = new window.kakao.maps.services.Geocoder()
+    geocoderDestination.value = new window.kakao.maps.services.Geocoder()
   }
 })
 
 // 카카오 지도 SDK를 사용한 주소 검색
-const searchAddress = () => {
+const searchDepartureAddress = () => {
   const query = routeData.departure.trim()
   
   if (query.length < 2) {
-    addressSuggestions.value = []
-    showSuggestions.value = false
+    departureSuggestions.value = []
+    showDepartureSuggestions.value = false
     return
   }
 
   // 디바운싱: 이전 타이머 취소
-  if (searchTimeout.value) {
-    clearTimeout(searchTimeout.value)
+  if (searchDepartureTimeout.value) {
+    clearTimeout(searchDepartureTimeout.value)
   }
 
-  searchTimeout.value = setTimeout(() => {
-    if (!geocoder.value) return
+  searchDepartureTimeout.value = setTimeout(() => {
+    if (!geocoderDeparture.value) return
 
     // 키워드로 장소 검색
     const ps = new window.kakao.maps.services.Places()
@@ -320,7 +362,7 @@ const searchAddress = () => {
     ps.keywordSearch(query, (data, status) => {
       if (status === window.kakao.maps.services.Status.OK) {
         // 검색 결과를 최대 5개로 제한
-        addressSuggestions.value = data.slice(0, 5).map(item => ({
+        departureSuggestions.value = data.slice(0, 5).map(item => ({
           place_name: item.place_name,
           address_name: item.address_name,
           road_address_name: item.road_address_name,
@@ -328,22 +370,76 @@ const searchAddress = () => {
           x: item.x,
           y: item.y
         }))
-        showSuggestions.value = true
+        showDepartureSuggestions.value = true
       } else {
         // 키워드 검색 실패 시 주소로 검색
-        geocoder.value.addressSearch(query, (result, status) => {
+        geocoderDeparture.value.addressSearch(query, (result, status) => {
           if (status === window.kakao.maps.services.Status.OK) {
-            addressSuggestions.value = result.slice(0, 5).map(item => ({
+            departureSuggestions.value = result.slice(0, 5).map(item => ({
               place_name: item.address_name,
               address_name: item.address_name,
               road_address_name: item.road_address && item.road_address.address_name,
               x: item.x,
               y: item.y
             }))
-            showSuggestions.value = true
+            showDepartureSuggestions.value = true
           } else {
-            addressSuggestions.value = []
-            showSuggestions.value = false
+            departureSuggestions.value = []
+            showDepartureSuggestions.value = false
+          }
+        })
+      }
+    })
+  }, 300) // 300ms 지연
+}
+
+const searchDestinationAddress = () => {
+  const query = routeData.destination.trim()
+  
+  if (query.length < 2) {
+    destinationSuggestions.value = []
+    showDestinationSuggestions.value = false
+    return
+  }
+
+  // 디바운싱: 이전 타이머 취소
+  if (searchDestinationTimeout.value) {
+    clearTimeout(searchDestinationTimeout.value)
+  }
+
+  searchDestinationTimeout.value = setTimeout(() => {
+    if (!geocoderDestination.value) return
+
+    // 키워드로 장소 검색
+    const ps = new window.kakao.maps.services.Places()
+    
+    ps.keywordSearch(query, (data, status) => {
+      if (status === window.kakao.maps.services.Status.OK) {
+        // 검색 결과를 최대 5개로 제한
+        destinationSuggestions.value = data.slice(0, 5).map(item => ({
+          place_name: item.place_name,
+          address_name: item.address_name,
+          road_address_name: item.road_address_name,
+          category_name: item.category_name,
+          x: item.x,
+          y: item.y
+        }))
+        showDestinationSuggestions.value = true
+      } else {
+        // 키워드 검색 실패 시 주소로 검색
+        geocoderDestination.value.addressSearch(query, (result, status) => {
+          if (status === window.kakao.maps.services.Status.OK) {
+            destinationSuggestions.value = result.slice(0, 5).map(item => ({
+              place_name: item.address_name,
+              address_name: item.address_name,
+              road_address_name: item.road_address && item.road_address.address_name,
+              x: item.x,
+              y: item.y
+            }))
+            showDestinationSuggestions.value = true
+          } else {
+            destinationSuggestions.value = []
+            showDestinationSuggestions.value = false
           }
         })
       }
@@ -352,23 +448,36 @@ const searchAddress = () => {
 }
 
 // 주소 선택
-const selectAddress = (address) => {
+const selectDepartureAddress = (address) => {
   routeData.departure = address.place_name || address.address_name
-  addressSuggestions.value = []
-  showSuggestions.value = false
+  departureSuggestions.value = []
+  showDepartureSuggestions.value = false
+}
+
+const selectDestinationAddress = (address) => {
+  routeData.destination = address.place_name || address.address_name
+  destinationSuggestions.value = []
+  showDestinationSuggestions.value = false
 }
 
 // 입력 필드 포커스 시 검색 결과 표시
-const onInputFocus = () => {
-  if (addressSuggestions.value.length > 0) {
-    showSuggestions.value = true
+const onDepartureInputFocus = () => {
+  if (departureSuggestions.value.length > 0) {
+    showDepartureSuggestions.value = true
+  }
+}
+
+const onDestinationInputFocus = () => {
+  if (destinationSuggestions.value.length > 0) {
+    showDestinationSuggestions.value = true
   }
 }
 
 // 입력 필드 블러 시 검색 결과 숨기기 (지연 처리)
 const onInputBlur = () => {
   setTimeout(() => {
-    showSuggestions.value = false
+    showDepartureSuggestions.value = false
+    showDestinationSuggestions.value = false
   }, 200)
 }
 
@@ -416,10 +525,11 @@ const goToFinalStep = () => {
     customerType: selectedCustomerType.value,
     purpose: selectedPurpose.value,
     tripType: tripType.value,
-    departure: routeData.departure
+    departure: routeData.departure,
+    destination: routeData.destination
   })
   
-  alert(`견적 신청이 완료되었습니다!\n버스 타입: ${getBusTypeName(selectedBusType.value)}\n고객 유형: ${getCustomerTypeName(selectedCustomerType.value)}\n이용 목적: ${getPurposeName(selectedPurpose.value)}\n여행 타입: ${tripType.value === 'round' ? '왕복' : '편도'}\n출발지: ${routeData.departure}\n\n곧 연락드리겠습니다.`)
+  alert(`견적 신청이 완료되었습니다!\n버스 타입: ${getBusTypeName(selectedBusType.value)}\n고객 유형: ${getCustomerTypeName(selectedCustomerType.value)}\n이용 목적: ${getPurposeName(selectedPurpose.value)}\n여행 타입: ${tripType.value === 'round' ? '왕복' : '편도'}\n출발지: ${routeData.departure}\n도착지: ${routeData.destination}\n\n곧 연락드리겠습니다.`)
   
   // 처음으로 돌아가기
   currentSection.value = 'bus-selection'
@@ -428,7 +538,9 @@ const goToFinalStep = () => {
   selectedBusType.value = ''
   tripType.value = 'round'
   routeData.departure = ''
-  addressSuggestions.value = []
+  routeData.destination = ''
+  departureSuggestions.value = []
+  destinationSuggestions.value = []
 }
 
 // 버스 타입 이름 변환
@@ -832,7 +944,7 @@ const getPurposeName = (purpose) => {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 3rem;
+  gap: 1rem;
   width: 100%;
   margin: 0 auto;
   max-width: 350px;
@@ -989,9 +1101,50 @@ const getPurposeName = (purpose) => {
   display: inline-block;
 }
 
+/* 도착지 입력 그룹 애니메이션 */
+.destination-group {
+  animation: slideDown 0.3s ease-out;
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* 도착지 입력 필드 스타일 - 출발지와 동일하게 */
+.destination-input {
+  width: 100%;
+  padding: 1rem;
+  border: 2px solid rgba(255, 255, 255, 0.8);
+  border-radius: 12px;
+  font-size: 1.1rem;
+  font-weight: 500;
+  background: rgba(255, 255, 255, 0.9);
+  backdrop-filter: blur(10px);
+  text-align: center;
+  transition: all 0.3s ease;
+  box-sizing: border-box;
+}
+
+.destination-input:focus {
+  outline: none;
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+.destination-input::placeholder {
+  color: #9ca3af;
+}
+
 /* 다음 버튼 */
 .next-section {
-  width: 100%;
+    width: 100%;
   display: flex;
   justify-content: center;
 }
@@ -1002,7 +1155,7 @@ const getPurposeName = (purpose) => {
   border: none;
   padding: 1rem 3rem;
   border-radius: 12px;
-  font-size: 1rem;
+    font-size: 1rem;
   font-weight: 600;
   cursor: pointer;
   transition: all 0.3s ease;
@@ -1019,7 +1172,7 @@ const getPurposeName = (purpose) => {
 .next-btn:disabled {
   background: #9ca3af;
   cursor: not-allowed;
-  transform: none;
+    transform: none;
   box-shadow: none;
 }
 </style> 
