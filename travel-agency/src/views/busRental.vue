@@ -88,7 +88,7 @@
                 </div>
                 <div class="info-item">
                   <div class="info-icon">✓</div>
-                  <span class="info-text">콜버스는 시중가보다 23% 저렴합니다.</span>
+                  <span class="info-text">더쉼투어는 시중가보다 23% 저렴합니다.</span>
                 </div>
               </div>
             </div>
