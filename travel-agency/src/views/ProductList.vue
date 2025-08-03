@@ -54,7 +54,7 @@
     <main class="main-content">
       <div class="content-container">
         <!-- 인기 상품 섹션 -->
-        <section class="popular-products">
+        <section v-if="showPopularSection" class="popular-products">
           <div class="popular-title-group">
             <span class="title-green">절찬인기여행</span>
             <span class="title-black">더쉼투어 추천!</span>
@@ -68,8 +68,8 @@
               @click="goToProduct(product.id)"
             >
               <div class="popular-image">
-                <img :src="product.image" :alt="product.title" />
-                <div v-if="product.badge" class="popular-badge">{{ product.badge }}</div>
+                <img :src="product.main_image_url" :alt="product.title" />
+                <div v-if="product.badge" class="popular-badge">{{ product.badge.name }}</div>
               </div>
               <div class="popular-content">
                 <div class="popular-info">
@@ -77,7 +77,7 @@
                 </div>
                 <div class="popular-details">
                   <span class="popular-duration">{{ product.duration }}</span>
-                  <span class="popular-location">{{ product.location }}</span>
+                  <span class="popular-location">{{ product.location?.name || '' }}</span>
                 </div>
                 <div class="popular-footer">
                   <div class="popular-price">
@@ -243,6 +243,10 @@ const visiblePages = computed(() => {
   return pages
 })
 
+const showPopularSection = computed(() => {
+  return popularProducts.value && popularProducts.value.length > 0
+})
+
 
 // 메서드
 const loadMenuData = async () => {
@@ -328,12 +332,13 @@ const loadPopularProducts = async () => {
       return
     }
     
-    // 인기순으로 정렬된 상품 중 상위 3개 가져오기
-    const response = await getProductsByCategory(categoryId, null, 'popular')
+    // 카테고리 서비스를 통해 인기상품 조회
+    const response = await categoryService.getPopularProducts(categoryId)
     
     if (response.success) {
-      popularProducts.value = (response.products || []).slice(0, 3)
+      popularProducts.value = response.products
     } else {
+      console.error('인기상품 조회 실패:', response.error)
       popularProducts.value = []
     }
   } catch (error) {

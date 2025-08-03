@@ -121,6 +121,37 @@
             ></textarea>
           </div>
           
+          <div class="form-group">
+            <label for="popularProducts">인기상품 지정 (최대 3개)</label>
+            <div class="popular-products-selector">
+              <div class="selected-products">
+                <div 
+                  v-for="(productId, index) in formData.popular_products" 
+                  :key="index"
+                  class="selected-product-item"
+                >
+                  <span class="product-name">{{ getProductName(productId) }}</span>
+                  <button 
+                    type="button" 
+                    @click="removePopularProduct(index)"
+                    class="remove-btn"
+                  >
+                    ✕
+                  </button>
+                </div>
+              </div>
+              <button 
+                type="button" 
+                @click="showProductSelector = true"
+                class="add-product-btn"
+                :disabled="formData.popular_products.length >= 3"
+              >
+                + 상품 추가
+              </button>
+            </div>
+            <small class="form-help">인기순 정렬 시 지정된 순서로 표시됩니다.</small>
+          </div>
+          
           <div class="modal-actions">
             <button type="button" class="btn-secondary" @click="closeModal">
               취소
@@ -130,6 +161,42 @@
             </button>
           </div>
         </form>
+      </div>
+    </div>
+
+    <!-- 상품 선택 모달 -->
+    <div v-if="showProductSelector" class="modal-overlay" @click="closeProductSelector">
+      <div class="modal-content product-selector-modal" @click.stop>
+        <div class="modal-header">
+          <h3>인기상품 선택</h3>
+          <button class="modal-close" @click="closeProductSelector">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+              <path d="M18 6L6 18M6 6l12 12" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+            </svg>
+          </button>
+        </div>
+        
+        <div class="product-selector-content">
+          <div class="product-list">
+            <div 
+              v-for="product in categoryProducts" 
+              :key="product.id"
+              class="product-item"
+              :class="{ selected: formData.popular_products.includes(product.id) }"
+              @click="!formData.popular_products.includes(product.id) && selectProduct(product.id)"
+              :style="formData.popular_products.includes(product.id) ? 'opacity:0.5;pointer-events:none;' : ''"
+            >
+              <div class="product-info">
+                <div class="product-title">{{ product.title }}</div>
+                <div class="product-details">
+                  <span class="product-duration">{{ product.duration }}</span>
+                  <span class="product-location">{{ product.location }}</span>
+                  <span class="product-price">{{ formatPrice(product.adult_price) }}원</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   </div>
@@ -148,10 +215,16 @@ const modalMode = ref('create') // 'create' or 'edit'
 const submitting = ref(false)
 const selectedCategory = ref(null)
 
+// 상품 선택 관련
+const showProductSelector = ref(false)
+const productSearchTerm = ref('')
+const categoryProducts = ref([])
+
 // 폼 데이터
 const formData = ref({
   name: '',
-  description: ''
+  description: '',
+  popular_products: []
 })
 
 // 계산된 속성
@@ -165,6 +238,17 @@ const filteredCategories = computed(() => {
     const description = (category.description || '').toLowerCase()
     
     return name.includes(searchQuery) || description.includes(searchQuery)
+  })
+})
+
+const filteredProducts = computed(() => {
+  if (!productSearchTerm.value) {
+    return categoryProducts.value
+  }
+  return categoryProducts.value.filter(product => {
+    const searchQuery = productSearchTerm.value.toLowerCase()
+    const title = product.title.toLowerCase()
+    return title.includes(searchQuery)
   })
 })
 
@@ -195,20 +279,27 @@ const openCreateModal = () => {
   showModal.value = true
 }
 
-const openEditModal = (category) => {
+const openEditModal = async (category) => {
   modalMode.value = 'edit'
   selectedCategory.value = category
   formData.value = { 
     name: category.name,
-    description: category.description || ''
+    description: category.description || '',
+    popular_products: category.popular_products || []
   }
+  
+  // 카테고리에 속한 상품들 로드
+  await loadCategoryProducts(category.id)
   showModal.value = true
 }
 
 const closeModal = () => {
   showModal.value = false
   selectedCategory.value = null
-  formData.value = { name: '', description: '' }
+  formData.value = { name: '', description: '', popular_products: [] }
+  showProductSelector.value = false
+  productSearchTerm.value = ''
+  categoryProducts.value = []
 }
 
 const handleSubmit = async () => {
@@ -220,11 +311,15 @@ const handleSubmit = async () => {
   submitting.value = true
   try {
     let result
-    
+    const payload = {
+      name: formData.value.name,
+      description: formData.value.description,
+      popular_products: formData.value.popular_products
+    }
     if (modalMode.value === 'create') {
-      result = await categoryService.createCategory(formData.value)
+      result = await categoryService.createCategory(payload)
     } else {
-      result = await categoryService.updateCategory(selectedCategory.value.id, formData.value)
+      result = await categoryService.updateCategory(selectedCategory.value.id, payload)
     }
 
     if (result.success) {
@@ -259,6 +354,48 @@ const deleteCategory = async (category) => {
     alert('카테고리 삭제 중 오류가 발생했습니다.')
     console.error('카테고리 삭제 오류:', error)
   }
+}
+
+// 상품 관련 메서드들
+const loadCategoryProducts = async (categoryId) => {
+  try {
+    const result = await categoryService.getCategoryProducts(categoryId)
+    if (result.success) {
+      categoryProducts.value = result.products
+    } else {
+      console.error('카테고리 상품 로드 실패:', result.error)
+      categoryProducts.value = []
+    }
+  } catch (error) {
+    console.error('카테고리 상품 로드 오류:', error)
+    categoryProducts.value = []
+  }
+}
+
+const getProductName = (productId) => {
+  const product = categoryProducts.value.find(p => p.id === productId)
+  return product ? product.title : '알 수 없는 상품'
+}
+
+const selectProduct = (productId) => {
+  if (!formData.value.popular_products.includes(productId)) {
+    formData.value.popular_products.push(productId)
+  }
+  closeProductSelector()
+}
+
+const removePopularProduct = (index) => {
+  formData.value.popular_products.splice(index, 1)
+}
+
+const closeProductSelector = () => {
+  showProductSelector.value = false
+  productSearchTerm.value = ''
+}
+
+const formatPrice = (price) => {
+  if (!price && price !== 0) return '0'
+  return price.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',')
 }
 
 
@@ -585,5 +722,166 @@ onMounted(() => {
   .modal-actions {
     flex-direction: column;
   }
+}
+
+/* 인기상품 선택 관련 스타일 */
+.popular-products-selector {
+  border: 1px solid #e5e7eb;
+  border-radius: 6px;
+  padding: 1rem;
+  background: #f9fafb;
+}
+
+.selected-products {
+  margin-bottom: 1rem;
+}
+
+.selected-product-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: white;
+  border: 1px solid #d1d5db;
+  border-radius: 4px;
+  padding: 0.5rem 0.75rem;
+  margin-bottom: 0.5rem;
+  font-size: 0.875rem;
+}
+
+.product-name {
+  color: #374151;
+  font-weight: 500;
+}
+
+.remove-btn {
+  background: #fee2e2;
+  color: #dc2626;
+  border: none;
+  border-radius: 4px;
+  padding: 0.25rem 0.5rem;
+  font-size: 0.75rem;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.remove-btn:hover {
+  background: #fecaca;
+}
+
+.add-product-btn {
+  background: #3b82f6;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  padding: 0.5rem 1rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+  width: 100%;
+}
+
+.add-product-btn:hover:not(:disabled) {
+  background: #2563eb;
+}
+
+.add-product-btn:disabled {
+  background: #9ca3af;
+  cursor: not-allowed;
+}
+
+.form-help {
+  color: #6b7280;
+  font-size: 0.75rem;
+  margin-top: 0.25rem;
+}
+
+/* 상품 선택 모달 */
+.product-selector-modal {
+  max-width: 600px;
+  max-height: 80vh;
+}
+
+.product-selector-content {
+  padding: 1.5rem;
+}
+
+.product-list {
+  max-height: 400px;
+  overflow-y: auto;
+  border: 1px solid #e5e7eb;
+  border-radius: 6px;
+  background: white;
+}
+
+.product-item {
+  padding: 1rem;
+  border-bottom: 1px solid #f3f4f6;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.product-item:last-child {
+  border-bottom: none;
+}
+
+.product-item:hover {
+  background: #f9fafb;
+}
+
+.product-item.selected {
+  background: #eff6ff;
+  border-left: 3px solid #3b82f6;
+}
+
+.product-info {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.product-title {
+  font-weight: 600;
+  color: #1f2937;
+  font-size: 0.875rem;
+}
+
+.product-details {
+  display: flex;
+  gap: 1rem;
+  font-size: 0.75rem;
+  color: #6b7280;
+}
+
+.product-duration,
+.product-location,
+.product-price {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.product-price {
+  color: #059669;
+  font-weight: 500;
+}
+
+/* 스크롤바 스타일 */
+.product-list::-webkit-scrollbar {
+  width: 6px;
+}
+
+.product-list::-webkit-scrollbar-track {
+  background: #f1f5f9;
+  border-radius: 3px;
+}
+
+.product-list::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 3px;
+}
+
+.product-list::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
 }
 </style> 

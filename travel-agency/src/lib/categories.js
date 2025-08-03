@@ -185,6 +185,130 @@ export class CategoryService {
       }
     }
   }
+
+
+  // 카테고리의 인기상품 조회
+  async getPopularProducts(categoryId) {
+    try {
+      // 카테고리의 popular_products 확인
+      const { data: categoryData, error: categoryError } = await this.supabase
+        .from('Categories')
+        .select('popular_products')
+        .eq('id', categoryId)
+        .single()
+      
+      if (categoryError) {
+        console.error('카테고리 조회 오류:', categoryError)
+        return {
+          success: false,
+          products: [],
+          error: categoryError.message
+        }
+      }
+      
+      // popular_products가 null이거나 비어있으면 빈 배열 반환
+      if (!categoryData || !categoryData.popular_products || categoryData.popular_products.length === 0) {
+        return {
+          success: true,
+          products: []
+        }
+      }
+      
+      // popular_products에서 지정한 상품들만 가져오기
+      const { data: products, error: productsError } = await this.supabase
+        .from('Products')
+        .select(`
+          id,
+          title,
+          main_image_url,
+          adult_price,
+          duration,
+          location_id,
+          location:location_id(id, name),
+          badge_id,
+          badge:badge_id(id, name)
+        `)
+        .in('id', categoryData.popular_products)
+        .eq('status', true)
+      
+      if (productsError) {
+        console.error('상품 조회 오류:', productsError)
+        return {
+          success: false,
+          products: [],
+          error: productsError.message
+        }
+      }
+      
+      if (products) {
+        // popular_products 배열의 순서대로 정렬하고 price 필드 추가
+        const sortedProducts = categoryData.popular_products.map(productId => {
+          const product = products.find(p => p.id === productId)
+          if (product) {
+            return {
+              ...product,
+              price: product.adult_price // 템플릿에서 사용하는 price 필드로 매핑
+            }
+          }
+          return null
+        }).filter(Boolean)
+        
+        return {
+          success: true,
+          products: sortedProducts
+        }
+      }
+      
+      return {
+        success: true,
+        products: []
+      }
+    } catch (error) {
+      console.error('인기상품 조회 오류:', error)
+      return {
+        success: false,
+        products: [],
+        error: error.message
+      }
+    }
+  }
+
+  // 카테고리에 속한 상품들 조회
+  async getCategoryProducts(categoryId) {
+    try {
+      const { data: products, error } = await this.supabase
+        .from('Products')
+        .select(`
+          id,
+          title,
+          adult_price
+        `)
+        .eq('category_id', categoryId)
+        .eq('status', true)
+        .order('title')
+      
+      if (error) {
+        console.error('카테고리 상품 조회 오류:', error)
+        return {
+          success: false,
+          products: [],
+          error: error.message
+        }
+      }
+      
+      return {
+        success: true,
+        products: products || []
+      }
+    } catch (error) {
+      console.error('카테고리 상품 조회 오류:', error)
+      return {
+        success: false,
+        products: [],
+        error: error.message
+      }
+    }
+  }
 }
 
 export const categoryService = new CategoryService() 
