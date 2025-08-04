@@ -23,7 +23,7 @@
               class="file-input">
             <div class="upload-preview" v-if="driverPhotoPreview">
               <img :src="driverPhotoPreview" alt="기사 사진" class="preview-image">
-              <button type="button" @click.stop="removeDriverPhoto" class="remove-btn">삭제</button>
+              <button type="button" @click.stop="removeDriverPhoto" class="remove-btn">X</button>
             </div>
             <div v-else class="upload-placeholder">
               <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -197,7 +197,7 @@
                   class="file-input">
                 <div class="upload-preview" v-if="vehiclePhoto1Preview">
                   <img :src="vehiclePhoto1Preview" :alt="getVehiclePhotoLabel(0)" class="preview-image">
-                  <button type="button" @click.stop="removeVehiclePhoto1" class="remove-btn">삭제</button>
+                  <button type="button" @click.stop="removeVehiclePhoto1" class="remove-btn">X</button>
                 </div>
                 <div v-else class="upload-placeholder">
                   <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -220,7 +220,7 @@
                   class="file-input">
                 <div class="upload-preview" v-if="vehiclePhoto2Preview">
                   <img :src="vehiclePhoto2Preview" :alt="getVehiclePhotoLabel(1)" class="preview-image">
-                  <button type="button" @click.stop="removeVehiclePhoto2" class="remove-btn">삭제</button>
+                  <button type="button" @click.stop="removeVehiclePhoto2" class="remove-btn">X</button>
                 </div>
                 <div v-else class="upload-placeholder">
                   <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -243,7 +243,7 @@
                   class="file-input">
                 <div class="upload-preview" v-if="vehiclePhoto3Preview">
                   <img :src="vehiclePhoto3Preview" :alt="getVehiclePhotoLabel(2)" class="preview-image">
-                  <button type="button" @click.stop="removeVehiclePhoto3" class="remove-btn">삭제</button>
+                  <button type="button" @click.stop="removeVehiclePhoto3" class="remove-btn">X</button>
                 </div>
                 <div v-else class="upload-placeholder">
                   <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -266,7 +266,7 @@
                   class="file-input">
                 <div class="upload-preview" v-if="vehiclePhoto4Preview">
                   <img :src="vehiclePhoto4Preview" :alt="getVehiclePhotoLabel(3)" class="preview-image">
-                  <button type="button" @click.stop="removeVehiclePhoto4" class="remove-btn">삭제</button>
+                  <button type="button" @click.stop="removeVehiclePhoto4" class="remove-btn">X</button>
                 </div>
                 <div v-else class="upload-placeholder">
                   <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -294,7 +294,7 @@
                   class="file-input">
                 <div class="upload-preview" v-if="licensePhotoPreview">
                   <img :src="licensePhotoPreview" alt="버스운전자격증" class="preview-image">
-                  <button type="button" @click.stop="removeLicensePhoto" class="remove-btn">삭제</button>
+                  <button type="button" @click.stop="removeLicensePhoto" class="remove-btn">X</button>
                 </div>
                 <div v-else class="upload-placeholder">
                   <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -322,7 +322,7 @@
                   class="file-input">
                 <div class="upload-preview" v-if="insurancePhotoPreview">
                   <img :src="insurancePhotoPreview" alt="보험증권" class="preview-image">
-                  <button type="button" @click.stop="removeInsurancePhoto" class="remove-btn">삭제</button>
+                  <button type="button" @click.stop="removeInsurancePhoto" class="remove-btn">X</button>
                 </div>
                 <div v-else class="upload-placeholder">
                   <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -350,7 +350,7 @@
                   class="file-input">
                 <div class="upload-preview" v-if="registrationPhotoPreview">
                   <img :src="registrationPhotoPreview" alt="자동차등록증" class="preview-image">
-                  <button type="button" @click.stop="removeRegistrationPhoto" class="remove-btn">삭제</button>
+                  <button type="button" @click.stop="removeRegistrationPhoto" class="remove-btn">X</button>
                 </div>
                 <div v-else class="upload-placeholder">
                   <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -395,6 +395,19 @@
 import { ref, onMounted, computed } from 'vue'
 import { useRouter } from 'vue-router'
 import { supabase } from '@/lib/supabase.js'
+import { 
+  getDriverInfo, 
+  updateDriverInfo, 
+  updateDriverPhoto, 
+  deleteDriverPhoto,
+  updateVehiclePhotos,
+  updateLicensePhoto,
+  deleteLicensePhoto,
+  updateInsurancePhoto,
+  deleteInsurancePhoto,
+  updateRegistrationPhoto,
+  deleteRegistrationPhoto
+} from '@/lib/drivers.js'
 
 const router = useRouter()
 
@@ -473,49 +486,47 @@ const fetchDriverInfo = async () => {
       return
     }
     
-    const { data, error } = await supabase
-      .from('Users')
-      .select('*')
-      .eq('auth_id', user.id)
-      .eq('is_driver', true)
-      .single()
-    
-    if (error) {
-      console.error('기사 정보 조회 실패:', error)
-      throw error
+    const result = await getDriverInfo(user.id)
+    if (!result.success) {
+      throw new Error(result.error)
     }
     
-    driver.value = data
+    driver.value = result.data
     
     // 폼 데이터 초기화
     formData.value = {
-      name: data.name || '',
-      email: data.email || '',
-      mobile_number: data.mobile_number || '',
-      driver_company: data.driver_company || '',
-      driver_vehicle_number: data.driver_vehicle_number || '',
-      driver_vehicle_type: data.driver_vehicle_type || '',
-      driver_vehicle_year: data.driver_vehicle_year || '',
-      driver_passenger_capacity: data.driver_passenger_capacity || '',
-      driver_garage_zipcode: data.driver_garage_zipcode || '',
-      driver_garage_address: data.driver_garage_address || ''
+      name: result.data.name || '',
+      email: result.data.email || '',
+      mobile_number: result.data.mobile_number || '',
+      driver_company: result.data.driver_company || '',
+      driver_vehicle_number: result.data.driver_vehicle_number || '',
+      driver_vehicle_type: result.data.driver_vehicle_type || '',
+      driver_vehicle_year: result.data.driver_vehicle_year || '',
+      driver_passenger_capacity: result.data.driver_passenger_capacity || '',
+      driver_garage_zipcode: result.data.driver_garage_zipcode || '',
+      driver_garage_address: result.data.driver_garage_address || ''
     }
 
     // 이미지 미리보기 설정
-    driverPhotoPreview.value = data.driver_photo_url || null
-    if (data.driver_vehicle_photo_urls && Array.isArray(data.driver_vehicle_photo_urls)) {
-      vehiclePhoto1Preview.value = data.driver_vehicle_photo_urls[0] || null
-      vehiclePhoto2Preview.value = data.driver_vehicle_photo_urls[1] || null
-      vehiclePhoto3Preview.value = data.driver_vehicle_photo_urls[2] || null
-      vehiclePhoto4Preview.value = data.driver_vehicle_photo_urls[3] || null
+    driverPhotoPreview.value = result.data.driver_photo_url || null
+    if (result.data.driver_vehicle_photo_urls && Array.isArray(result.data.driver_vehicle_photo_urls)) {
+      vehiclePhoto1Preview.value = result.data.driver_vehicle_photo_urls[0] || null
+      vehiclePhoto2Preview.value = result.data.driver_vehicle_photo_urls[1] || null
+      vehiclePhoto3Preview.value = result.data.driver_vehicle_photo_urls[2] || null
+      vehiclePhoto4Preview.value = result.data.driver_vehicle_photo_urls[3] || null
     }
-    licensePhotoPreview.value = data.driver_license_photo_url || null
-    insurancePhotoPreview.value = data.driver_insurance_photo_url || null
-    registrationPhotoPreview.value = data.driver_registration_photo_url || null
+    licensePhotoPreview.value = result.data.driver_license_photo_url || null
+    insurancePhotoPreview.value = result.data.driver_insurance_photo_url || null
+    registrationPhotoPreview.value = result.data.driver_registration_photo_url || null
     
   } catch (error) {
     console.error('기사 정보 조회 오류:', error)
-    alert('기사 정보를 불러오는데 실패했습니다.')
+    console.error('에러 상세 정보:', {
+      message: error.message,
+      stack: error.stack,
+      result: error
+    })
+    alert(`기사 정보를 불러오는데 실패했습니다: ${error.message}`)
   } finally {
     loading.value = false
   }
@@ -579,7 +590,8 @@ const handleDriverPhotoUpload = async (event) => {
   try {
     // R2에 업로드
     const { uploadDriverImageToR2 } = await import('@/lib/r2-upload.js')
-    const result = await uploadDriverImageToR2(file, driver.value.id, 'driver')
+    const driverId = `driver_${driver.value.id}`
+    const result = await uploadDriverImageToR2(file, driverId, 'driver')
     
     if (!result.success) {
       throw new Error(result.error || '업로드 실패')
@@ -590,12 +602,10 @@ const handleDriverPhotoUpload = async (event) => {
     driverPhotoPreview.value = result.url
     
     // DB 업데이트
-    const { error } = await supabase
-      .from('Users')
-      .update({ driver_photo_url: imageUrl })
-      .eq('auth_id', driver.value.auth_id)
-    
-    if (error) throw error
+    const updateResult = await updateDriverPhoto(driver.value.auth_id, result.url)
+    if (!updateResult.success) {
+      throw new Error(updateResult.error)
+    }
     
     // 파일 입력 초기화
     event.target.value = ''
@@ -618,12 +628,10 @@ const removeDriverPhoto = async () => {
     driverPhotoPreview.value = null
     
     // DB 업데이트
-    const { error } = await supabase
-      .from('Users')
-      .update({ driver_photo_url: null })
-      .eq('auth_id', driver.value.auth_id)
-    
-    if (error) throw error
+    const updateResult = await deleteDriverPhoto(driver.value.auth_id)
+    if (!updateResult.success) {
+      throw new Error(updateResult.error)
+    }
     
     alert('기사 사진이 삭제되었습니다.')
     
@@ -641,7 +649,8 @@ const handleVehiclePhoto1Upload = async (event) => {
   try {
     // R2에 업로드
     const { uploadDriverImageToR2 } = await import('@/lib/r2-upload.js')
-    const result = await uploadDriverImageToR2(file, driver.value.id, 'vehicle1')
+    const driverId = `driver_${driver.value.id}`
+    const result = await uploadDriverImageToR2(file, driverId, 'vehicle1')
     
     if (!result.success) {
       throw new Error(result.error || '업로드 실패')
@@ -654,12 +663,10 @@ const handleVehiclePhoto1Upload = async (event) => {
     vehiclePhoto1Preview.value = result.url
     
     // DB 업데이트
-    const { error } = await supabase
-      .from('Users')
-      .update({ driver_vehicle_photo_urls: newPhotos })
-      .eq('auth_id', driver.value.auth_id)
-    
-    if (error) throw error
+    const updateResult = await updateVehiclePhotos(driver.value.auth_id, newPhotos)
+    if (!updateResult.success) {
+      throw new Error(updateResult.error)
+    }
     
     // 파일 입력 초기화
     event.target.value = ''
@@ -684,12 +691,10 @@ const removeVehiclePhoto1 = async () => {
     vehiclePhoto1Preview.value = null
     
     // DB 업데이트
-    const { error } = await supabase
-      .from('Users')
-      .update({ driver_vehicle_photo_urls: newPhotos })
-      .eq('auth_id', driver.value.auth_id)
-    
-    if (error) throw error
+    const updateResult = await updateVehiclePhotos(driver.value.auth_id, newPhotos)
+    if (!updateResult.success) {
+      throw new Error(updateResult.error)
+    }
     
     alert('차량 사진이 삭제되었습니다.')
     
@@ -707,7 +712,8 @@ const handleVehiclePhoto2Upload = async (event) => {
   try {
     // R2에 업로드
     const { uploadDriverImageToR2 } = await import('@/lib/r2-upload.js')
-    const result = await uploadDriverImageToR2(file, driver.value.id, 'vehicle2')
+    const driverId = `driver_${driver.value.id}`
+    const result = await uploadDriverImageToR2(file, driverId, 'vehicle2')
     
     if (!result.success) {
       throw new Error(result.error || '업로드 실패')
@@ -720,12 +726,10 @@ const handleVehiclePhoto2Upload = async (event) => {
     vehiclePhoto2Preview.value = result.url
     
     // DB 업데이트
-    const { error } = await supabase
-      .from('Users')
-      .update({ driver_vehicle_photo_urls: newPhotos })
-      .eq('auth_id', driver.value.auth_id)
-    
-    if (error) throw error
+    const updateResult = await updateVehiclePhotos(driver.value.auth_id, newPhotos)
+    if (!updateResult.success) {
+      throw new Error(updateResult.error)
+    }
     
     // 파일 입력 초기화
     event.target.value = ''
@@ -750,12 +754,10 @@ const removeVehiclePhoto2 = async () => {
     vehiclePhoto2Preview.value = null
     
     // DB 업데이트
-    const { error } = await supabase
-      .from('Users')
-      .update({ driver_vehicle_photo_urls: newPhotos })
-      .eq('auth_id', driver.value.auth_id)
-    
-    if (error) throw error
+    const updateResult = await updateVehiclePhotos(driver.value.auth_id, newPhotos)
+    if (!updateResult.success) {
+      throw new Error(updateResult.error)
+    }
     
     alert('차량 사진이 삭제되었습니다.')
     
@@ -773,7 +775,8 @@ const handleVehiclePhoto3Upload = async (event) => {
   try {
     // R2에 업로드
     const { uploadDriverImageToR2 } = await import('@/lib/r2-upload.js')
-    const result = await uploadDriverImageToR2(file, driver.value.id, 'vehicle3')
+    const driverId = `driver_${driver.value.id}`
+    const result = await uploadDriverImageToR2(file, driverId, 'vehicle3')
     
     if (!result.success) {
       throw new Error(result.error || '업로드 실패')
@@ -786,12 +789,10 @@ const handleVehiclePhoto3Upload = async (event) => {
     vehiclePhoto3Preview.value = result.url
     
     // DB 업데이트
-    const { error } = await supabase
-      .from('Users')
-      .update({ driver_vehicle_photo_urls: newPhotos })
-      .eq('auth_id', driver.value.auth_id)
-    
-    if (error) throw error
+    const updateResult = await updateVehiclePhotos(driver.value.auth_id, newPhotos)
+    if (!updateResult.success) {
+      throw new Error(updateResult.error)
+    }
     
     // 파일 입력 초기화
     event.target.value = ''
@@ -816,12 +817,10 @@ const removeVehiclePhoto3 = async () => {
     vehiclePhoto3Preview.value = null
     
     // DB 업데이트
-    const { error } = await supabase
-      .from('Users')
-      .update({ driver_vehicle_photo_urls: newPhotos })
-      .eq('auth_id', driver.value.auth_id)
-    
-    if (error) throw error
+    const updateResult = await updateVehiclePhotos(driver.value.auth_id, newPhotos)
+    if (!updateResult.success) {
+      throw new Error(updateResult.error)
+    }
     
     alert('차량 사진이 삭제되었습니다.')
     
@@ -839,7 +838,8 @@ const handleVehiclePhoto4Upload = async (event) => {
   try {
     // R2에 업로드
     const { uploadDriverImageToR2 } = await import('@/lib/r2-upload.js')
-    const result = await uploadDriverImageToR2(file, driver.value.id, 'vehicle4')
+    const driverId = `driver_${driver.value.id}`
+    const result = await uploadDriverImageToR2(file, driverId, 'vehicle4')
     
     if (!result.success) {
       throw new Error(result.error || '업로드 실패')
@@ -852,12 +852,10 @@ const handleVehiclePhoto4Upload = async (event) => {
     vehiclePhoto4Preview.value = result.url
     
     // DB 업데이트
-    const { error } = await supabase
-      .from('Users')
-      .update({ driver_vehicle_photo_urls: newPhotos })
-      .eq('auth_id', driver.value.auth_id)
-    
-    if (error) throw error
+    const updateResult = await updateVehiclePhotos(driver.value.auth_id, newPhotos)
+    if (!updateResult.success) {
+      throw new Error(updateResult.error)
+    }
     
     // 파일 입력 초기화
     event.target.value = ''
@@ -882,12 +880,10 @@ const removeVehiclePhoto4 = async () => {
     vehiclePhoto4Preview.value = null
     
     // DB 업데이트
-    const { error } = await supabase
-      .from('Users')
-      .update({ driver_vehicle_photo_urls: newPhotos })
-      .eq('auth_id', driver.value.auth_id)
-    
-    if (error) throw error
+    const updateResult = await updateVehiclePhotos(driver.value.auth_id, newPhotos)
+    if (!updateResult.success) {
+      throw new Error(updateResult.error)
+    }
     
     alert('차량 사진이 삭제되었습니다.')
     
@@ -905,7 +901,8 @@ const handleLicensePhotoUpload = async (event) => {
   try {
     // R2에 업로드
     const { uploadDriverImageToR2 } = await import('@/lib/r2-upload.js')
-    const result = await uploadDriverImageToR2(file, driver.value.id, 'license')
+    const driverId = `driver_${driver.value.id}`
+    const result = await uploadDriverImageToR2(file, driverId, 'license')
     
     if (!result.success) {
       throw new Error(result.error || '업로드 실패')
@@ -914,6 +911,12 @@ const handleLicensePhotoUpload = async (event) => {
     // 로컬 상태 업데이트
     driver.value.driver_license_photo_url = result.url
     licensePhotoPreview.value = result.url
+    
+    // DB 업데이트
+    const updateResult = await updateLicensePhoto(driver.value.auth_id, result.url)
+    if (!updateResult.success) {
+      throw new Error(updateResult.error)
+    }
     
     // 파일 입력 초기화
     event.target.value = ''
@@ -936,12 +939,10 @@ const removeLicensePhoto = async () => {
     licensePhotoPreview.value = null
     
     // DB 업데이트
-    const { error } = await supabase
-      .from('Users')
-      .update({ driver_license_photo_url: null })
-      .eq('auth_id', driver.value.auth_id)
-    
-    if (error) throw error
+    const updateResult = await deleteLicensePhoto(driver.value.auth_id)
+    if (!updateResult.success) {
+      throw new Error(updateResult.error)
+    }
     
     alert('자격증 사진이 삭제되었습니다.')
     
@@ -959,7 +960,8 @@ const handleInsurancePhotoUpload = async (event) => {
   try {
     // R2에 업로드
     const { uploadDriverImageToR2 } = await import('@/lib/r2-upload.js')
-    const result = await uploadDriverImageToR2(file, driver.value.id, 'insurance')
+    const driverId = `driver_${driver.value.id}`
+    const result = await uploadDriverImageToR2(file, driverId, 'insurance')
     
     if (!result.success) {
       throw new Error(result.error || '업로드 실패')
@@ -970,12 +972,10 @@ const handleInsurancePhotoUpload = async (event) => {
     insurancePhotoPreview.value = result.url
     
     // DB 업데이트
-    const { error } = await supabase
-      .from('Users')
-      .update({ driver_insurance_photo_url: imageUrl })
-      .eq('auth_id', driver.value.auth_id)
-    
-    if (error) throw error
+    const updateResult = await updateInsurancePhoto(driver.value.auth_id, result.url)
+    if (!updateResult.success) {
+      throw new Error(updateResult.error)
+    }
     
     // 파일 입력 초기화
     event.target.value = ''
@@ -998,12 +998,10 @@ const removeInsurancePhoto = async () => {
     insurancePhotoPreview.value = null
     
     // DB 업데이트
-    const { error } = await supabase
-      .from('Users')
-      .update({ driver_insurance_photo_url: null })
-      .eq('auth_id', driver.value.auth_id)
-    
-    if (error) throw error
+    const updateResult = await deleteInsurancePhoto(driver.value.auth_id)
+    if (!updateResult.success) {
+      throw new Error(updateResult.error)
+    }
     
     alert('보험증권 사진이 삭제되었습니다.')
     
@@ -1021,7 +1019,8 @@ const handleRegistrationPhotoUpload = async (event) => {
   try {
     // R2에 업로드
     const { uploadDriverImageToR2 } = await import('@/lib/r2-upload.js')
-    const result = await uploadDriverImageToR2(file, driver.value.id, 'registration')
+    const driverId = `driver_${driver.value.id}`
+    const result = await uploadDriverImageToR2(file, driverId, 'registration')
     
     if (!result.success) {
       throw new Error(result.error || '업로드 실패')
@@ -1032,12 +1031,10 @@ const handleRegistrationPhotoUpload = async (event) => {
     registrationPhotoPreview.value = result.url
     
     // DB 업데이트
-    const { error } = await supabase
-      .from('Users')
-      .update({ driver_registration_photo_url: imageUrl })
-      .eq('auth_id', driver.value.auth_id)
-    
-    if (error) throw error
+    const updateResult = await updateRegistrationPhoto(driver.value.auth_id, result.url)
+    if (!updateResult.success) {
+      throw new Error(updateResult.error)
+    }
     
     // 파일 입력 초기화
     event.target.value = ''
@@ -1060,12 +1057,10 @@ const removeRegistrationPhoto = async () => {
     registrationPhotoPreview.value = null
     
     // DB 업데이트
-    const { error } = await supabase
-      .from('Users')
-      .update({ driver_registration_photo_url: null })
-      .eq('auth_id', driver.value.auth_id)
-    
-    if (error) throw error
+    const updateResult = await deleteRegistrationPhoto(driver.value.auth_id)
+    if (!updateResult.success) {
+      throw new Error(updateResult.error)
+    }
     
     alert('등록증 사진이 삭제되었습니다.')
     
@@ -1085,23 +1080,20 @@ const handleSubmit = async () => {
   try {
     submitting.value = true
     
-    const { error } = await supabase
-      .from('Users')
-      .update({
-        name: formData.value.name,
-        mobile_number: formData.value.mobile_number,
-        driver_company: formData.value.driver_company,
-        driver_vehicle_number: formData.value.driver_vehicle_number,
-        driver_vehicle_type: formData.value.driver_vehicle_type,
-        driver_vehicle_year: formData.value.driver_vehicle_year,
-        driver_passenger_capacity: formData.value.driver_passenger_capacity,
-        driver_garage_zipcode: formData.value.driver_garage_zipcode,
-        driver_garage_address: formData.value.driver_garage_address
-      })
-      .eq('auth_id', driver.value.auth_id)
+    const updateResult = await updateDriverInfo(driver.value.auth_id, {
+      name: formData.value.name,
+      mobile_number: formData.value.mobile_number,
+      driver_company: formData.value.driver_company,
+      driver_vehicle_number: formData.value.driver_vehicle_number,
+      driver_vehicle_type: formData.value.driver_vehicle_type,
+      driver_vehicle_year: formData.value.driver_vehicle_year,
+      driver_passenger_capacity: formData.value.driver_passenger_capacity,
+      driver_garage_zipcode: formData.value.driver_garage_zipcode,
+      driver_garage_address: formData.value.driver_garage_address
+    })
     
-    if (error) {
-      console.error('정보 수정 실패:', error)
+    if (!updateResult.success) {
+      console.error('정보 수정 실패:', updateResult.error)
       alert('정보 수정에 실패했습니다.')
       return
     }
@@ -1204,10 +1196,11 @@ onMounted(() => {
   width: 120px;
   height: 120px;
   border-radius: 50%;
-  overflow: hidden;
+  overflow: visible;
   border: 3px solid var(--primary-color);
   flex-shrink: 0;
   min-height: 120px;
+  position: relative;
 }
 
 .profile-header .preview-image {
@@ -1426,9 +1419,9 @@ onMounted(() => {
 .upload-btn {
   position: absolute;
   border: none;
+  width: 30px;
+  height: 30px;
   border-radius: 50%;
-  width: 24px;
-  height: 24px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -1468,6 +1461,7 @@ onMounted(() => {
   display: grid;
   grid-template-columns: repeat(1, 1fr);
   gap: 1rem;
+  width: 120px;
 }
 
 .license-image-item {
@@ -1639,18 +1633,12 @@ onMounted(() => {
 .file-upload-area {
     border: 2px dashed var(--border-color);
     border-radius: var(--border-radius);
-    padding: 1rem;
     text-align: center;
-    transition: var(--transition);
     cursor: pointer;
-    min-height: 120px;
     display: flex;
     align-items: center;
     justify-content: center;
-}
-
-.file-upload-area:hover {
-    border-color: var(--primary-color);
+    min-height: 120px;
 }
 
 .file-input {
@@ -1687,21 +1675,21 @@ onMounted(() => {
 
 .remove-btn {
     position: absolute;
-    top: 0.5rem;
-    right: 0.5rem;
+    top: 0.2rem;
+    right: 0.2rem;
     background: rgba(220, 38, 38, 0.9);
     color: white;
     border: none;
-    border-radius: 4px;
-    padding: 0.25rem 0.5rem;
+    width: 24px;
+    height: 24px;
     cursor: pointer;
     display: flex;
     align-items: center;
     justify-content: center;
     font-size: 0.75rem;
     font-weight: 500;
-    transition: var(--transition);
     backdrop-filter: blur(4px);
+    z-index: 10;
 }
 
 .remove-btn:hover {

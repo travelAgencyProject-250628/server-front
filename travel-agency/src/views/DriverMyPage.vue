@@ -31,6 +31,9 @@
             {{ getStatusText(driver) }}
           </span>
         </div>
+        <div class="profile-actions">
+          <router-link to="/driver-edit" class="btn-edit">정보 수정</router-link>
+        </div>
       </div>
 
       <!-- 기본 정보 섹션 -->
@@ -54,9 +57,7 @@
             <div class="info-value">{{ formatDate(driver.created_at) }}</div>
           </div>
         </div>
-        <div class="section-actions">
-          <router-link to="/driver-edit" class="btn-edit">정보 수정</router-link>
-        </div>
+
       </div>
 
       <!-- 소속 정보 섹션 -->
@@ -198,14 +199,6 @@
             </svg>
             <span>사진 없음</span>
           </div>
-        </div>
-      </div>
-
-      <!-- 계정 관리 섹션 -->
-      <div class="info-section">
-        <h2 class="section-title">계정 관리</h2>
-        <div class="account-actions">
-          <button @click="changePassword" class="btn-action">비밀번호 변경</button>
         </div>
       </div>
     </div>
@@ -431,6 +424,30 @@ onMounted(() => {
 
 .profile-info {
   flex: 1;
+}
+
+.profile-actions {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.btn-edit {
+  padding: 0.75rem 1.5rem;
+  background: var(--primary-color);
+  color: white;
+  border: none;
+  border-radius: var(--border-radius);
+  text-decoration: none;
+  font-size: 0.9rem;
+  font-weight: 500;
+  transition: all 0.2s;
+  cursor: pointer;
+}
+
+.btn-edit:hover {
+  background: var(--primary-dark);
+  transform: translateY(-1px);
 }
 
 .driver-name {
@@ -740,14 +757,22 @@ onMounted(() => {
   }
   
   .profile-header {
-    flex-direction: column;
-    text-align: center;
+    flex-direction: row;
+    text-align: left;
     gap: 1rem;
+    padding: 1.4rem;
+    align-items: center;
+  }
+  
+  .profile-actions {
+    margin-top: 0;
+    flex-shrink: 0;
   }
   
   .profile-photo {
-    width: 100px;
-    height: 100px;
+    width: 80px;
+    height: 80px;
+    flex-shrink: 0;
   }
   
   .info-grid {
