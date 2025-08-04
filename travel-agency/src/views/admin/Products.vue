@@ -507,7 +507,7 @@
                 </div>
               </div>
               
-              <div class="form-group">
+              <!-- <div class="form-group">
                 <label for="detailImageUpload">상세 이미지 (1개) : 상품 상세 페이지에 표시됩니다.</label>
                 <div class="image-upload-container">
                   <div class="image-upload-input">
@@ -551,7 +551,7 @@
                     </div>
                   </div>
                 </div>
-              </div>
+              </div> -->
             </div>
           </div>
           
