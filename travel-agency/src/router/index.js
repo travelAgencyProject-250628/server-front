@@ -188,6 +188,18 @@ const router = createRouter({
           component: () => import('@/views/admin/ItineraryEdit.vue'),
           meta: { requiresAuth: true, requiresAdmin: true }
         },
+        {
+          path: 'drivers',
+          name: 'adminDrivers',
+          component: () => import('@/views/admin/Drivers.vue'),
+          meta: { requiresAuth: true, requiresAdmin: true }
+        },
+        {
+          path: 'drivers/:id',
+          name: 'adminDriverDetail',
+          component: () => import('@/views/admin/DriverDetail.vue'),
+          meta: { requiresAuth: true, requiresAdmin: true }
+        },
 
       ]
     }

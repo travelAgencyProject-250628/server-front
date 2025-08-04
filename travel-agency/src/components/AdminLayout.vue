@@ -90,7 +90,15 @@
           <span>버스대절</span>
         </router-link>
         
-
+        <router-link to="/admin/drivers" class="nav-item">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+            <path stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/>
+            <circle cx="9" cy="7" r="4" stroke="currentColor" stroke-width="2"/>
+            <path stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" d="M23 21v-2a4 4 0 00-3-3.87"/>
+            <path stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" d="M16 3.13a4 4 0 010 7.75"/>
+          </svg>
+          <span>기사관리</span>
+        </router-link>
         
       </nav>
     </div>
@@ -132,7 +140,8 @@ const pageTitle = computed(() => {
     '/admin/reservations': '예약 관리',
     '/admin/tags': '태그 관리',
     '/admin/bus-rentals': '버스 대절 관리',
-    '/admin/starting-points': '출발지 관리'
+    '/admin/starting-points': '출발지 관리',
+    '/admin/drivers': '기사 관리'
   }
   return routeMap[route.path] || '관리자 페이지'
 })
