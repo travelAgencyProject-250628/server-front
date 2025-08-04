@@ -181,7 +181,7 @@
                                 <div class="form-group">
                                     <label class="form-label required">
                                         <span class="required-icon">⦁</span>
-                                        차량사진 1
+                                        대각측면
                                     </label>
                                     <div class="file-upload-area" @click="triggerFileInput('vehiclePhoto1Input')">
                                         <input type="file" 
@@ -191,7 +191,7 @@
                                             class="file-input"
                                             :class="{ error: errors.vehiclePhoto1 }">
                                         <div class="upload-preview" v-if="vehiclePhoto1Preview">
-                                            <img :src="vehiclePhoto1Preview" alt="차량사진 1" class="preview-image">
+                                            <img :src="vehiclePhoto1Preview" alt="대각측면" class="preview-image">
                                             <button type="button" @click.stop="removeVehiclePhoto1" class="remove-btn">삭제</button>
                                         </div>
                                         <div v-else class="upload-placeholder">
@@ -200,7 +200,7 @@
                                                 <polyline points="7,10 12,15 17,10"/>
                                                 <line x1="12" y1="15" x2="12" y2="3"/>
                                             </svg>
-                                            <span>차량사진 1을 업로드하세요</span>
+                                            <span>대각측면 사진을 업로드하세요</span>
                                         </div>
                                     </div>
                                     <div v-if="errors.vehiclePhoto1" class="error-message">{{ errors.vehiclePhoto1 }}</div>
@@ -209,7 +209,7 @@
                                 <div class="form-group">
                                     <label class="form-label required">
                                         <span class="required-icon">⦁</span>
-                                        차량사진 2
+                                        차량정면
                                     </label>
                                     <div class="file-upload-area" @click="triggerFileInput('vehiclePhoto2Input')">
                                         <input type="file" 
@@ -219,7 +219,7 @@
                                             class="file-input"
                                             :class="{ error: errors.vehiclePhoto2 }">
                                         <div class="upload-preview" v-if="vehiclePhoto2Preview">
-                                            <img :src="vehiclePhoto2Preview" alt="차량사진 2" class="preview-image">
+                                            <img :src="vehiclePhoto2Preview" alt="차량정면" class="preview-image">
                                             <button type="button" @click.stop="removeVehiclePhoto2" class="remove-btn">삭제</button>
                                         </div>
                                         <div v-else class="upload-placeholder">
@@ -228,7 +228,7 @@
                                                 <polyline points="7,10 12,15 17,10"/>
                                                 <line x1="12" y1="15" x2="12" y2="3"/>
                                             </svg>
-                                            <span>차량사진 2를 업로드하세요</span>
+                                            <span>차량정면 사진을 업로드하세요</span>
                                         </div>
                                     </div>
                                     <div v-if="errors.vehiclePhoto2" class="error-message">{{ errors.vehiclePhoto2 }}</div>
@@ -237,7 +237,7 @@
                                 <div class="form-group">
                                     <label class="form-label required">
                                         <span class="required-icon">⦁</span>
-                                        차량사진 3
+                                        좌석전체
                                     </label>
                                     <div class="file-upload-area" @click="triggerFileInput('vehiclePhoto3Input')">
                                         <input type="file" 
@@ -247,7 +247,7 @@
                                             class="file-input"
                                             :class="{ error: errors.vehiclePhoto3 }">
                                         <div class="upload-preview" v-if="vehiclePhoto3Preview">
-                                            <img :src="vehiclePhoto3Preview" alt="차량사진 3" class="preview-image">
+                                            <img :src="vehiclePhoto3Preview" alt="좌석전체" class="preview-image">
                                             <button type="button" @click.stop="removeVehiclePhoto3" class="remove-btn">삭제</button>
                                         </div>
                                         <div v-else class="upload-placeholder">
@@ -256,7 +256,7 @@
                                                 <polyline points="7,10 12,15 17,10"/>
                                                 <line x1="12" y1="15" x2="12" y2="3"/>
                                             </svg>
-                                            <span>차량사진 3을 업로드하세요</span>
+                                            <span>좌석전체 사진을 업로드하세요</span>
                                         </div>
                                     </div>
                                     <div v-if="errors.vehiclePhoto3" class="error-message">{{ errors.vehiclePhoto3 }}</div>
@@ -265,7 +265,7 @@
                                 <div class="form-group">
                                     <label class="form-label required">
                                         <span class="required-icon">⦁</span>
-                                        차량사진 4
+                                        좌석측면
                                     </label>
                                     <div class="file-upload-area" @click="triggerFileInput('vehiclePhoto4Input')">
                                         <input type="file" 
@@ -275,7 +275,7 @@
                                             class="file-input"
                                             :class="{ error: errors.vehiclePhoto4 }">
                                         <div class="upload-preview" v-if="vehiclePhoto4Preview">
-                                            <img :src="vehiclePhoto4Preview" alt="차량사진 4" class="preview-image">
+                                            <img :src="vehiclePhoto4Preview" alt="좌석측면" class="preview-image">
                                             <button type="button" @click.stop="removeVehiclePhoto4" class="remove-btn">삭제</button>
                                         </div>
                                         <div v-else class="upload-placeholder">
@@ -284,7 +284,7 @@
                                                 <polyline points="7,10 12,15 17,10"/>
                                                 <line x1="12" y1="15" x2="12" y2="3"/>
                                             </svg>
-                                            <span>차량사진 4를 업로드하세요</span>
+                                            <span>좌석측면 사진을 업로드하세요</span>
                                         </div>
                                     </div>
                                     <div v-if="errors.vehiclePhoto4" class="error-message">{{ errors.vehiclePhoto4 }}</div>

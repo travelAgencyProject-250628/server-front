@@ -129,7 +129,7 @@
 
           <!-- 자격증 -->
           <div class="image-item">
-            <label>자격증</label>
+            <label>버스운전자격증</label>
             <div class="image-container">
               <img 
                 v-if="driver.driver_license_photo_url" 
@@ -173,7 +173,7 @@
 
           <!-- 등록증 -->
           <div class="image-item">
-            <label>등록증</label>
+            <label>자동차등록증</label>
             <div class="image-container">
               <img 
                 v-if="driver.driver_registration_photo_url" 
@@ -195,12 +195,12 @@
 
           <!-- 차량 사진들 -->
           <div v-for="(url, index) in vehiclePhotos" :key="index" class="image-item">
-            <label>차량 사진 {{ index + 1 }}</label>
+            <label>{{ getVehiclePhotoLabel(index) }}</label>
             <div class="image-container">
               <img 
                 v-if="url" 
                 :src="url" 
-                :alt="`차량 사진 ${index + 1}`"
+                :alt="getVehiclePhotoLabel(index)"
                 @error="handleImageError"
               >
               <div v-else class="no-image">
@@ -374,6 +374,12 @@ const formatDate = (dateString) => {
   if (!dateString) return ''
   const date = new Date(dateString)
   return date.toLocaleDateString('ko-KR')
+}
+
+// 차량 사진 라벨 가져오기
+const getVehiclePhotoLabel = (index) => {
+  const labels = ['대각측면', '차량정면', '좌석전체', '좌석측면']
+  return labels[index] || `차량 사진 ${index + 1}`
 }
 
 // 초기 로드

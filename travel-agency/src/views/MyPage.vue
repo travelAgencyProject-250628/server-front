@@ -16,8 +16,9 @@
 </template>
 
 <script setup>
-import { ref } from 'vue'
+import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
+import { supabase } from '@/lib/supabase.js'
 import Sidebar from '../components/Sidebar.vue'
 
 const router = useRouter()
@@ -29,6 +30,31 @@ const mypageMenu = ref({
     { name: '회원정보수정', path: '/mypage/profile' },
     { name: '예약/결제현황', path: '/mypage/reservations' }
   ]
+})
+
+// 기사 여부 확인 및 리다이렉트
+const checkDriverStatus = async () => {
+  try {
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) return
+    
+    const { data, error } = await supabase
+      .from('Users')
+      .select('is_driver')
+      .eq('auth_id', user.id)
+      .single()
+    
+    if (!error && data && data.is_driver) {
+      // 기사인 경우 기사 마이페이지로 리다이렉트
+      router.replace('/driver-mypage')
+    }
+  } catch (error) {
+    console.error('기사 상태 확인 오류:', error)
+  }
+}
+
+onMounted(() => {
+  checkDriverStatus()
 })
 </script>
 

@@ -106,6 +106,11 @@ const router = createRouter({
       ]
     },
     {
+      path: '/driver-mypage',
+      component: () => import('@/views/DriverMyPage.vue'),
+      meta: { requiresAuth: true }
+    },
+    {
       path: '/products/:category',
       name: 'productList',
       component: () => import('@/views/ProductList.vue'),
