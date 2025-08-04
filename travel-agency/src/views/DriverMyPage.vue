@@ -773,11 +773,13 @@ onMounted(() => {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
   gap: 1rem;
+  width: 570px;
 }
 
 .vehicle-image-item {
   display: flex;
   flex-direction: column;
+  align-items: center;
   gap: 0.5rem;
 }
 
@@ -789,7 +791,7 @@ onMounted(() => {
 }
 
 .vehicle-image-container {
-  width: 100%;
+  width: 120px;
   height: 120px;
   border: 1px solid var(--border-color);
   border-radius: var(--border-radius);
@@ -823,8 +825,8 @@ onMounted(() => {
 }
 
 .license-image-container {
-  width: 100%;
-  height: 200px;
+  width: 120px;
+  height: 120px;
   border: 1px solid var(--border-color);
   border-radius: var(--border-radius);
   overflow: hidden;
@@ -960,10 +962,12 @@ onMounted(() => {
   .vehicle-images-grid {
     grid-template-columns: repeat(4, 1fr);
     gap: 0.5rem;
+    width: 100%;
   }
   
   .vehicle-image-container {
-    height: 80px;
+    width: 70px;
+    height: 70px;
   }
   
   .license-images-grid {
@@ -972,8 +976,9 @@ onMounted(() => {
   }
   
   .license-image-container {
-    height: 80px;
-    width: 80px;
+    height: 70px;
+    width: 70px;
+    object-fit: cover;
   }
   
   .account-actions {
