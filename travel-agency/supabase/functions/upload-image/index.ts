@@ -22,13 +22,15 @@ serve(async (req) => {
     const key = formData.get('key') as string
     const bucket = formData.get('bucket') as string
     
-    console.log('파라미터 확인:', { 
-      hasFile: !!file, 
-      key, 
-      bucket,
-      fileSize: file?.size,
-      fileName: file?.name
-    })
+    console.log('=== 파라미터 확인 ===')
+    console.log('hasFile:', !!file)
+    console.log('key:', key)
+    console.log('bucket:', bucket)
+    console.log('bucket type:', typeof bucket)
+    console.log('bucket === "drivers":', bucket === 'drivers')
+    console.log('fileSize:', file?.size)
+    console.log('fileName:', file?.name)
+    console.log('=====================')
 
     if (!file || !key || !bucket) {
       return new Response(
@@ -93,19 +95,25 @@ serve(async (req) => {
 
     // R2 공개 URL 생성
     let publicUrl
-    if (publicDomain) {
-      // 커스텀 공개 도메인이 설정된 경우
-      publicUrl = `${publicDomain}/${key}`
+    // 버킷에 따라 올바른 공개 URL 사용 (publicDomain 설정과 관계없이)
+    if (bucket.includes('driver')) {
+      // drivers 버킷의 실제 공개 URL
+      publicUrl = `https://pub-ea3b73302d3c420090e2e843d5e08e19.r2.dev/${key}`
+    } else if (bucket.includes('travel') || bucket.includes('product')) {
+      // travel-products 버킷의 실제 공개 URL
+      publicUrl = `https://pub-5d84e73636f44524b9cc63f124cda236.r2.dev/${key}`
     } else {
-      // 실제 R2 공개 개발 URL 사용
-      // travel-products 버킷의 실제 공개 URL: https://pub-5d84e73636f44524b9cc63f124cda236.r2.dev
+      // 기본값 (travel-products 버킷)
       publicUrl = `https://pub-5d84e73636f44524b9cc63f124cda236.r2.dev/${key}`
     }
     
+    console.log('=== URL 생성 정보 ===')
     console.log('Bucket:', bucket)
     console.log('Key:', key)
     console.log('Endpoint:', endpoint)
+    console.log('Public Domain:', publicDomain)
     console.log('생성된 공개 URL:', publicUrl)
+    console.log('=====================')
 
     return new Response(
       JSON.stringify({ 

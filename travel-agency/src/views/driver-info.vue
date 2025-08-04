@@ -28,7 +28,7 @@
                                         <span class="required-icon">⦁</span>
                                         기사사진등록
                                     </label>
-                                    <div class="file-upload-area">
+                                    <div class="file-upload-area" @click="triggerFileInput('driverPhotoInput')">
                                         <input type="file" 
                                             ref="driverPhotoInput"
                                             @change="handleDriverPhotoUpload" 
@@ -37,7 +37,7 @@
                                             :class="{ error: errors.driverPhoto }">
                                         <div class="upload-preview" v-if="driverPhotoPreview">
                                             <img :src="driverPhotoPreview" alt="기사사진" class="preview-image">
-                                            <button type="button" @click="removeDriverPhoto" class="remove-btn">삭제</button>
+                                            <button type="button" @click.stop="removeDriverPhoto" class="remove-btn">삭제</button>
                                         </div>
                                         <div v-else class="upload-placeholder">
                                             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -177,22 +177,22 @@
                                 </span>
                             </h2>
 
-                            <div class="vehicle-photos-grid">
-                                <div v-for="(photo, index) in vehiclePhotos" :key="index" class="photo-upload-item">
+                            <div class="form-grid">
+                                <div class="form-group">
                                     <label class="form-label required">
                                         <span class="required-icon">⦁</span>
-                                        차량사진 {{ index + 1 }}
+                                        차량사진 1
                                     </label>
-                                    <div class="file-upload-area">
+                                    <div class="file-upload-area" @click="triggerFileInput('vehiclePhoto1Input')">
                                         <input type="file" 
-                                            :ref="`vehiclePhotoInput${index}`"
-                                            @change="(event) => handleVehiclePhotoUpload(event, index)" 
+                                            ref="vehiclePhoto1Input"
+                                            @change="handleVehiclePhoto1Upload" 
                                             accept="image/*"
                                             class="file-input"
-                                            :class="{ error: errors[`vehiclePhoto${index}`] }">
-                                        <div class="upload-preview" v-if="vehiclePhotoPreviews[index]">
-                                            <img :src="vehiclePhotoPreviews[index]" :alt="`차량사진 ${index + 1}`" class="preview-image">
-                                            <button type="button" @click="removeVehiclePhoto(index)" class="remove-btn">삭제</button>
+                                            :class="{ error: errors.vehiclePhoto1 }">
+                                        <div class="upload-preview" v-if="vehiclePhoto1Preview">
+                                            <img :src="vehiclePhoto1Preview" alt="차량사진 1" class="preview-image">
+                                            <button type="button" @click.stop="removeVehiclePhoto1" class="remove-btn">삭제</button>
                                         </div>
                                         <div v-else class="upload-placeholder">
                                             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -200,10 +200,94 @@
                                                 <polyline points="7,10 12,15 17,10"/>
                                                 <line x1="12" y1="15" x2="12" y2="3"/>
                                             </svg>
-                                            <span>차량사진 {{ index + 1 }}을 업로드하세요</span>
+                                            <span>차량사진 1을 업로드하세요</span>
                                         </div>
                                     </div>
-                                    <div v-if="errors[`vehiclePhoto${index}`]" class="error-message">{{ errors[`vehiclePhoto${index}`] }}</div>
+                                    <div v-if="errors.vehiclePhoto1" class="error-message">{{ errors.vehiclePhoto1 }}</div>
+                                </div>
+
+                                <div class="form-group">
+                                    <label class="form-label required">
+                                        <span class="required-icon">⦁</span>
+                                        차량사진 2
+                                    </label>
+                                    <div class="file-upload-area" @click="triggerFileInput('vehiclePhoto2Input')">
+                                        <input type="file" 
+                                            ref="vehiclePhoto2Input"
+                                            @change="handleVehiclePhoto2Upload" 
+                                            accept="image/*"
+                                            class="file-input"
+                                            :class="{ error: errors.vehiclePhoto2 }">
+                                        <div class="upload-preview" v-if="vehiclePhoto2Preview">
+                                            <img :src="vehiclePhoto2Preview" alt="차량사진 2" class="preview-image">
+                                            <button type="button" @click.stop="removeVehiclePhoto2" class="remove-btn">삭제</button>
+                                        </div>
+                                        <div v-else class="upload-placeholder">
+                                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                                                <polyline points="7,10 12,15 17,10"/>
+                                                <line x1="12" y1="15" x2="12" y2="3"/>
+                                            </svg>
+                                            <span>차량사진 2를 업로드하세요</span>
+                                        </div>
+                                    </div>
+                                    <div v-if="errors.vehiclePhoto2" class="error-message">{{ errors.vehiclePhoto2 }}</div>
+                                </div>
+
+                                <div class="form-group">
+                                    <label class="form-label required">
+                                        <span class="required-icon">⦁</span>
+                                        차량사진 3
+                                    </label>
+                                    <div class="file-upload-area" @click="triggerFileInput('vehiclePhoto3Input')">
+                                        <input type="file" 
+                                            ref="vehiclePhoto3Input"
+                                            @change="handleVehiclePhoto3Upload" 
+                                            accept="image/*"
+                                            class="file-input"
+                                            :class="{ error: errors.vehiclePhoto3 }">
+                                        <div class="upload-preview" v-if="vehiclePhoto3Preview">
+                                            <img :src="vehiclePhoto3Preview" alt="차량사진 3" class="preview-image">
+                                            <button type="button" @click.stop="removeVehiclePhoto3" class="remove-btn">삭제</button>
+                                        </div>
+                                        <div v-else class="upload-placeholder">
+                                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                                                <polyline points="7,10 12,15 17,10"/>
+                                                <line x1="12" y1="15" x2="12" y2="3"/>
+                                            </svg>
+                                            <span>차량사진 3을 업로드하세요</span>
+                                        </div>
+                                    </div>
+                                    <div v-if="errors.vehiclePhoto3" class="error-message">{{ errors.vehiclePhoto3 }}</div>
+                                </div>
+
+                                <div class="form-group">
+                                    <label class="form-label required">
+                                        <span class="required-icon">⦁</span>
+                                        차량사진 4
+                                    </label>
+                                    <div class="file-upload-area" @click="triggerFileInput('vehiclePhoto4Input')">
+                                        <input type="file" 
+                                            ref="vehiclePhoto4Input"
+                                            @change="handleVehiclePhoto4Upload" 
+                                            accept="image/*"
+                                            class="file-input"
+                                            :class="{ error: errors.vehiclePhoto4 }">
+                                        <div class="upload-preview" v-if="vehiclePhoto4Preview">
+                                            <img :src="vehiclePhoto4Preview" alt="차량사진 4" class="preview-image">
+                                            <button type="button" @click.stop="removeVehiclePhoto4" class="remove-btn">삭제</button>
+                                        </div>
+                                        <div v-else class="upload-placeholder">
+                                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                                                <polyline points="7,10 12,15 17,10"/>
+                                                <line x1="12" y1="15" x2="12" y2="3"/>
+                                            </svg>
+                                            <span>차량사진 4를 업로드하세요</span>
+                                        </div>
+                                    </div>
+                                    <div v-if="errors.vehiclePhoto4" class="error-message">{{ errors.vehiclePhoto4 }}</div>
                                 </div>
                             </div>
                         </div>
@@ -224,7 +308,7 @@
                                         <span class="required-icon">⦁</span>
                                         버스운전 자격증 사진
                                     </label>
-                                    <div class="file-upload-area">
+                                    <div class="file-upload-area" @click="triggerFileInput('licensePhotoInput')">
                                         <input type="file" 
                                             ref="licensePhotoInput"
                                             @change="handleLicensePhotoUpload" 
@@ -233,7 +317,7 @@
                                             :class="{ error: errors.licensePhoto }">
                                         <div class="upload-preview" v-if="licensePhotoPreview">
                                             <img :src="licensePhotoPreview" alt="자격증사진" class="preview-image">
-                                            <button type="button" @click="removeLicensePhoto" class="remove-btn">삭제</button>
+                                            <button type="button" @click.stop="removeLicensePhoto" class="remove-btn">삭제</button>
                                         </div>
                                         <div v-else class="upload-placeholder">
                                             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -252,7 +336,7 @@
                                         <span class="required-icon">⦁</span>
                                         보험증권 사진
                                     </label>
-                                    <div class="file-upload-area">
+                                    <div class="file-upload-area" @click="triggerFileInput('insurancePhotoInput')">
                                         <input type="file" 
                                             ref="insurancePhotoInput"
                                             @change="handleInsurancePhotoUpload" 
@@ -261,7 +345,7 @@
                                             :class="{ error: errors.insurancePhoto }">
                                         <div class="upload-preview" v-if="insurancePhotoPreview">
                                             <img :src="insurancePhotoPreview" alt="보험증권사진" class="preview-image">
-                                            <button type="button" @click="removeInsurancePhoto" class="remove-btn">삭제</button>
+                                            <button type="button" @click.stop="removeInsurancePhoto" class="remove-btn">삭제</button>
                                         </div>
                                         <div v-else class="upload-placeholder">
                                             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -280,7 +364,7 @@
                                         <span class="required-icon">⦁</span>
                                         자동차 등록증 사진
                                     </label>
-                                    <div class="file-upload-area">
+                                    <div class="file-upload-area" @click="triggerFileInput('registrationPhotoInput')">
                                         <input type="file" 
                                             ref="registrationPhotoInput"
                                             @change="handleRegistrationPhotoUpload" 
@@ -289,7 +373,7 @@
                                             :class="{ error: errors.registrationPhoto }">
                                         <div class="upload-preview" v-if="registrationPhotoPreview">
                                             <img :src="registrationPhotoPreview" alt="등록증사진" class="preview-image">
-                                            <button type="button" @click="removeRegistrationPhoto" class="remove-btn">삭제</button>
+                                            <button type="button" @click.stop="removeRegistrationPhoto" class="remove-btn">삭제</button>
                                         </div>
                                         <div v-else class="upload-placeholder">
                                             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -346,6 +430,8 @@
 <script setup>
 import { ref, reactive, watch } from 'vue'
 import { useRouter } from 'vue-router'
+import { uploadDriverImageToR2 } from '../lib/r2-upload.js'
+import { supabase } from '../lib/supabase.js'
 
 // 라우터 사용
 const router = useRouter()
@@ -359,21 +445,30 @@ const driverPhotoInput = ref(null)
 const licensePhotoInput = ref(null)
 const insurancePhotoInput = ref(null)
 const registrationPhotoInput = ref(null)
-const vehiclePhotoInputs = ref([])
+const vehiclePhoto1Input = ref(null)
+const vehiclePhoto2Input = ref(null)
+const vehiclePhoto3Input = ref(null)
+const vehiclePhoto4Input = ref(null)
 
 // 파일 미리보기
 const driverPhotoPreview = ref(null)
 const licensePhotoPreview = ref(null)
 const insurancePhotoPreview = ref(null)
 const registrationPhotoPreview = ref(null)
-const vehiclePhotoPreviews = ref([null, null, null, null])
+const vehiclePhoto1Preview = ref(null)
+const vehiclePhoto2Preview = ref(null)
+const vehiclePhoto3Preview = ref(null)
+const vehiclePhoto4Preview = ref(null)
 
 // 업로드된 파일들
 const driverPhotoFile = ref(null)
 const licensePhotoFile = ref(null)
 const insurancePhotoFile = ref(null)
 const registrationPhotoFile = ref(null)
-const vehiclePhotoFiles = ref([null, null, null, null])
+const vehiclePhoto1File = ref(null)
+const vehiclePhoto2File = ref(null)
+const vehiclePhoto3File = ref(null)
+const vehiclePhoto4File = ref(null)
 
 // 폼 데이터
 const formData = reactive({
@@ -386,9 +481,6 @@ const formData = reactive({
     passengerCapacity: '',
     introduction: ''
 })
-
-// 차량 사진 배열
-const vehiclePhotos = ref([0, 1, 2, 3])
 
 // 사용 가능한 년도 배열 (2013년부터 현재 년도까지)
 const currentYear = new Date().getFullYear()
@@ -405,7 +497,7 @@ for (let capacity = 15; capacity <= 45; capacity++) {
 
 // Validation 패턴들
 const patterns = {
-    vehicleNumber: /^[0-9]{2,3}[가-힣][0-9]{4}$/
+    vehicleNumber: /^[가-힣]{2,3}[0-9]+[가-힣][0-9]+$/
 }
 
 
@@ -521,11 +613,120 @@ const handleRegistrationPhotoUpload = (event) => {
     handleFileUpload(event, registrationPhotoPreview, registrationPhotoFile, 'registrationPhoto')
 }
 
-const handleVehiclePhotoUpload = (event, index) => {
-    const previewRef = vehiclePhotoPreviews
-    const fileRef = vehiclePhotoFiles
-    const errorKey = `vehiclePhoto${index}`
-    handleFileUpload(event, previewRef, fileRef, errorKey, index)
+const handleVehiclePhoto1Upload = (event) => {
+    const file = event.target.files[0]
+    if (file) {
+        // 파일 크기 체크 (5MB)
+        if (file.size > 5 * 1024 * 1024) {
+            alert('파일 크기는 5MB 이하여야 합니다.')
+            event.target.value = ''
+            return
+        }
+        
+        // 파일 타입 체크
+        if (!file.type.startsWith('image/')) {
+            alert('이미지 파일만 업로드 가능합니다.')
+            event.target.value = ''
+            return
+        }
+        
+        const reader = new FileReader()
+        reader.onload = (e) => {
+            vehiclePhoto1Preview.value = e.target.result
+        }
+        reader.readAsDataURL(file)
+        vehiclePhoto1File.value = file
+        errors.value.vehiclePhoto1 = null
+        
+        console.log('차량사진 1 업로드 완료:', file.name)
+    }
+}
+
+const handleVehiclePhoto2Upload = (event) => {
+    const file = event.target.files[0]
+    if (file) {
+        // 파일 크기 체크 (5MB)
+        if (file.size > 5 * 1024 * 1024) {
+            alert('파일 크기는 5MB 이하여야 합니다.')
+            event.target.value = ''
+            return
+        }
+        
+        // 파일 타입 체크
+        if (!file.type.startsWith('image/')) {
+            alert('이미지 파일만 업로드 가능합니다.')
+            event.target.value = ''
+            return
+        }
+        
+        const reader = new FileReader()
+        reader.onload = (e) => {
+            vehiclePhoto2Preview.value = e.target.result
+        }
+        reader.readAsDataURL(file)
+        vehiclePhoto2File.value = file
+        errors.value.vehiclePhoto2 = null
+        
+        console.log('차량사진 2 업로드 완료:', file.name)
+    }
+}
+
+const handleVehiclePhoto3Upload = (event) => {
+    const file = event.target.files[0]
+    if (file) {
+        // 파일 크기 체크 (5MB)
+        if (file.size > 5 * 1024 * 1024) {
+            alert('파일 크기는 5MB 이하여야 합니다.')
+            event.target.value = ''
+            return
+        }
+        
+        // 파일 타입 체크
+        if (!file.type.startsWith('image/')) {
+            alert('이미지 파일만 업로드 가능합니다.')
+            event.target.value = ''
+            return
+        }
+        
+        const reader = new FileReader()
+        reader.onload = (e) => {
+            vehiclePhoto3Preview.value = e.target.result
+        }
+        reader.readAsDataURL(file)
+        vehiclePhoto3File.value = file
+        errors.value.vehiclePhoto3 = null
+        
+        console.log('차량사진 3 업로드 완료:', file.name)
+    }
+}
+
+const handleVehiclePhoto4Upload = (event) => {
+    const file = event.target.files[0]
+    if (file) {
+        // 파일 크기 체크 (5MB)
+        if (file.size > 5 * 1024 * 1024) {
+            alert('파일 크기는 5MB 이하여야 합니다.')
+            event.target.value = ''
+            return
+        }
+        
+        // 파일 타입 체크
+        if (!file.type.startsWith('image/')) {
+            alert('이미지 파일만 업로드 가능합니다.')
+            event.target.value = ''
+            return
+        }
+        
+        const reader = new FileReader()
+        reader.onload = (e) => {
+            vehiclePhoto4Preview.value = e.target.result
+        }
+        reader.readAsDataURL(file)
+        vehiclePhoto4File.value = file
+        errors.value.vehiclePhoto4 = null
+        
+        console.log('차량사진 4 업로드 완료:', file.name)
+    }
 }
 
 // 파일 삭제 함수들
@@ -565,14 +766,82 @@ const removeRegistrationPhoto = () => {
     errors.value.registrationPhoto = null
 }
 
-const removeVehiclePhoto = (index) => {
-    vehiclePhotoPreviews.value[index] = null
-    vehiclePhotoFiles.value[index] = null
-    if (vehiclePhotoInputs.value[index]) {
-        vehiclePhotoInputs.value[index].value = ''
+const removeVehiclePhoto1 = () => {
+    vehiclePhoto1Preview.value = null
+    vehiclePhoto1File.value = null
+    if (vehiclePhoto1Input.value) {
+        vehiclePhoto1Input.value.value = ''
     }
-    errors.value[`vehiclePhoto${index}`] = null
+    errors.value.vehiclePhoto1 = null
+    console.log('차량사진 1 삭제 완료')
 }
+
+const removeVehiclePhoto2 = () => {
+    vehiclePhoto2Preview.value = null
+    vehiclePhoto2File.value = null
+    if (vehiclePhoto2Input.value) {
+        vehiclePhoto2Input.value.value = ''
+    }
+    errors.value.vehiclePhoto2 = null
+    console.log('차량사진 2 삭제 완료')
+}
+
+const removeVehiclePhoto3 = () => {
+    vehiclePhoto3Preview.value = null
+    vehiclePhoto3File.value = null
+    if (vehiclePhoto3Input.value) {
+        vehiclePhoto3Input.value.value = ''
+    }
+    errors.value.vehiclePhoto3 = null
+    console.log('차량사진 3 삭제 완료')
+}
+
+const removeVehiclePhoto4 = () => {
+    vehiclePhoto4Preview.value = null
+    vehiclePhoto4File.value = null
+    if (vehiclePhoto4Input.value) {
+        vehiclePhoto4Input.value.value = ''
+    }
+    errors.value.vehiclePhoto4 = null
+    console.log('차량사진 4 삭제 완료')
+}
+
+// 파일 입력 트리거 함수들
+const triggerFileInput = (inputRefName) => {
+    let inputRef
+    switch (inputRefName) {
+        case 'driverPhotoInput':
+            inputRef = driverPhotoInput
+            break
+        case 'licensePhotoInput':
+            inputRef = licensePhotoInput
+            break
+        case 'insurancePhotoInput':
+            inputRef = insurancePhotoInput
+            break
+        case 'registrationPhotoInput':
+            inputRef = registrationPhotoInput
+            break
+        case 'vehiclePhoto1Input':
+            inputRef = vehiclePhoto1Input
+            break
+        case 'vehiclePhoto2Input':
+            inputRef = vehiclePhoto2Input
+            break
+        case 'vehiclePhoto3Input':
+            inputRef = vehiclePhoto3Input
+            break
+        case 'vehiclePhoto4Input':
+            inputRef = vehiclePhoto4Input
+            break
+    }
+    
+    if (inputRef && inputRef.value) {
+        inputRef.value.click()
+    }
+}
+
+
 
 // 주소 검색
 const findGarageAddress = () => {
@@ -634,10 +903,17 @@ const validateForm = () => {
     }
     
     // 차량 사진 검증
-    for (let i = 0; i < 4; i++) {
-        if (!vehiclePhotoFiles.value[i]) {
-            errors.value[`vehiclePhoto${i}`] = `차량사진 ${i + 1}을 업로드해주세요.`
-        }
+    if (!vehiclePhoto1File.value) {
+        errors.value.vehiclePhoto1 = '차량사진 1을 업로드해주세요.'
+    }
+    if (!vehiclePhoto2File.value) {
+        errors.value.vehiclePhoto2 = '차량사진 2를 업로드해주세요.'
+    }
+    if (!vehiclePhoto3File.value) {
+        errors.value.vehiclePhoto3 = '차량사진 3을 업로드해주세요.'
+    }
+    if (!vehiclePhoto4File.value) {
+        errors.value.vehiclePhoto4 = '차량사진 4를 업로드해주세요.'
     }
 
     // 에러가 있는지 확인
@@ -660,18 +936,178 @@ const handleSubmit = async () => {
         return
     }
 
-    // TODO: 파일 업로드 및 데이터 저장 로직 구현
-    console.log('제출할 데이터:', {
-        formData,
-        driverPhotoFile: driverPhotoFile.value,
-        licensePhotoFile: licensePhotoFile.value,
-        insurancePhotoFile: insurancePhotoFile.value,
-        registrationPhotoFile: registrationPhotoFile.value,
-        vehiclePhotoFiles: vehiclePhotoFiles.value
-    })
+    try {
+        // 로딩 표시
+        const submitBtn = document.querySelector('.btn-submit')
+        const originalText = submitBtn.textContent
+        submitBtn.textContent = '업로드 중 (잠시만 기다려주세요...)'
+        submitBtn.disabled = true
 
-    alert('✅ 버스기사 정보가 등록되었습니다!')
-    router.push('/')
+        // 현재 로그인한 사용자의 auth_id로 driver_id 생성
+        const { data: { user: currentUser }, error: currentAuthError } = await supabase.auth.getUser()
+        if (currentAuthError || !currentUser) {
+            throw new Error('로그인이 필요합니다.')
+        }
+        
+        // Users 테이블에서 해당 사용자의 id 가져오기
+        const { data: userData, error: userError } = await supabase
+            .from('Users')
+            .select('id')
+            .eq('auth_id', currentUser.id)
+            .single()
+        
+        if (userError || !userData) {
+            throw new Error('사용자 정보를 찾을 수 없습니다.')
+        }
+        
+        const driverId = `driver_${userData.id}`
+        
+        // 이미지 업로드 결과들을 저장할 객체
+        const uploadResults = {
+            driverPhoto: null,
+            licensePhoto: null,
+            insurancePhoto: null,
+            registrationPhoto: null,
+            vehiclePhotos: []
+        }
+
+        // 1. 기사사진 업로드
+        if (driverPhotoFile.value) {
+            const result = await uploadDriverImageToR2(driverPhotoFile.value, driverId, 'driver')
+            console.log('기사사진 업로드 결과:', result)
+            if (result.success) {
+                uploadResults.driverPhoto = result.url
+                console.log('저장된 기사사진 URL:', result.url)
+            } else {
+                throw new Error(`기사사진 업로드 실패: ${result.error}`)
+            }
+        }
+
+        // 2. 자격증 사진 업로드
+        if (licensePhotoFile.value) {
+            const result = await uploadDriverImageToR2(licensePhotoFile.value, driverId, 'license')
+            console.log('자격증 업로드 결과:', result)
+            if (result.success) {
+                uploadResults.licensePhoto = result.url
+                console.log('저장된 자격증 URL:', result.url)
+            } else {
+                throw new Error(`자격증 사진 업로드 실패: ${result.error}`)
+            }
+        }
+
+        // 3. 보험증권 사진 업로드
+        if (insurancePhotoFile.value) {
+            const result = await uploadDriverImageToR2(insurancePhotoFile.value, driverId, 'insurance')
+            console.log('보험증권 업로드 결과:', result)
+            if (result.success) {
+                uploadResults.insurancePhoto = result.url
+                console.log('저장된 보험증권 URL:', result.url)
+            } else {
+                throw new Error(`보험증권 사진 업로드 실패: ${result.error}`)
+            }
+        }
+
+        // 4. 등록증 사진 업로드
+        if (registrationPhotoFile.value) {
+            const result = await uploadDriverImageToR2(registrationPhotoFile.value, driverId, 'registration')
+            if (result.success) {
+                uploadResults.registrationPhoto = result.url
+            } else {
+                throw new Error(`등록증 사진 업로드 실패: ${result.error}`)
+            }
+        }
+
+        // 5. 차량 사진들 업로드
+        const vehicleUrls = []
+        
+        if (vehiclePhoto1File.value) {
+            const result = await uploadDriverImageToR2(vehiclePhoto1File.value, driverId, 'vehicle1')
+            if (result.success) {
+                vehicleUrls.push(result.url)
+            } else {
+                throw new Error(`차량사진 1 업로드 실패: ${result.error}`)
+            }
+        }
+        
+        if (vehiclePhoto2File.value) {
+            const result = await uploadDriverImageToR2(vehiclePhoto2File.value, driverId, 'vehicle2')
+            if (result.success) {
+                vehicleUrls.push(result.url)
+            } else {
+                throw new Error(`차량사진 2 업로드 실패: ${result.error}`)
+            }
+        }
+        
+        if (vehiclePhoto3File.value) {
+            const result = await uploadDriverImageToR2(vehiclePhoto3File.value, driverId, 'vehicle3')
+            if (result.success) {
+                vehicleUrls.push(result.url)
+            } else {
+                throw new Error(`차량사진 3 업로드 실패: ${result.error}`)
+            }
+        }
+        
+        if (vehiclePhoto4File.value) {
+            const result = await uploadDriverImageToR2(vehiclePhoto4File.value, driverId, 'vehicle4')
+            if (result.success) {
+                vehicleUrls.push(result.url)
+            } else {
+                throw new Error(`차량사진 4 업로드 실패: ${result.error}`)
+            }
+        }
+        
+        uploadResults.vehiclePhotos = vehicleUrls
+
+        // 데이터베이스에 기사 정보 저장
+        const driverData = {
+            driver_company: formData.company,
+            driver_garage_zipcode: formData.garageZipcode,
+            driver_garage_address: formData.garageAddress1,
+            driver_vehicle_number: formData.vehicleNumber,
+            driver_vehicle_type: formData.vehicleType,
+            driver_vehicle_year: formData.vehicleYear,
+            driver_passenger_capacity: formData.passengerCapacity,
+            driver_photo_url: uploadResults.driverPhoto,
+            driver_license_photo_url: uploadResults.licensePhoto,
+            driver_insurance_photo_url: uploadResults.insurancePhoto,
+            driver_registration_photo_url: uploadResults.registrationPhoto,
+            driver_vehicle_photo_urls: uploadResults.vehiclePhotos,
+            driver_introduction: formData.introduction,
+            driver_approved: false, // 기본값: 승인 대기
+            driver_active: true // 기본값: 활성화
+        }
+
+        // 현재 로그인한 사용자의 auth_id로 Users 테이블 업데이트
+        const { data: updateResult, error: updateError } = await supabase
+            .from('Users')
+            .update(driverData)
+            .eq('id', userData.id)
+            .select()
+
+        if (updateError) {
+            console.error('기사 정보 저장 실패:', updateError)
+            throw new Error(`기사 정보 저장에 실패했습니다: ${updateError.message}`)
+        }
+
+        console.log('기사 정보 저장 완료:', updateResult)
+
+        // 버튼 상태 복원
+        submitBtn.textContent = originalText
+        submitBtn.disabled = false
+
+        alert('✅ 버스기사 정보가 등록되었습니다!\n관리자 승인 후 서비스 이용이 가능합니다.')
+        router.push('/')
+
+    } catch (error) {
+        console.error('기사 정보 등록 실패:', error)
+        
+        // 버튼 상태 복원
+        const submitBtn = document.querySelector('.btn-submit')
+        submitBtn.textContent = '정보 등록 완료'
+        submitBtn.disabled = false
+        
+        alert(`❌ 기사 정보 등록에 실패했습니다: ${error.message}`)
+    }
 }
 
 // 실시간 validation을 위한 watch
@@ -859,12 +1295,15 @@ watch(() => formData.introduction, () => {
     padding: 1rem;
     text-align: center;
     transition: var(--transition);
-    background: var(--bg-light);
+    cursor: pointer;
+    min-height: 120px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 
 .file-upload-area:hover {
     border-color: var(--primary-color);
-    background: rgba(37, 99, 235, 0.05);
 }
 
 .file-input {
@@ -886,37 +1325,41 @@ watch(() => formData.introduction, () => {
 
 .upload-preview {
     position: relative;
-    display: inline-block;
+    display: block;
+    width: 100%;
+    height: 100%;
 }
 
 .preview-image {
-    max-width: 100%;
-    max-height: 200px;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
     border-radius: var(--border-radius);
     border: 1px solid var(--border-color);
 }
 
 .remove-btn {
     position: absolute;
-    top: -0.5rem;
-    right: -0.5rem;
-    background: var(--error-color);
+    top: 0.5rem;
+    right: 0.5rem;
+    background: rgba(220, 38, 38, 0.9);
     color: white;
     border: none;
-    border-radius: 50%;
-    width: 24px;
-    height: 24px;
+    border-radius: 4px;
+    padding: 0.25rem 0.5rem;
     cursor: pointer;
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 0.8rem;
+    font-size: 0.75rem;
+    font-weight: 500;
     transition: var(--transition);
+    backdrop-filter: blur(4px);
 }
 
 .remove-btn:hover {
-    background: #dc2626;
-    transform: scale(1.1);
+    background: rgba(220, 38, 38, 1);
+    transform: scale(1.05);
 }
 
 /* 차량 사진 그리드 */
