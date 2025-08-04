@@ -39,42 +39,23 @@
         <div class="info-grid">
           <div class="info-item">
             <label>이름</label>
-            <input 
-              v-model="editForm.name" 
-              type="text" 
-              class="form-input"
-              :disabled="!isEditing"
-            >
+            <div class="info-value">{{ driver.name }}</div>
           </div>
           <div class="info-item">
             <label>이메일</label>
-            <input 
-              v-model="editForm.email" 
-              type="email" 
-              class="form-input"
-              disabled
-            >
+            <div class="info-value">{{ driver.email }}</div>
           </div>
           <div class="info-item">
             <label>연락처</label>
-            <input 
-              v-model="editForm.mobile_number" 
-              type="tel" 
-              class="form-input"
-              :disabled="!isEditing"
-            >
+            <div class="info-value">{{ driver.mobile_number }}</div>
           </div>
           <div class="info-item">
             <label>가입일</label>
-            <span>{{ formatDate(driver.created_at) }}</span>
+            <div class="info-value">{{ formatDate(driver.created_at) }}</div>
           </div>
         </div>
         <div class="section-actions">
-          <button v-if="!isEditing" @click="startEdit" class="btn-edit">정보 수정</button>
-          <div v-else class="edit-actions">
-            <button @click="saveChanges" class="btn-save">저장</button>
-            <button @click="cancelEdit" class="btn-cancel">취소</button>
-          </div>
+          <router-link to="/driver-edit" class="btn-edit">정보 수정</router-link>
         </div>
       </div>
 
@@ -84,12 +65,7 @@
         <div class="info-grid">
           <div class="info-item">
             <label>소속</label>
-            <input 
-              v-model="editForm.driver_company" 
-              type="text" 
-              class="form-input"
-              :disabled="!isEditing"
-            >
+            <div class="info-value">{{ driver.driver_company || '미입력' }}</div>
           </div>
         </div>
       </div>
@@ -100,50 +76,19 @@
         <div class="info-grid">
           <div class="info-item">
             <label>차량번호</label>
-            <input 
-              v-model="editForm.driver_vehicle_number" 
-              type="text" 
-              class="form-input"
-              :disabled="!isEditing"
-            >
+            <div class="info-value">{{ driver.driver_vehicle_number || '미입력' }}</div>
           </div>
           <div class="info-item">
             <label>차종</label>
-            <select 
-              v-model="editForm.driver_vehicle_type" 
-              class="form-input"
-              :disabled="!isEditing"
-            >
-              <option value="">차종 선택</option>
-              <option value="현대 쏠라티 (15인승)">현대 쏠라티 (15인승)</option>
-              <option value="현대 쏠라티 (25인승)">현대 쏠라티 (25인승)</option>
-              <option value="현대 쏠라티 (28인승)">현대 쏠라티 (28인승)</option>
-              <option value="현대 쏠라티 (35인승)">현대 쏠라티 (35인승)</option>
-              <option value="현대 쏠라티 (45인승)">현대 쏠라티 (45인승)</option>
-              <option value="기타">기타</option>
-            </select>
+            <div class="info-value">{{ driver.driver_vehicle_type || '미입력' }}</div>
           </div>
           <div class="info-item">
             <label>년식</label>
-            <select 
-              v-model="editForm.driver_vehicle_year" 
-              class="form-input"
-              :disabled="!isEditing"
-            >
-              <option value="">년식 선택</option>
-              <option v-for="year in availableYears" :key="year" :value="year">{{ year }}</option>
-            </select>
+            <div class="info-value">{{ driver.driver_vehicle_year || '미입력' }}</div>
           </div>
           <div class="info-item">
             <label>승객 정원</label>
-            <select 
-              v-model="editForm.driver_passenger_capacity" 
-              class="form-input"
-              :disabled="!isEditing"
-            >
-              <option value="">정원 선택</option>
-              <option v-for="capacity in availableCapacities" :key="capacity" :value="capacity">{{ capacity }}인승</option>
-            </select>
+            <div class="info-value">{{ driver.driver_passenger_capacity ? `${driver.driver_passenger_capacity}인승` : '미입력' }}</div>
           </div>
         </div>
       </div>
@@ -154,23 +99,11 @@
         <div class="info-grid">
           <div class="info-item">
             <label>우편번호</label>
-            <input 
-              v-model="editForm.driver_garage_zipcode" 
-              type="text" 
-              class="form-input"
-              :disabled="!isEditing"
-              @click="isEditing && findGarageAddress()"
-              readonly
-            >
+            <div class="info-value">{{ driver.driver_garage_zipcode || '미입력' }}</div>
           </div>
           <div class="info-item full-width">
             <label>주소</label>
-            <input 
-              v-model="editForm.driver_garage_address" 
-              type="text" 
-              class="form-input"
-              :disabled="!isEditing"
-            >
+            <div class="info-value">{{ driver.driver_garage_address || '미입력' }}</div>
           </div>
         </div>
       </div>
@@ -295,19 +228,6 @@ const router = useRouter()
 // 반응형 데이터
 const loading = ref(true)
 const driver = ref(null)
-const isEditing = ref(false)
-const editForm = ref({
-  name: '',
-  email: '',
-  mobile_number: '',
-  driver_company: '',
-  driver_vehicle_number: '',
-  driver_vehicle_type: '',
-  driver_vehicle_year: '',
-  driver_passenger_capacity: '',
-  driver_garage_zipcode: '',
-  driver_garage_address: ''
-})
 
 // 차량 사진 배열
 const vehiclePhotos = computed(() => {
@@ -341,20 +261,6 @@ const fetchDriverInfo = async () => {
     }
     
     driver.value = data
-    
-    // 편집 폼 초기화
-    editForm.value = {
-      name: data.name || '',
-      email: data.email || '',
-      mobile_number: data.mobile_number || '',
-      driver_company: data.driver_company || '',
-      driver_vehicle_number: data.driver_vehicle_number || '',
-      driver_vehicle_type: data.driver_vehicle_type || '',
-      driver_vehicle_year: data.driver_vehicle_year || '',
-      driver_passenger_capacity: data.driver_passenger_capacity || '',
-      driver_garage_zipcode: data.driver_garage_zipcode || '',
-      driver_garage_address: data.driver_garage_address || ''
-    }
     
   } catch (error) {
     console.error('기사 정보 조회 오류:', error)
@@ -415,67 +321,11 @@ const handleImageError = (event) => {
   }
 }
 
-// 편집 시작
-const startEdit = () => {
-  isEditing.value = true
-}
-
-// 편집 취소
-const cancelEdit = () => {
-  isEditing.value = false
-  // 원래 데이터로 복원
-  editForm.value = {
-    name: driver.value.name || '',
-    email: driver.value.email || '',
-    mobile_number: driver.value.mobile_number || '',
-    driver_company: driver.value.driver_company || '',
-    driver_vehicle_number: driver.value.driver_vehicle_number || '',
-    driver_vehicle_type: driver.value.driver_vehicle_type || '',
-    driver_vehicle_year: driver.value.driver_vehicle_year || '',
-    driver_passenger_capacity: driver.value.driver_passenger_capacity || '',
-    driver_garage_zipcode: driver.value.driver_garage_zipcode || '',
-    driver_garage_address: driver.value.driver_garage_address || ''
-  }
-}
-
-// 변경사항 저장
-const saveChanges = async () => {
-  try {
-    const { error } = await supabase
-      .from('Users')
-      .update({
-        name: editForm.value.name,
-        mobile_number: editForm.value.mobile_number,
-        driver_company: editForm.value.driver_company,
-        driver_vehicle_number: editForm.value.driver_vehicle_number,
-        driver_vehicle_type: editForm.value.driver_vehicle_type,
-        driver_vehicle_year: editForm.value.driver_vehicle_year,
-        driver_passenger_capacity: editForm.value.driver_passenger_capacity,
-        driver_garage_zipcode: editForm.value.driver_garage_zipcode,
-        driver_garage_address: editForm.value.driver_garage_address
-      })
-      .eq('id', driver.value.id)
-    
-    if (error) throw error
-    
-    // 로컬 데이터 업데이트
-    Object.assign(driver.value, editForm.value)
-    isEditing.value = false
-    
-    alert('정보가 성공적으로 수정되었습니다.')
-    
-  } catch (error) {
-    console.error('정보 수정 실패:', error)
-    alert('정보 수정에 실패했습니다.')
-  }
-}
-
-// 주소 찾기
+// 주소 찾기 (새 페이지에서 사용할 예정)
 const findGarageAddress = () => {
   new daum.Postcode({
     oncomplete: function(data) {
-      editForm.value.driver_garage_zipcode = data.zonecode
-      editForm.value.driver_garage_address = data.address
+      // 새 페이지에서 구현
     }
   }).open()
 }
@@ -696,70 +546,19 @@ onMounted(() => {
 }
 
 /* 폼 입력 스타일 */
-.form-input {
-  width: 100%;
-  padding: 0.5rem;
+.info-value {
+  padding: 0.75rem;
+  background: var(--bg-light);
   border: 1px solid var(--border-color);
   border-radius: var(--border-radius);
   font-size: 0.9rem;
-  background: white;
-  transition: border-color 0.2s;
-}
-
-.form-input:focus {
-  outline: none;
-  border-color: var(--primary-color);
-}
-
-.form-input:disabled {
-  background: var(--bg-light);
-  color: var(--text-secondary);
-  cursor: not-allowed;
-}
-
-.form-input[readonly] {
-  cursor: pointer;
-}
-
-.form-input[readonly]:hover {
-  border-color: var(--primary-color);
-}
-
-/* 편집 액션 버튼 */
-.edit-actions {
+  color: var(--text-primary);
+  min-height: 2.5rem;
   display: flex;
-  gap: 0.5rem;
+  align-items: center;
 }
 
-.btn-save {
-  padding: 0.5rem 1rem;
-  background: #10b981;
-  color: white;
-  border: none;
-  border-radius: var(--border-radius);
-  cursor: pointer;
-  font-size: 0.9rem;
-  transition: background-color 0.2s;
-}
 
-.btn-save:hover {
-  background: #059669;
-}
-
-.btn-cancel {
-  padding: 0.5rem 1rem;
-  background: #6b7280;
-  color: white;
-  border: none;
-  border-radius: var(--border-radius);
-  cursor: pointer;
-  font-size: 0.9rem;
-  transition: background-color 0.2s;
-}
-
-.btn-cancel:hover {
-  background: #4b5563;
-}
 
 /* 이미지 섹션 */
 .images-grid {

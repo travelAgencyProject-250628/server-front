@@ -111,6 +111,11 @@ const router = createRouter({
       meta: { requiresAuth: true }
     },
     {
+      path: '/driver-edit',
+      component: () => import('@/views/DriverEdit.vue'),
+      meta: { requiresAuth: true }
+    },
+    {
       path: '/products/:category',
       name: 'productList',
       component: () => import('@/views/ProductList.vue'),
