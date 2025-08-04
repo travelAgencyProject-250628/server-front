@@ -45,6 +45,7 @@
             <router-link to="/" class="top-link">메인으로</router-link>
             <router-link to="/login" class="top-link">로그인</router-link>
             <router-link to="/join" class="top-link">회원가입</router-link>
+            <router-link to="/driver-join" class="top-link">버스기사 가입</router-link>
         </template>
         
         <!-- 로그인된 경우 -->

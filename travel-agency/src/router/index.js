@@ -21,6 +21,10 @@ const router = createRouter({
       component: () => import('@/views/join.vue')
     },
     {
+      path: '/driver-join',
+      component: () => import('@/views/driver-join.vue')
+    },
+    {
       path: '/login',
       component: () => import('@/views/login.vue')
     },

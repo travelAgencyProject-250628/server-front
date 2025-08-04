@@ -5,7 +5,7 @@
             <div class="container">
                 <!-- 페이지 제목 -->
                 <div class="page-header">
-                    <h1 class="page-title">회원가입</h1>
+                    <h1 class="page-title">버스기사 가입</h1>
                     <p class="page-subtitle">더쉼투어와 함께 특별한 여행을 시작하세요</p>
                 </div>
 
@@ -218,7 +218,7 @@
 
                 <!-- 제출 버튼 -->
                 <div class="form-actions">
-                    <button type="submit" class="btn-submit" @click="handleSubmit">회원가입</button>
+                    <button type="submit" class="btn-submit" @click="handleSubmit">버스기사 가입</button>
                     <button type="button" class="btn-cancel" @click="handleCancel">취소하기</button>
                 </div>
             </div>
@@ -479,7 +479,7 @@ const toggleAllTerms = () => {
 }
 
 const handleCancel = () => {
-    if (confirm('회원가입을 취소하시겠습니까?')) {
+    if (confirm('버스기사 가입을 취소하시겠습니까?')) {
         router.push('/')
     }
 }
@@ -509,7 +509,8 @@ const handleSubmit = async () => {
         address_detail: formData.address2.trim(),
         postal_code: formData.zipcode.trim(),
         receive_sms: formData.smsReceive === 'Y',
-        agree_terms: true
+        agree_terms: true,
+        is_driver: true
     }
 
     const email = formData.email.trim().toLowerCase()
@@ -521,13 +522,13 @@ const handleSubmit = async () => {
         const result = await authService.signUp(email, password, userData)
         
         if (result.success) {
-            alert('✅ 회원가입이 완료되었습니다!')
+            alert('✅ 버스기사 가입이 완료되었습니다!')
             router.push('/')
         } else {
-            alert(`회원가입 실패: ${result.message}`)
+            alert(`버스기사 가입 실패: ${result.message}`)
         }
     } catch (error) {
-        alert(`회원가입 중 오류가 발생했습니다: ${error.message}`)
+        alert(`버스기사 가입 중 오류가 발생했습니다: ${error.message}`)
     }
 }
 
