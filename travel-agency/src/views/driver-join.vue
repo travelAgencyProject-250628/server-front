@@ -143,7 +143,7 @@
                                         </label>
                                     </div>
                                     <p class="field-notice">
-                                        * 수신동의시 신상품 및 할인상품정보 (SMS)받아드립니다
+                                        * 수신 동의시 새로운 여행 상품 및 할인 정보를 받으실 수 있습니다
                                     </p>
                                 </div>
                             </div>
@@ -522,8 +522,8 @@ const handleSubmit = async () => {
         const result = await authService.signUp(email, password, userData)
         
         if (result.success) {
-            alert('✅ 버스기사 가입이 완료되었습니다!')
-            router.push('/')
+            alert('✅ 버스기사 가입이 완료되었습니다!\n추가 정보를 입력해주세요.')
+            router.push('/driver-info')
         } else {
             alert(`버스기사 가입 실패: ${result.message}`)
         }
