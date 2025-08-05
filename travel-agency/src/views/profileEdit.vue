@@ -55,7 +55,8 @@
                                     <div v-if="errors.email" class="error-message">{{ errors.email }}</div>
                                 </div>
 
-                                <div class="form-group">
+                                <!-- 카카오 로그인이 아닌 경우에만 비밀번호 필드 표시 -->
+                                <div v-if="!isKakaoUser" class="form-group">
                                     <label class="form-label">
                                         비밀번호
                                     </label>
@@ -67,7 +68,7 @@
                                     <div v-if="errors.password" class="error-message">{{ errors.password }}</div>
                                 </div>
 
-                                <div class="form-group">
+                                <div v-if="!isKakaoUser" class="form-group">
                                     <label class="form-label">
                                         비밀번호 확인
                                     </label>
@@ -196,6 +197,9 @@ const formData = reactive({
 // 반응형 데이터
 const errors = ref({})
 const fieldTouched = ref({})
+
+// 카카오 사용자 여부 확인
+const isKakaoUser = ref(false)
 
 // Validation 패턴들 (심플한 버전)
 const patterns = {
@@ -362,6 +366,20 @@ const loadUserProfile = async () => {
     formData.address2 = userData.address2 || ''
     formData.smsReceive = userData.smsReceive || 'Y'
 
+    // 카카오 사용자 여부 확인
+    try {
+      const { data: { user }, error: authError } = await authService.supabase.auth.getUser()
+      
+      if (!authError && user) {
+        console.log('인증 제공자 확인:', user.app_metadata?.provider)
+        isKakaoUser.value = user.app_metadata?.provider === 'kakao'
+        console.log('카카오 사용자 여부:', isKakaoUser.value)
+      }
+    } catch (authErr) {
+      console.error('인증 정보 확인 실패:', authErr)
+      isKakaoUser.value = false
+    }
+
   } catch (err) {
     console.error('사용자 정보 로드 실패:', err)
     error.value = err.message || '사용자 정보를 불러오는 중 오류가 발생했습니다.'
@@ -404,9 +422,11 @@ const findAddress = () => {
 const handleSubmit = async () => {
   if (isSubmitting.value) return
 
-  // 전체 폼 검증
-  validateField('password')
-  validateField('passwordConfirm')
+  // 전체 폼 검증 (카카오 사용자가 아닌 경우에만 비밀번호 검증)
+  if (!isKakaoUser.value) {
+    validateField('password')
+    validateField('passwordConfirm')
+  }
   validateField('mobile')
   validateField('phone')
   validateField('address')

@@ -37,7 +37,8 @@
                                     <div v-if="errors.name" class="error-message">{{ errors.name }}</div>
                                 </div>
 
-                                <div class="form-group">
+                                <!-- 카카오 인증이 아닌 경우에만 이메일 표시 -->
+                                <div v-if="!isKakaoAuth" class="form-group">
                                     <label class="form-label required">
                                         <span class="required-icon">⦁</span>
                                         이메일
@@ -51,7 +52,8 @@
                                     <div v-if="errors.email" class="error-message">{{ errors.email }}</div>
                                 </div>
 
-                                <div class="form-group">
+                                <!-- 카카오 인증이 아닌 경우에만 비밀번호 표시 -->
+                                <div v-if="!isKakaoAuth" class="form-group">
                                     <label class="form-label required">
                                         <span class="required-icon">⦁</span>
                                         비밀번호
@@ -65,7 +67,7 @@
                                     <div v-if="errors.password" class="error-message">{{ errors.password }}</div>
                                 </div>
 
-                                <div class="form-group">
+                                <div v-if="!isKakaoAuth" class="form-group">
                                     <label class="form-label required">
                                         <span class="required-icon">⦁</span>
                                         비밀번호 확인
@@ -239,14 +241,57 @@ const errors = ref({})
 const fieldTouched = ref({})
 const agreeAll = ref(false)
 
+// 카카오 인증 상태 확인
+const isKakaoAuth = ref(false)
+
+// 컴포넌트 마운트 시 현재 사용자 인증 상태 확인
+import { onMounted } from 'vue'
+
+onMounted(async () => {
+    console.log('회원가입 페이지 마운트됨')
+    
+    try {
+        // 현재 로그인된 사용자 정보 가져오기
+        const { data: { user }, error } = await authService.supabase.auth.getUser()
+        
+        if (error) {
+            console.error('사용자 정보 조회 실패:', error)
+            isKakaoAuth.value = false
+            return
+        }
+        
+        if (user) {
+            console.log('로그인된 사용자 발견:', user.email)
+            console.log('인증 제공자:', user.app_metadata?.provider)
+            
+            // 카카오로 로그인된 사용자인지 확인
+            if (user.app_metadata?.provider === 'kakao') {
+                console.log('카카오 인증 사용자로 확인됨')
+                isKakaoAuth.value = true
+            } else {
+                console.log('일반 인증 사용자')
+                isKakaoAuth.value = false
+            }
+        } else {
+            console.log('로그인된 사용자 없음')
+            isKakaoAuth.value = false
+        }
+        
+        console.log('isKakaoAuth 설정됨:', isKakaoAuth.value)
+    } catch (error) {
+        console.error('사용자 상태 확인 오류:', error)
+        isKakaoAuth.value = false
+    }
+})
+
 // 폼 데이터 (reactive로 객체 전체를 반응형으로 관리)
 const formData = reactive({
+    name: '',
+    email: '',
     password: '',
     passwordConfirm: '',
-    name: '',
     phone: '',
     mobile: '',
-    email: '',
     zipcode: '',
     address1: '',
     address2: '',
@@ -411,10 +456,12 @@ const validateForm = () => {
         fieldTouched.value[key] = true
     })
     
-    // 개별 검증 실행
-    validateField('email')
-    validateField('password')
-    validateField('passwordConfirm')
+    // 개별 검증 실행 (카카오 인증이 아닌 경우에만 이메일/비밀번호 검증)
+    if (!isKakaoAuth.value) {
+        validateField('email')
+        validateField('password')
+        validateField('passwordConfirm')
+    }
     validateField('name')
     validateField('mobile')
     validateField('phone')
@@ -499,12 +546,11 @@ const handleSubmit = async () => {
         return
     }
 
-    // Supabase User 테이블 형식에 맞게 데이터 변환 (비밀번호 제외)
+    // Supabase User 테이블 형식에 맞게 데이터 변환
     const userData = {
         name: formData.name.trim(),
         phone_number: formData.phone ? formData.phone.trim() : null,
         mobile_number: formData.mobile.trim(),
-        email: formData.email.trim().toLowerCase(),
         address: formData.address1.trim(),
         address_detail: formData.address2.trim(),
         postal_code: formData.zipcode.trim(),
@@ -512,19 +558,34 @@ const handleSubmit = async () => {
         agree_terms: true
     }
 
-    const email = formData.email.trim().toLowerCase()
-    const password = formData.password
-
     console.log('전송할 데이터:', userData)
 
     try {
-        const result = await authService.signUp(email, password, userData)
-        
-        if (result.success) {
-            alert('✅ 회원가입이 완료되었습니다!\n이메일 인증을 완료해주세요.')
-            router.push('/')
+        if (isKakaoAuth.value) {
+            // 카카오 인증된 사용자 정보 저장
+            const result = await authService.saveKakaoUserInfo(userData)
+            
+            if (result.success) {
+                alert('✅ 회원가입이 완료되었습니다!')
+                router.push('/')
+            } else {
+                alert(`회원가입 실패: ${result.message}`)
+            }
         } else {
-            alert(`회원가입 실패: ${result.message}`)
+            // 일반 회원가입
+            const email = formData.email.trim().toLowerCase()
+            const password = formData.password
+            
+            userData.email = email
+            
+            const result = await authService.signUp(email, password, userData)
+            
+            if (result.success) {
+                alert('✅ 회원가입이 완료되었습니다!\n이메일 인증을 완료해주세요.')
+                router.push('/')
+            } else {
+                alert(`회원가입 실패: ${result.message}`)
+            }
         }
     } catch (error) {
         alert(`회원가입 중 오류가 발생했습니다: ${error.message}`)
@@ -537,6 +598,7 @@ const handleSubmit = async () => {
 watch([() => formData.agreePrivacy, () => formData.agreePolicy, () => formData.agreeService], () => {
     agreeAll.value = formData.agreePrivacy && formData.agreePolicy && formData.agreeService
 })
+
 
 // 실시간 validation을 위한 watch
 watch(() => formData.email, () => {

@@ -33,6 +33,12 @@
 
                     <!-- 회원 로그인 -->
                     <div v-if="activeTab === 'member'" class="login-form">
+                        <!-- 카카오 인증 완료 메시지 -->
+                        <div v-if="kakaoAuthSuccess" class="kakao-success-message">
+                            <div class="success-icon">✅</div>
+                            <p>카카오 인증이 완료되었습니다. 추가 정보를 입력해주세요.</p>
+                        </div>
+                        
                         <form @submit.prevent="handleLogin" class="form" novalidate>
                             <div class="input-group">
                                 <div class="input-wrapper">
@@ -72,6 +78,20 @@
 
                             <button type="submit" class="btn-login">로그인</button>
                         </form>
+
+                        <!-- 소셜 로그인 -->
+                        <div class="social-login">
+                            <div class="divider">
+                                <span class="divider-text">또는</span>
+                            </div>
+                            <button type="button" class="btn-kakao-login" @click="handleKakaoLogin">
+                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+                                    <path d="M12 3C6.48 3 2 6.48 2 12c0 4.41 2.72 8.18 6.56 9.72.48.09.88-.18.88-.66v-2.24c-2.67.58-5.44-1.08-5.44-3.82 0-2.12 1.72-3.84 3.84-3.84 2.12 0 3.84 1.72 3.84 3.84 0 2.74-2.77 4.4-5.44 3.82v2.24c0 .48.4.75.88.66C9.28 20.18 12 16.41 12 12c0-4.96-4.04-9-9-9z" fill="#FEE500"/>
+                                    <path d="M12 3C6.48 3 2 6.48 2 12c0 4.41 2.72 8.18 6.56 9.72.48.09.88-.18.88-.66v-2.24c-2.67.58-5.44-1.08-5.44-3.82 0-2.12 1.72-3.84 3.84-3.84 2.12 0 3.84 1.72 3.84 3.84 0 2.74-2.77 4.4-5.44 3.82v2.24c0 .48.4.75.88.66C9.28 20.18 12 16.41 12 12c0-4.96-4.04-9-9-9z" fill="#FEE500"/>
+                                </svg>
+                                카카오로 로그인
+                            </button>
+                        </div>
 
                         <!-- 하단 링크 -->
                         <div class="login-links">
@@ -199,6 +219,16 @@ if (route.value.query.tab === 'guest') {
     activeTab.value = 'guest'
 }
 
+// 카카오 인증 완료 상태 확인
+const kakaoAuthSuccess = ref(false)
+if (route.value.query.kakao_auth === 'success') {
+    // 카카오 인증이 완료된 경우 처리
+    console.log('카카오 인증 완료됨')
+    kakaoAuthSuccess.value = true
+    // URL에서 파라미터 제거
+    router.replace('/login')
+}
+
 // 로그인 데이터
 const loginData = reactive({
     email: '',
@@ -230,6 +260,28 @@ const handleLogin = async () => {
         }
     } catch (error) {
         alert(`로그인 중 오류가 발생했습니다: ${error.message}`)
+    }
+}
+
+const handleKakaoLogin = async () => {
+    try {
+        // 원래 가려던 페이지 URL 가져오기
+        const redirectPath = router.currentRoute.value.query.redirect || '/'
+        const redirectTo = `${window.location.origin}/auth/callback?next=${encodeURIComponent(redirectPath)}`
+        
+        console.log('카카오 로그인 시작, redirectTo:', redirectTo)
+        
+        const result = await authService.signInWithKakao(redirectTo)
+        
+        if (result.success) {
+            console.log('카카오 로그인 시작됨')
+            // 카카오 로그인은 자동으로 리디렉션되므로 여기서는 아무것도 하지 않음
+        } else {
+            alert(`카카오 로그인 실패: ${result.message}`)
+        }
+    } catch (error) {
+        console.error('카카오 로그인 오류:', error)
+        alert(`카카오 로그인 중 오류가 발생했습니다: ${error.message}`)
     }
 }
 
@@ -606,6 +658,84 @@ const formatDateTime = (dateTimeString) => {
 
 .departure-time {
     color: var(--primary-color);
+    font-weight: 500;
+}
+
+/* 소셜 로그인 */
+.social-login {
+    margin-top: 1.5rem;
+}
+
+.divider {
+    position: relative;
+    text-align: center;
+    margin: 1.5rem 0;
+}
+
+.divider::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 0;
+    right: 0;
+    height: 1px;
+    background: var(--border-color);
+}
+
+.divider-text {
+    background: white;
+    padding: 0 1rem;
+    color: var(--text-secondary);
+    font-size: 0.85rem;
+    position: relative;
+    z-index: 1;
+}
+
+.btn-kakao-login {
+    width: 100%;
+    background: #FEE500;
+    color: #3C1E1E;
+    padding: 0.875rem;
+    border: none;
+    border-radius: var(--border-radius);
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: var(--transition);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+}
+
+.btn-kakao-login:hover {
+    background: #FDD835;
+}
+
+.btn-kakao-login svg {
+    width: 20px;
+    height: 20px;
+}
+
+/* 카카오 인증 완료 메시지 */
+.kakao-success-message {
+    background: #d1fae5;
+    border: 1px solid #10b981;
+    border-radius: 8px;
+    padding: 1rem;
+    margin-bottom: 1.5rem;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.success-icon {
+    font-size: 1.25rem;
+}
+
+.kakao-success-message p {
+    margin: 0;
+    color: #065f46;
     font-weight: 500;
 }
 

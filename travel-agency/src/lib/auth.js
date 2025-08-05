@@ -5,6 +5,236 @@ export class AuthService {
     this.supabase = supabase
   }
 
+  // 카카오 소셜 로그인
+  async signInWithKakao(redirectTo = null) {
+    try {
+      console.log('카카오 로그인 시작')
+      
+      const options = {
+        queryParams: {
+          scope: 'account_email' // 이메일 정보만 요청
+        }
+      }
+      if (redirectTo) {
+        options.redirectTo = redirectTo
+      }
+
+      const { data, error } = await this.supabase.auth.signInWithOAuth({
+        provider: 'kakao',
+        options
+      })
+
+      if (error) {
+        console.error('카카오 로그인 실패:', error)
+        throw error
+      }
+
+      console.log('카카오 로그인 성공:', data)
+      return {
+        success: true,
+        message: '카카오 로그인이 시작되었습니다.',
+        data
+      }
+    } catch (error) {
+      console.error('카카오 로그인 오류:', error)
+      return {
+        success: false,
+        error: error.message,
+        message: `카카오 로그인에 실패했습니다: ${error.message}`
+      }
+    }
+  }
+
+  // OAuth 콜백 처리 (서버 사이드에서 사용)
+  async handleOAuthCallback(code) {
+    try {
+      console.log('OAuth 콜백 처리 시작')
+      
+      const { data, error } = await this.supabase.auth.exchangeCodeForSession(code)
+      
+      if (error) {
+        console.error('OAuth 콜백 처리 실패:', error)
+        throw error
+      }
+
+      console.log('OAuth 콜백 처리 성공:', data)
+
+      // 카카오 로그인 사용자의 경우 Users 테이블에 정보 저장
+      if (data.user && data.user.app_metadata?.provider === 'kakao') {
+        await this.handleKakaoUserRegistration(data.user)
+      }
+
+      // Users 테이블에서 추가 정보 조회 (UserRoles 테이블과 left join)
+      let userInfo = null
+      if (data.user) {
+        const { data: userData, error: userError } = await this.supabase
+          .from('Users')
+          .select(`
+            *,
+            UserRoles(is_admin)
+          `)
+          .eq('auth_id', data.user.id)
+          .maybeSingle()
+
+        if (!userError && userData) {
+          // UserRoles 정보를 포함하여 userInfo 구성
+          userInfo = {
+            ...userData,
+            is_admin: userData.UserRoles?.is_admin || false
+          }
+        } else if (userError) {
+          console.warn('Users 테이블 조회 실패 (계속 진행):', userError)
+        }
+      }
+
+      return {
+        success: true,
+        message: '카카오 로그인이 완료되었습니다.',
+        user: userInfo || data.user,
+        session: data.session
+      }
+    } catch (error) {
+      console.error('OAuth 콜백 처리 오류:', error)
+      return {
+        success: false,
+        error: error.message,
+        message: `OAuth 콜백 처리에 실패했습니다: ${error.message}`
+      }
+    }
+  }
+
+  // 카카오 사용자 등록 처리
+  async handleKakaoUserRegistration(user) {
+    try {
+      console.log('카카오 사용자 등록 처리 시작:', user.id)
+      
+      // 이미 Users 테이블에 존재하는지 확인
+      const { data: existingUser, error: checkError } = await this.supabase
+        .from('Users')
+        .select('id')
+        .eq('auth_id', user.id)
+        .maybeSingle()
+
+      if (checkError) {
+        console.error('사용자 존재 확인 실패:', checkError)
+        return
+      }
+
+      if (existingUser) {
+        console.log('이미 등록된 카카오 사용자:', existingUser.id)
+        return
+      }
+
+      // 카카오 사용자 정보 추출
+      const userData = {
+        auth_id: user.id,
+        email: user.email,
+        name: user.user_metadata?.name || user.user_metadata?.nickname || '카카오 사용자',
+        phone_number: user.user_metadata?.phone_number || null,
+        mobile_number: user.user_metadata?.mobile_number || null,
+        profile_image: user.user_metadata?.avatar_url || user.user_metadata?.profile_image_url || null,
+        created_at: new Date().toISOString(),
+      }
+
+      // Users 테이블에 저장
+      const { data: newUser, error: insertError } = await this.supabase
+        .from('Users')
+        .insert([userData])
+        .select()
+
+      if (insertError) {
+        console.error('카카오 사용자 등록 실패:', insertError)
+        throw insertError
+      }
+
+      console.log('카카오 사용자 등록 성공:', newUser[0])
+    } catch (error) {
+      console.error('카카오 사용자 등록 처리 오류:', error)
+      // 사용자 등록 실패해도 로그인은 계속 진행
+    }
+  }
+
+  // 카카오 사용자 정보 저장 (회원가입 페이지에서 사용)
+  async saveKakaoUserInfo(userData) {
+    try {
+      console.log('카카오 사용자 정보 저장 시작:', userData)
+      
+      // 현재 카카오 인증된 사용자 정보 가져오기
+      const { data: { user }, error: userError } = await this.supabase.auth.getUser()
+      
+      if (userError || !user) {
+        throw new Error('카카오 인증이 필요합니다.')
+      }
+
+      // 이미 Users 테이블에 존재하는지 확인
+      const { data: existingUser, error: checkError } = await this.supabase
+        .from('Users')
+        .select('id')
+        .eq('auth_id', user.id)
+        .maybeSingle()
+
+      if (checkError) {
+        console.error('사용자 존재 확인 실패:', checkError)
+        throw checkError
+      }
+
+      if (existingUser) {
+        // 기존 사용자 정보 업데이트
+        const { data: updatedUser, error: updateError } = await this.supabase
+          .from('Users')
+          .update({
+            ...userData
+          })
+          .eq('auth_id', user.id)
+          .select()
+
+        if (updateError) {
+          console.error('카카오 사용자 정보 업데이트 실패:', updateError)
+          throw updateError
+        }
+
+        console.log('카카오 사용자 정보 업데이트 성공:', updatedUser[0])
+        return {
+          success: true,
+          message: '회원가입이 완료되었습니다.',
+          user: updatedUser[0]
+        }
+      } else {
+        // 새 사용자 정보 저장
+        const newUserData = {
+          ...userData,
+          auth_id: user.id,
+          email: user.email,
+          created_at: new Date().toISOString(),
+        }
+
+        const { data: newUser, error: insertError } = await this.supabase
+          .from('Users')
+          .insert([newUserData])
+          .select()
+
+        if (insertError) {
+          console.error('카카오 사용자 정보 저장 실패:', insertError)
+          throw insertError
+        }
+
+        console.log('카카오 사용자 정보 저장 성공:', newUser[0])
+        return {
+          success: true,
+          message: '회원가입이 완료되었습니다.',
+          user: newUser[0]
+        }
+      }
+    } catch (error) {
+      console.error('카카오 사용자 정보 저장 오류:', error)
+      return {
+        success: false,
+        error: error.message,
+        message: `회원가입에 실패했습니다: ${error.message}`
+      }
+    }
+  }
+
   // 회원가입
   async signUp(email, password, userData = {}) {
     try {

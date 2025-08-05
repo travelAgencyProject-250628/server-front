@@ -88,3 +88,35 @@ VITE_R2_BUCKET_NAME=travel-agency-products
 // 광고 배너 표시 여부 (true: 표시, false: 숨김)
 // 이미지 업데이트
 
+## 카카오 OAuth 설정
+
+이 프로젝트는 카카오 소셜 로그인을 지원합니다.
+
+### 1. 카카오 개발자 계정 설정
+1. [Kakao Developers](https://developers.kakao.com/)에 로그인
+2. 새 애플리케이션 생성
+3. 앱 정보에서 REST API 키 확인
+4. 카카오 로그인 활성화
+5. Redirect URI 설정: `http://127.0.0.1:54321/auth/v1/callback` (로컬 개발용)
+6. 동의항목 설정: `account_email`, `profile_image`, `profile_nickname`
+7. 보안 > Client Secret Code 생성 및 활성화
+
+### 2. 환경 변수 설정
+프로젝트 루트에 `.env` 파일을 생성하고 다음 내용을 추가:
+
+```env
+# Supabase 설정
+VITE_SUPABASE_URL=http://127.0.0.1:54321
+VITE_SUPABASE_ANON_KEY=your-anon-key-here
+
+# 카카오 OAuth 설정
+SUPABASE_AUTH_EXTERNAL_KAKAO_CLIENT_ID=your-kakao-rest-api-key
+SUPABASE_AUTH_EXTERNAL_KAKAO_SECRET=your-kakao-client-secret
+```
+
+### 3. Supabase 설정
+1. Supabase 프로젝트 대시보드에서 Authentication > Providers
+2. Kakao 제공자 활성화
+3. Client ID와 Client Secret 입력
+4. Redirect URL 확인: `http://127.0.0.1:54321/auth/v1/callback`
+
