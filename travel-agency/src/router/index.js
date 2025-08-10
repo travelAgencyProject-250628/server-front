@@ -184,6 +184,12 @@ const router = createRouter({
           component: () => import('@/views/admin/ItineraryEdit.vue'),
           meta: { requiresAuth: true, requiresAdmin: true }
         },
+        {
+          path: 'kakao-channel-test',
+          name: 'adminKakaoChannelTest',
+          component: () => import('@/views/admin/KakaoChannelTest.vue'),
+          meta: { requiresAuth: true, requiresAdmin: true }
+        },
 
       ]
     }

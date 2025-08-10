@@ -78,6 +78,9 @@ VITE_R2_ENDPOINT=https://your-account-id.r2.cloudflarestorage.com
 VITE_R2_ACCESS_KEY_ID=your-access-key-id
 VITE_R2_SECRET_ACCESS_KEY=your-secret-access-key
 VITE_R2_BUCKET_NAME=travel-agency-products
+
+# SOLAPI 카카오톡 알림톡 템플릿 ID
+VITE_SOLAPI_WELCOME_TEMPLATE_ID=KA01TP221025083117992xkz17KyvNbr
 ```
 
 ### 4. R2 Endpoint URL 확인

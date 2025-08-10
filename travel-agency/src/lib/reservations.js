@@ -1,4 +1,9 @@
 import { supabase } from './supabase.js'
+import { 
+  sendReservationConfirmation, 
+  sendReservationUpdate, 
+  sendReservationCancellation 
+} from './kakaoChannel.js'
 
 /**
  * 예약 상세 정보 조회
@@ -161,6 +166,36 @@ export async function createReservation(reservationData) {
       .select('id')
       .single()
     if (error) throw error
+    
+    // 예약 생성 성공 시 카카오톡 알림톡 발송
+    try {
+      // 상품 정보 조회
+      const { data: productData, error: productError } = await supabase
+        .from('Products')
+        .select('title')
+        .eq('id', reservationData.productId)
+        .single()
+      
+      if (!productError && productData) {
+        const reservationInfo = {
+          customerName: reservationData.bookerName,
+          productName: productData.title,
+          departureDate: reservationData.departureDate,
+          reservationNumber: data.id.toString(),
+          totalAmount: (reservationData.adultCount * (reservationData.adultPrice || 0)) + 
+                      (reservationData.childCount * (reservationData.childPrice || 0)),
+          pickupLocation: reservationData.departureLocation || '',
+          pickupTime: reservationData.departureTime || ''
+        }
+        
+        // 카카오톡 알림톡 발송
+        await sendReservationConfirmation(reservationData.bookerPhone, reservationInfo)
+      }
+    } catch (kakaoError) {
+      console.error('카카오톡 알림톡 발송 실패:', kakaoError)
+      // 알림톡 발송 실패해도 예약은 성공으로 처리
+    }
+    
     return { success: true, id: data.id }
   } catch (error) {
     return { success: false, error: error.message }
