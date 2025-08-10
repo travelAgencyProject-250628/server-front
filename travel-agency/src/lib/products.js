@@ -34,20 +34,22 @@ export async function getAllStartingPoints() {
  * Cloudflare R2에 상품 이미지 업로드
  * @param {File[]} files - 업로드할 이미지 파일 배열
  * @param {string} productNumber - product_number (폴더명)
+ * @param {boolean} isUpdate - 이미지 수정 여부 (true면 타임스탬프 추가)
  * @returns {Promise<{success: boolean, urls?: string[], error?: string}>}
  */
-export async function uploadProductImages(files, productNumber) {
-  return await uploadProductImagesToR2(files, productNumber);
+export async function uploadProductImages(files, productNumber, isUpdate = false) {
+  return await uploadProductImagesToR2(files, productNumber, isUpdate);
 }
 
 /**
  * Cloudflare R2에 상세 이미지 업로드
  * @param {File} file - 업로드할 상세 이미지 파일
  * @param {string} productNumber - product_number (폴더명)
+ * @param {boolean} isUpdate - 이미지 수정 여부 (true면 타임스탬프 추가)
  * @returns {Promise<{success: boolean, url?: string, error?: string}>}
  */
-export async function uploadDetailImage(file, productNumber) {
-  return await uploadDetailImageToR2(file, productNumber);
+export async function uploadDetailImage(file, productNumber, isUpdate = false) {
+  return await uploadDetailImageToR2(file, productNumber, isUpdate);
 }
 
 /**
@@ -476,7 +478,7 @@ export async function updateProduct(productId, productData) {
     let imageUrls = [];
     
     if (productData.images && productData.images.length) {
-      const uploadResult = await uploadProductImages(productData.images, existingProduct.product_number);
+      const uploadResult = await uploadProductImages(productData.images, existingProduct.product_number, true);
       if (!uploadResult.success) throw new Error(uploadResult.error);
       mainImageUrl = uploadResult.urls[0];
       imageUrls = uploadResult.urls.slice(1);
@@ -485,7 +487,7 @@ export async function updateProduct(productId, productData) {
     // 상세 이미지 업로드 처리
     let detailImageUrl = '';
     if (productData.detail_image_url) {
-      const detailUploadResult = await uploadDetailImage(productData.detail_image_url, existingProduct.product_number);
+      const detailUploadResult = await uploadDetailImage(productData.detail_image_url, existingProduct.product_number, true);
       if (!detailUploadResult.success) throw new Error(detailUploadResult.error);
       detailImageUrl = detailUploadResult.url;
     }

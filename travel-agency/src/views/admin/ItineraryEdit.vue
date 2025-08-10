@@ -187,7 +187,7 @@ import { ref, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { supabase } from '@/lib/supabase.js'
 import { updateProduct } from '@/lib/products.js'
-import { uploadProductImagesToR2, deleteImageFromR2 } from '@/lib/r2-upload.js'
+import { uploadItineraryImagesToR2, deleteImageFromR2 } from '@/lib/r2-upload.js'
 
 const route = useRoute()
 const router = useRouter()
@@ -453,7 +453,7 @@ const handleImageUpload = async (detailId, files) => {
   
   try {
     const productNumber = selectedProduct.value.product_number || `product_${selectedProduct.value.id}`
-    const result = await uploadProductImagesToR2(files, `${productNumber}/itinerary`)
+    const result = await uploadItineraryImagesToR2(files, productNumber, true)
     
     if (result.success) {
       // 이미지 URL을 detail에 추가
