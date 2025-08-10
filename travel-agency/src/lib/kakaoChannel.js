@@ -3,7 +3,7 @@ const SOLAPI_WELCOME_TEMPLATE_ID = import.meta.env.VITE_SOLAPI_WELCOME_TEMPLATE_
 
 /**
  * 카카오톡 알림톡 발송
- * @param {string} to - 수신자 전화번호 (01012345678 형식)
+ * @param {string} to - 수신자 전화번호 (01012345678 형식, 선택사항)
  * @param {string} templateType - 템플릿 타입 (WELCOME, RESERVATION 등)
  * @param {Object} variables - 템플릿 변수들
  * @returns {Promise<Object>} 발송 결과
@@ -11,10 +11,14 @@ const SOLAPI_WELCOME_TEMPLATE_ID = import.meta.env.VITE_SOLAPI_WELCOME_TEMPLATE_
 export async function sendKakaoAlimtalk(to, templateType, variables = {}) {
   try {
     const requestBody = {
-      to: to,
       template_type: templateType,
       variables: variables
     };
+    
+    // WELCOME 타입일 때만 to 필드 포함
+    if (templateType === 'WELCOME' && to) {
+      requestBody.to = to;
+    }
     
     // console.log('카카오톡 알림톡 요청 데이터:', requestBody);
     

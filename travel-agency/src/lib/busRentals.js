@@ -50,7 +50,6 @@ async function sendBusRentalNotification(rentalData) {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        to: '01044942688', // 관리자 전화번호 (환경변수로 관리하는 것이 좋음)
         template_type: 'ADMIN_TEMPLATE',
         variables: templateVariables
       })
